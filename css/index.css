@@ -47,7 +47,7 @@ h1 {
     color: #ff9f43; /* Màu cam pastel */
     text-transform: uppercase;
     margin-bottom: 10px;
-	padding-top: 100px;
+	padding-top: 10vw;
 	font-family: AmpleSoft;
 }
 
@@ -135,6 +135,7 @@ h1 {
 }
 
 #play-without-login {
+	font-family: AmpleSoft;
     background: #6c757d; /* Xám nhẹ để phân biệt */
     color: white;
     font-size: 16px;
@@ -152,6 +153,7 @@ h1 {
 }
 
 #start-button {
+	font-family: AmpleSoft;
     background: #ff9f43;
     color: white;
     font-size: 18px;
@@ -185,6 +187,7 @@ h1 {
     display: flex;
     justify-content: center;
     gap: 15px;
+	font-family: AmpleSoft;
 }
 
 .scoreboard-container button {
