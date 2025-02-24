@@ -211,11 +211,28 @@ h1 {
     background: #ff7043;
 }
 
+#logout-button {
+    background-color: #ff4d4d; /* Màu đỏ nổi bật */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: block;
+    margin: 10px auto; /* Căn giữa nút */
+    transition: background-color 0.3s ease;
+}
+
+#logout-button:hover {
+    background-color: #e60000; /* Màu đỏ đậm hơn khi hover */
+}
 
 
 
 table {
-    width: 100%;
+    width: 70%;
     border-collapse: collapse;
     margin-top: 10px;
 }

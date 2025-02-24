@@ -45,11 +45,16 @@ function checkYouTubeAPI(callback) {
     }
 }
 
-window.addEventListener("beforeunload", function () {
+
+window.addEventListener("beforeunload", async function (event) {
     if (playerScore > 0) {
-        updateScore("2048", playerScore); // 🔥 Lưu điểm trước khi thoát
+        console.log("🔥 Người chơi thoát game, lưu điểm trước...");
+        event.preventDefault(); // Chặn đóng tab ngay lập tức
+        event.returnValue = "Dữ liệu đang được lưu..."; // Hiển thị cảnh báo thoát
+        await updateScore("2048", playerScore); // Đợi Firestore lưu điểm xong
     }
 });
+
 
 
 
@@ -531,6 +536,7 @@ function compressAndMerge(line) {
         if (compressed[i] === compressed[i + 1]) {
             compressed[i] *= 2; // Gộp ô
             compressed[i + 1] = 0; // Ô tiếp theo thành trống
+			
         }
     }
     compressed = compressed.filter((num) => num !== 0); // Loại bỏ ô trống sau khi gộp

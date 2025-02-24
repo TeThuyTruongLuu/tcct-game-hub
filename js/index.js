@@ -28,6 +28,17 @@ function onDeviceReady() {
     document.getElementById('deviceready').classList.add('ready');
 }
 
+document.addEventListener("deviceready", function() {
+    document.addEventListener("backbutton", function(e) {
+        const loginModal = document.getElementById("login-modal");
+        if (loginModal.style.display === "none") {
+            e.preventDefault(); // 🔥 Ngăn không quay lại màn hình đăng nhập
+            navigator.app.exitApp(); // 🔥 Thoát ứng dụng luôn
+        }
+    }, false);
+}, false);
+
+
 // Kiểm tra nếu Firebase đã được khởi tạo
 if (!firebase.apps.length) {
     const firebaseConfig = {
@@ -47,6 +58,8 @@ if (!firebase.apps.length) {
 // Lấy Firestore
 const db = firebase.firestore();
 
+
+/* 
 // Đảm bảo script chỉ chạy sau khi DOM đã load
 document.addEventListener("DOMContentLoaded", function () {
     console.log("🔥 DOM đã load xong!");
@@ -115,7 +128,75 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
         console.error("❌ Nút 'Chơi không đăng nhập' không tồn tại!");
     }
+}); */
+
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("🔥 DOM đã load xong!");
+
+    const savedUsername = localStorage.getItem("username");
+	const startButton = document.getElementById("start-button");
+
+    if (savedUsername) {
+        console.log(`🔄 Tự động đăng nhập: ${savedUsername}`);
+        document.getElementById("login-modal").style.display = "none";
+        document.getElementById("welcome-message").style.display = "block";
+        document.getElementById("display-name").innerText = savedUsername;
+
+        document.querySelector(".points").style.display = "block";
+        document.querySelector(".scoreboard-container").style.display = "flex";
+        document.querySelector(".game-list").style.display = "grid";
+        document.getElementById("scoreboard").style.display = "block";
+		document.getElementById("logout-button").style.display = "block";
+        updateTotalScore();
+    }
+
+
+	if (startButton) {
+		startButton.addEventListener("click", async () => {
+			const codeInput = document.getElementById("code-input").value.trim();
+			const nicknameInput = document.getElementById("nickname-input").value.trim();
+
+			if (codeInput !== "TCCT" || !nicknameInput) {
+				alert("Nhập đúng mã 'TCCT' và điền tên hợp lệ nha bồ ơi.");
+				return;
+			}
+
+			console.log(`📌 Đăng nhập với tên: ${nicknameInput}`);
+
+			const userRef = db.collection("users").doc(nicknameInput);
+			const userDoc = await userRef.get();
+
+			if (userDoc.exists) {
+				alert(`Chào mừng trở lại, ${nicknameInput}!`);
+			} else {
+				await userRef.set({ username: nicknameInput });
+				alert(`Tạo tài khoản thành công! Xin chào, ${nicknameInput}.`);
+			}
+
+			localStorage.setItem("username", nicknameInput); // 🔥 LƯU username vào bộ nhớ thiết bị
+
+			document.getElementById("login-modal").style.display = "none";
+			document.getElementById("welcome-message").style.display = "block";
+			document.getElementById("display-name").innerText = nicknameInput;
+
+			document.querySelector(".points").style.display = "block";
+			document.querySelector(".scoreboard-container").style.display = "flex";
+			document.querySelector(".game-list").style.display = "grid";
+			document.getElementById("scoreboard").style.display = "block";
+			document.getElementById("logout-button").style.display = "block";
+
+			updateTotalScore();
+		});
+	}
+
 });
+
+
+
+function logout() {
+    localStorage.removeItem("username"); // Xóa tên đăng nhập khỏi bộ nhớ
+    location.reload(); // Tải lại trang để về màn hình đăng nhập
+}
 
 
 async function updateScore(game, newScore) {
@@ -125,38 +206,43 @@ async function updateScore(game, newScore) {
         return;
     }
 
-    const scoresRef = firebase.firestore().collection("userScores");
-    const userScoreRef = scoresRef.where("username", "==", username).where("game", "==", game);
-    
+    const scoreDocId = `${username}-${game}`; // 🔥 Tạo ID duy nhất cho mỗi user-game
+    const scoreRef = firebase.firestore().collection("userScores").doc(scoreDocId);
+
     try {
-        const querySnapshot = await userScoreRef.get();
-        if (querySnapshot.empty) {
-            // Nếu chưa có điểm, tạo mới
-            await scoresRef.add({
+        const docSnapshot = await scoreRef.get();
+        if (!docSnapshot.exists) {
+            // 🔥 Nếu chưa có dữ liệu, tạo mới
+            await scoreRef.set({
                 username: username,
                 game: game,
                 score: newScore,
                 updatedAt: new Date().toISOString()
             });
-            console.log(`🔥 Điểm mới của ${username} (${game}): ${newScore}`);
+            console.log(`🆕 Tạo điểm mới: ${username} - ${game}: ${newScore}`);
         } else {
-            // Nếu đã có điểm, chỉ cập nhật nếu cao hơn
-            const doc = querySnapshot.docs[0];
-            const oldScore = doc.data().score;
+            const oldScore = docSnapshot.data().score;
             if (newScore > oldScore) {
-                await scoresRef.doc(doc.id).update({
+                // 🔥 Nếu điểm mới cao hơn điểm cũ, ghi đè lên
+                await scoreRef.update({
                     score: newScore,
                     updatedAt: new Date().toISOString()
                 });
-                console.log(`🔥 Điểm của ${username} (${game}) được cập nhật lên ${newScore}`);
+                console.log(`✅ Cập nhật điểm: ${username} - ${game}: ${newScore}`);
             } else {
-                console.log(`⚠️ Điểm ${newScore} không cao hơn ${oldScore}, không cập nhật.`);
+                console.log("⚠️ Điểm mới không cao hơn điểm cũ, không cập nhật.");
             }
         }
+
+        // 🔥 Cập nhật tổng điểm sau khi thay đổi điểm của game
+        updateTotalScore();
     } catch (error) {
         console.error("❌ Lỗi khi cập nhật điểm:", error);
     }
 }
+
+window.updateScore = updateScore;
+
 
 
 let personalScoresVisible = false; // Biến để kiểm tra trạng thái hiển thị
