@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="VcsDirectoryMappings">
-    <mapping directory="$PROJECT_DIR$/platforms/android/app/src/main/assets/www/2048" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/platforms/android/app/src/main/assets/www/matching_game" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/www/2048" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/www/matching_game" vcs="Git" />
-  </component>
-</project>
