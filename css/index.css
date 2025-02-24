@@ -52,10 +52,16 @@ h1 {
 }
 
 .points {
-    font-size: 18px;
-    color: #6c757d;
-    margin-bottom: 20px;
+    width: 80vw;
+    max-width: 800px;
+    background: #fff3cd;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    margin: 0 auto;
+    display: block;
 }
+
 
 /* Bố cục danh sách game */
 .game-list {
