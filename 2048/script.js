@@ -431,12 +431,7 @@ function handleSwipe() {
 }
 
 
-// Xử lý nút di chuyển
-function move(direction) {
-    // Logic di chuyển (thêm sau)
-    addRandomTile();
-    renderBoard();
-}
+
 
 // Lắng nghe sự kiện bàn phím
 document.addEventListener("keydown", (e) => {
@@ -498,6 +493,7 @@ function move(direction) {
     }
 
     if (moved) {
+		updateHighestTileScore();
         addRandomTile(); // Thêm ô mới trước
         renderBoard();
 
@@ -534,8 +530,6 @@ function compressAndMerge(line) {
     for (let i = 0; i < compressed.length - 1; i++) {
         if (compressed[i] === compressed[i + 1]) {
             compressed[i] *= 2; // Gộp ô
-            console.log(`Điểm hiện tại: ${playerScore}`);
-            playerScore += compressed[i]; // 🔥 Cộng điểm vào tổng điểm
             compressed[i + 1] = 0; // Ô tiếp theo thành trống
         }
     }
@@ -615,4 +609,17 @@ function checkWin() {
         }
     }
     return false;
+}
+
+function updateHighestTileScore() {
+    let highestTile = 0;
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            if (grid[row][col] > highestTile) {
+                highestTile = grid[row][col]; // Lấy ô có giá trị lớn nhất
+            }
+        }
+    }
+    playerScore = highestTile; // Cập nhật playerScore thành ô cao nhất
+    console.log(`🔢 Điểm hiện tại (ô cao nhất): ${playerScore}`);
 }
