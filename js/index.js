@@ -28,99 +28,91 @@ function onDeviceReady() {
     document.getElementById('deviceready').classList.add('ready');
 }
 
+// Kiểm tra nếu Firebase đã khởi tạo
+if (!firebase.apps.length) {
+    const firebaseConfig = {
+        apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
+        authDomain: "tcct-minigames.firebaseapp.com",
+        projectId: "tcct-minigames",
+        storageBucket: "tcct-minigames.firebasestorage.app",
+        messagingSenderId: "604780847536",
+        appId: "1:604780847536:web:f8015bde5ef469b04c7675",
+        measurementId: "G-1GGDZR6VY5"
+    };
 
-// Import Firebase SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where, orderBy, limit }
-from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-// Cấu hình Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
-    authDomain: "tcct-minigames.firebaseapp.com",
-    projectId: "tcct-minigames",
-    storageBucket: "tcct-minigames.firebasestorage.app",
-    messagingSenderId: "604780847536",
-    appId: "1:604780847536:web:f8015bde5ef469b04c7675",
-    measurementId: "G-1GGDZR6VY5"
-};
-
-// Khởi tạo Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-console.log("🔥 Firebase đã kết nối thành công!");
-
-// Kiểm tra kết nối Firestore
-async function testFirestore() {
-    try {
-        const querySnapshot = await getDocs(collection(db, "test"));
-        console.log("🔥 Firestore hoạt động tốt, có thể truy vấn dữ liệu!");
-    } catch (error) {
-        console.error("🚨 Firestore bị lỗi:", error);
-    }
+    firebase.initializeApp(firebaseConfig);
+    console.log("🔥 Firebase đã được khởi tạo trong index.js!");
 }
+
+// Lấy Firestore
+const db = firebase.firestore();
 
 // Đảm bảo script chỉ chạy sau khi DOM đã load
 document.addEventListener("DOMContentLoaded", function () {
-    testFirestore();
+    console.log("🔥 DOM đã load xong!");
 
-    // Xử lý sự kiện đăng nhập
-    document.getElementById('start-button').addEventListener('click', async () => {
-        const codeInput = document.getElementById('code-input').value.trim();
-        const nicknameInput = document.getElementById('nickname-input').value.trim();
+    // Kiểm tra nếu Firebase đã khởi tạo
+    if (!firebase.apps.length) {
+        console.error("❌ Firebase chưa được khởi tạo!");
+        return;
+    }
 
-        if (codeInput !== "TCCT" || !nicknameInput) {
-            alert("Nhập đúng mã 'TCCT' và điền tên hợp lệ nha bồ ơi.");
-            return;
-        }
+    // Kiểm tra nếu các button có tồn tại
+    const startButton = document.getElementById("start-button");
+    const playWithoutLoginButton = document.getElementById("play-without-login");
 
-        const userRef = doc(db, "users", nicknameInput);
-        const userDoc = await getDoc(userRef);
+    if (startButton) {
+        startButton.addEventListener("click", async () => {
+            const codeInput = document.getElementById("code-input").value.trim();
+            const nicknameInput = document.getElementById("nickname-input").value.trim();
 
-        if (userDoc.exists()) {
-            alert(`Chào mừng trở lại, ${nicknameInput}!`);
-        } else {
-            await setDoc(userRef, { username: nicknameInput });
-            alert(`Tạo tài khoản thành công! Xin chào, ${nicknameInput}.`);
-        }
+            if (codeInput !== "TCCT" || !nicknameInput) {
+                alert("Nhập đúng mã 'TCCT' và điền tên hợp lệ nha bồ ơi.");
+                return;
+            }
 
-        // Lưu vào localStorage để nhớ người chơi
-        localStorage.setItem("username", nicknameInput);
+            console.log(`📌 Đăng nhập với tên: ${nicknameInput}`);
 
-        // Ẩn modal đăng nhập, hiển thị tên người chơi & game
-        document.getElementById('login-modal').style.display = 'none';
-        document.getElementById('welcome-message').style.display = 'block';
-        document.getElementById('display-name').innerText = nicknameInput;
+            const userRef = db.collection("users").doc(nicknameInput);
+            const userDoc = await userRef.get();
 
-        // Hiển thị danh sách game + điểm
-        document.querySelector('.points').style.display = 'block';
-        document.querySelector('.scoreboard-container').style.display = 'flex';
-        document.querySelector('.game-list').style.display = 'grid';
-        document.getElementById('scoreboard').style.display = 'block';
-    });
+            if (userDoc.exists) {
+                alert(`Chào mừng trở lại, ${nicknameInput}!`);
+            } else {
+                await userRef.set({ username: nicknameInput });
+                alert(`Tạo tài khoản thành công! Xin chào, ${nicknameInput}.`);
+            }
 
-    // Xử lý sự kiện chơi không đăng nhập
-    document.getElementById('play-without-login').addEventListener('click', () => {
-        // Ẩn modal đăng nhập
-        document.getElementById('login-modal').style.display = 'none';
+            localStorage.setItem("username", nicknameInput);
 
-        // Hiển thị danh sách game nhưng không lưu vào Firestore
-        document.querySelector('.game-list').style.display = 'grid';
+            // Ẩn modal và hiển thị game
+            document.getElementById("login-modal").style.display = "none";
+            document.getElementById("welcome-message").style.display = "block";
+            document.getElementById("display-name").innerText = nicknameInput;
 
-        // Ẩn luôn tổng điểm và bảng điểm (vì không có đăng nhập)
-        document.querySelector('.points').style.display = 'none';
-        document.querySelector('.scoreboard-container').style.display = 'none';
-        document.getElementById('scoreboard').style.display = 'none';
+            document.querySelector(".points").style.display = "block";
+            document.querySelector(".scoreboard-container").style.display = "flex";
+            document.querySelector(".game-list").style.display = "grid";
+            document.getElementById("scoreboard").style.display = "block";
+        });
+    } else {
+        console.error("❌ Nút 'Bắt đầu' không tồn tại!");
+    }
 
-        alert("Bạn đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
-    });
+    if (playWithoutLoginButton) {
+        playWithoutLoginButton.addEventListener("click", () => {
+            console.log("🎮 Chơi không đăng nhập");
 
-    // Kiểm tra nếu có người chơi đã đăng nhập trước đó
-    const savedUsername = localStorage.getItem("username");
-    if (savedUsername) {
-        document.getElementById('login-modal').style.display = 'none';
-        document.getElementById('welcome-message').style.display = 'block';
-        document.getElementById('display-name').innerText = savedUsername;
+            document.getElementById("login-modal").style.display = "none";
+            document.querySelector(".game-list").style.display = "grid";
+            document.querySelector(".points").style.display = "none";
+            document.querySelector(".scoreboard-container").style.display = "none";
+            document.getElementById("scoreboard").style.display = "none";
+
+            alert("Bạn đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
+        });
+    } else {
+        console.error("❌ Nút 'Chơi không đăng nhập' không tồn tại!");
     }
 });
 
