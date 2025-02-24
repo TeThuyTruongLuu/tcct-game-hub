@@ -28,6 +28,7 @@ function onDeviceReady() {
     document.getElementById('deviceready').classList.add('ready');
 }
 
+
 // Import Firebase SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where, orderBy, limit }
@@ -47,7 +48,6 @@ const firebaseConfig = {
 // Khởi tạo Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 console.log("🔥 Firebase đã kết nối thành công!");
 
 // Kiểm tra kết nối Firestore
