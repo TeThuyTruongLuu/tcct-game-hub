@@ -1,0 +1,321 @@
+@font-face {
+    font-family: 'AmpleSoft'; /* Tên bạn muốn đặt cho font */
+    src: url('../css/fonts/AmpleSoft.ttf') format('truetype'); /* Đường dẫn đến file font */
+}
+
+body {
+    font-family: AmpleSoft;
+    text-align: center;
+    background: linear-gradient(to bottom, #6F7FF7, #A89FF7);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+h1 {
+    font-size: 36px;
+    color: #fff;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    margin-bottom: 15px;
+}
+
+p {
+    font-size: 20px;
+    color: #fff;
+    margin: 5px 0;
+    font-weight: bold;
+}
+
+#shuffle-button {
+	font-family: AmpleSoft;
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: black;
+    background-color: #f7cb4d;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#shuffle-button:hover {
+    background-color: #ebc045;
+}
+
+#reset-button {
+	font-family: AmpleSoft;
+    margin-top: 15px;
+	margin-left: 15px;
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background-color: #ff5733;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+	display: inline block;
+}
+
+#reset-button:hover {
+    background-color: #e64a19;
+}
+
+
+#game-board {
+    display: grid;
+    grid-gap: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+    width: 90vw;
+	height: max-content;
+    margin: auto;
+    position: relative;
+}
+
+.tile {
+    width: 80px;
+    height: 80px;
+    background-color: #fff;
+    border-radius: 0.5vw;
+    display: flex;
+    font-size: 24px;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.tile:hover {
+    box-shadow: 0px 0px 15px rgba(255, 235, 59, 0.8);
+}
+
+.selected {
+    background-color: #fff;
+    box-shadow: 0 0 15px rgba(255, 235, 59, 1) !important;
+}
+
+.hidden {
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+
+.line {
+    position: absolute;
+    background-color: #FF5733;
+    height: 4px;
+    border-radius: 2px;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 0px 10px rgba(255, 87, 51, 0.8);
+    left: 0;
+    top: 0;
+    transform-origin: center;
+}
+
+#settings-modal {
+    display: none;
+    position: absolute;
+    top: 20vw;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 350px;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+/* Căn giữa nội dung bên trong */
+#settings-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;  /* Căn giữa theo chiều ngang */
+    justify-content: center;  /* Căn giữa theo chiều dọc */
+    width: 100%;
+}
+
+#music-select, #youtube-link {
+    width: 90%;
+    margin: 10px 0;
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    text-align: center;
+}
+
+#music-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+#play-music, #stop-music {
+	font-family: AmpleSoft;
+    padding: 8px 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+    text-align: center;
+}
+
+#play-music {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#stop-music {
+    background-color: #f44336;
+    color: white;
+}
+
+#play-music:hover {
+    background-color: #45a049;
+}
+
+#stop-music:hover {
+    background-color: #d32f2f;
+}
+
+#close-settings {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+	font-family: AmpleSoft;
+    font-size: 20px;
+    color: red;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease-in-out;
+}
+
+
+#settings-btn {
+    width: 50px;
+    height: 50px;
+    background: #6b6b6b;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+/* Icon bên trong */
+#settings-icon {
+    width: 80%;
+    height: auto;
+	object-fit: contain;
+}
+
+/* Hover: đổi màu */
+#settings-btn:hover {
+    background: #3e4043;
+}
+
+
+/* Đảm bảo modal hiển thị đúng trên màn hình nhỏ */
+@media (max-width: 700px) {
+	#settings-btn {
+		width: 6vw;
+		height: 6vw;
+	}
+	#settings-icon {
+		width: 4vw;
+		height: 4vw;
+	}
+    #settings-modal {
+		top: 40vw;
+        width: 70%;
+    }
+	#play-music, #stop-music {
+		font-size: 4vw;
+	}
+}
+
+
+
+@media (max-width: 700px) and (orientation: portrait) {
+    body {
+        padding: 5vw;
+    }
+
+    h1 {
+        font-size: 6vw;
+        margin-bottom: 2vw;
+    }
+
+    p, #reset-button, #shuffle-button {
+        font-size: 4vw;
+        margin: 1vw 0;
+    }
+
+	#reset-button {
+		margin-left: 2vw;
+	}
+	
+    #game-board {
+        width: 90vw; /* 🔥 Giới hạn chiều rộng để vừa màn hình */
+		max-width: 90vw;
+        display: grid;
+        grid-gap: 0px;
+        border-radius: 3vw;
+        box-shadow: 0px 0.2vw 0.5vw rgba(0, 0, 0, 0.2);
+        grid-template-columns: repeat(auto-fit, minmax(calc(90vw / 30), 1fr)); /* 🔥 Chia cột theo số lượng hợp lý */
+		height: max-content;
+    }
+
+    .tile {
+        width: calc(90vw / 12); /* 🔥 Tự động điều chỉnh kích thước theo số cột */
+        height: calc(90vw / 12);
+        border-radius: 1vw;
+        font-size: 0.1vw;
+    }
+
+    .tile img {
+        width: 100%;
+        height: 100%;
+        border-radius: 2vw;
+    }
+
+    .line {
+		position: absolute;
+        border-radius: 1vw;
+        box-shadow: 0px 0px 2vw rgba(255, 87, 51, 0.8);
+		transform: translateY(calc(-100vw));
+    }
+}

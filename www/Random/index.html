@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Picker</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+		@font-face {
+			font-family: 'AmpleSoft'; /* Tên bạn muốn đặt cho font */
+			src: url('../css/fonts/AmpleSoft.ttf') format('truetype'); /* Đường dẫn đến file font */
+			font-weight: thin; /* Trọng lượng mặc định */
+			font-style: normal; /* Kiểu mặc định */
+		}
+		@font-face {
+			font-family: 'AmpleSoft Light'; /* Tên bạn muốn đặt cho font */
+			src: url('../css/fonts/AmpleSoft Light.otf') format('truetype'); /* Đường dẫn đến file font */
+		}
+        body {
+            background-color: #ffebef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            font-family: AmpleSoft;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 400px;
+        }
+        .game-option {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .game-option:hover {
+            transform: scale(1.05);
+        }
+        .game-option img {
+            width: 100px;
+            height: 100px;
+            border-radius: 10px;
+        }
+		.game-name {
+			margin-bottom: -10px;
+			font-family: AmpleSoft Light;
+		}
+    </style>
+</head>
+<body>
+    <h1>Bạn muốn hỏi ai?</h1>
+    <div class="options">
+        <div class="game-option" onclick="navigateTo('wheel')">
+            <img src="img/1.jpg" alt="Wheel of Names">
+            <p class="game-name">Vòng quay may mắn</p>
+        </div>
+        <div class="game-option" onclick="navigateTo('cat')">
+            <img src="img/2.jpg" alt="Thần mèo của những quyết định">
+            <p class="game-name">Thần mèo quyết định</p>
+        </div>
+        <div class="game-option" onclick="navigateTo('fortune')">
+            <img src="img/3.jpg" alt="Lắc quẻ">
+            <p class="game-name">Quẻ bói</p>
+        </div>
+        <div class="game-option" onclick="navigateTo('coin flip')">
+            <img src="img/4.png" alt="Tung đồng xu">
+            <p class="game-name">Đồng xu</p>
+        </div>
+    </div>
+    <script>
+        function navigateTo(screen) {
+            window.location.href = "./games/" + screen + ".html";
+        }
+    </script>
+</body>
+</html>

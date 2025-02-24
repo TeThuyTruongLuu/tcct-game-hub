@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lắc Quẻ</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f5f5dc;
+            font-family: 'Arial', sans-serif;
+        }
+        h1 {
+            font-size: 28px;
+            color: #8b4513;
+            margin-bottom: 20px;
+        }
+        .container {
+            text-align: center;
+            position: relative;
+        }
+        .shake-box {
+            width: 160px;
+            height: 160px;
+            background-color: #b8860b;
+            border-radius: 10px;
+            border: 5px solid #8b4513;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 20px;
+            overflow: hidden;
+        }
+        .fortune-stick {
+            width: 8px;
+            height: 60px;
+            background-color: #d4af37;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .sticks-container {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+        .stick {
+            width: 6px;
+            height: 50px;
+            background-color: #d4af37;
+            margin: 0 2px;
+            position: relative;
+            transition: transform 0.3s ease-in-out;
+        }
+        .shake-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #8b4513;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease-in-out;
+        }
+        .shake-button:hover {
+            background-color: #6b3a0e;
+        }
+        .fortune-result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #8b4513;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lắc Quẻ</h1>
+    <div class="container">
+        <div class="shake-box" onclick="shakeFortune()">
+            <div class="sticks-container" id="sticksContainer"></div>
+        </div>
+        <button class="shake-button" onclick="shakeFortune()">Lắc Quẻ</button>
+        <div class="fortune-result" id="fortuneResult"></div>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let sticksContainer = document.getElementById("sticksContainer");
+            for (let i = 0; i < 19; i++) {
+                let stick = document.createElement("div");
+                stick.classList.add("stick");
+                sticksContainer.appendChild(stick);
+            }
+        });
+        
+        function shakeFortune() {
+            let sticks = document.querySelectorAll(".stick");
+            let result = document.getElementById("fortuneResult");
+            
+            // Hiệu ứng lắc quẻ
+            sticks.forEach(stick => {
+                let randomOffset = Math.random() * 6 - 3;
+                stick.style.transform = `translateY(${randomOffset}px)`;
+            });
+            
+            setTimeout(() => {
+                let selectedStick = sticks[Math.floor(Math.random() * sticks.length)];
+                sticks.forEach(stick => {
+                    stick.style.transform = "translateY(0)";
+                });
+                selectedStick.style.transform = "translateY(-30px)";
+            }, 500);
+            
+            // Chọn ngẫu nhiên kết quả quẻ
+            let fortunes = ["Đại Cát", "Tiểu Cát", "Hung", "Đại Hung", "Bình Thường"];
+            let randomFortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+            
+            setTimeout(() => {
+                result.innerText = `Kết quả: ${randomFortune}`;
+            }, 800);
+        }
+    </script>
+</body>
+</html>

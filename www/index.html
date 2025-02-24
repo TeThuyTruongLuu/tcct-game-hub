@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phong - TCCT Game Hub</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <h1>Kho game hê hê<br>Phong tạo</h1>
+	
+	<div id="login-container">
+		<input type="text" id="username" placeholder="Tên đăng nhập">
+		<input type="password" id="tcctCode" placeholder="Mật khẩu chung">
+		<button onclick="login()">Đăng nhập</button>
+	</div>
+	<p id="welcome-message" style="display: none;">Chào, <span id="display-name"></span>!</p>
+
+
+    <p class="points">Tổng điểm: <span id="user-points">N/A</span></p>
+	<div class="scoreboard-container">
+		<button onclick="showPersonalScores()">Bảng điểm cá nhân</button>
+		<button onclick="showLeaderboard()">Bảng kỷ lục</button>
+	</div>
+	<div id="scoreboard"></div>
+
+
+    <div class="game-list">
+        <div class="game-item" onclick="window.location.href='2048/index.html'">
+            <img src="img/2048.png" alt="2048">
+            <p class="game-name">2048</p>
+        </div>
+        <div class="game-item" onclick="window.location.href='matching_game/index.html'">
+            <img src="img/matching.png" alt="Lật hình giống nhau">
+            <p class="game-name">Lật hình</p>
+        </div>
+        <div class="game-item" onclick="window.location.href='Random/index.html'">
+            <img src="img/Random.jpg" alt="Thần quyết">
+            <p class="game-name">Thần quyết</p>
+        </div>
+        <div class="game-item" onclick="window.location.href='onet/index.html'">
+            <img src="img/onet.png" alt="Onet">
+            <p class="game-name">Nối hình</p>
+        </div>
+        <!-- Bổ sung thêm game nếu cần -->
+    </div>
+	
+    <div id="game-container"></div>
+    <script>
+        function loadGame(game) {
+            document.getElementById('game-container').innerHTML = `<iframe src="${game}/index.html" width="100%" height="500px" frameborder="0"></iframe>`;
+        }
+    </script>
+</body>
+</html>

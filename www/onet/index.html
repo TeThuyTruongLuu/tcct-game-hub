@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onet Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<h1>Onet Game</h1>
+	<button id="settings-btn">
+		<img id="settings-icon" src="icon/setting.png" alt="Cài đặt">
+	</button>
+	<p>Level: <span id="level">1</span></p>
+    <p>Thời gian: <span id="timer">120</span></p>
+    <p>Điểm: <span id="score">0</span></p>
+		
+	
+	<div id="settings-modal">
+		<div id="settings-content">
+			<label for="music-select">Chọn nhạc nền:</label>
+			<select id="music-select">
+				<option value="Đồng ca 53P Sinh Vì Vinh Quang - Tên của bọn họ là một thời hoàng kim.mp3">Một thời hoàng kim</option>
+				<option value="Mưa rơi bao lâu nữa mới khiến người bung rộng tán ô.mp3">Mưa rơi bao lâu nữa...</option>
+				<option value="Vinh Quang bất diệt.mp3">Vinh Quang bất diệt</option>
+				<option value="Cùng Vui Vẻ.mp3">Cùng vui vẻ</option>
+				<option value="custom">Khác</option>
+			</select>
+
+			<input type="text" id="youtube-link" placeholder="Dán link YouTube vào đây" style="display: none;">
+			
+			<div id="music-buttons">
+				<button id="play-music">Phát</button>
+				<button id="stop-music">Dừng</button>
+			</div>
+
+			<button id="close-settings">✖</button>
+		</div>
+	</div>
+
+
+	<audio id="background-music" loop>
+		<source id="music-source" src="" type="audio/mpeg">
+	</audio>
+
+	<iframe id="youtube-player" style="display: none;" width="0" height="0" frameborder="0"></iframe>
+
+
+    <div id="game-board"></div>
+	<br>
+	<div>
+		<button id="shuffle-button">Xáo hình (<span id="shuffleCount">3</span>)</button>
+		<button id="reset-button">Reset</button>
+	</div>
+    <script src="script.js"></script>
+</body>
+</html>

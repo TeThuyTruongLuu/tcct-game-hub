@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vòng quay may mắn</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #ffebef;
+            font-family: Arial, sans-serif;
+        }
+        .wheel-container {
+            width: 300px;
+            height: 300px;
+            position: relative;
+        }
+        .spin-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #ff4081;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .input-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        textarea {
+            width: 200px;
+            height: 100px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 5px;
+            text-align: left;
+            white-space: pre-line;
+        }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vòng quay may mắn</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #ffebef;
+            font-family: Arial, sans-serif;
+        }
+        .wheel-container {
+            width: 300px;
+            height: 300px;
+            position: relative;
+        }
+        .spin-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #ff4081;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease-in-out;
+        }
+        .spin-button:hover {
+            background-color: #e0356f;
+        }
+        .input-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        textarea {
+            width: 220px;
+            height: 100px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: left;
+            white-space: pre-line;
+            font-size: 14px;
+            outline: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            min-width: 300px;
+        }
+        .modal-header {
+            color: white;
+            padding: 15px;
+            font-size: 18px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+        .modal-footer {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .close-button {
+            float: right;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .modal-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .modal-button.close {
+            background-color: #ccc;
+        }
+        .modal-button.close:hover {
+            background-color: #b3b3b3;
+        }
+        .modal-button.remove {
+            background-color: #ff4081;
+            color: white;
+        }
+        .modal-button.remove:hover {
+            background-color: #e0356f;
+        }
+        .arrow {
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            transform: translate(-50%, -50%) rotate(90deg);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid red;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vòng quay may mắn</h1>
+    <div class="wheel-container">
+		<div class="arrow" id="arrow"></div>
+        <canvas id="wheelCanvas"></canvas>
+    </div>
+    <button class="spin-button" onclick="spinWheel()">Quay</button>
+    
+    <div class="input-container">
+        <textarea id="nameInput" oninput="updateNames()" onkeydown="handleEnter(event)">Đây
+Là
+Game
+Của
+Phong</textarea>
+	</div>
+
+    <div id="winnerModal" class="modal">
+        <div id="winnerHeader" class="modal-header">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <h2>Chúng ta đã có người chiến thắng!</h2>
+        </div>
+        <div class="modal-body">
+            <p id="winnerText"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-button close" onclick="closeModal()">Đóng</button>
+            <button class="modal-button remove" onclick="removeWinner()">Xóa kết quả vừa quay</button>
+        </div>
+    </div>
+
+
+    
+    <script>
+        let names = ["Đây", "Là", "Game", "Của", "Phong"];
+        let wheelCanvas = document.getElementById("wheelCanvas");
+        let wheelChart;
+        
+        function drawWheel() {
+            if (wheelChart) {
+                wheelChart.destroy();
+            }
+            wheelChart = new Chart(wheelCanvas, {
+                type: 'pie',
+                data: {
+                    labels: names,
+                    datasets: [{
+                        data: names.map(name => name === "" ? 0 : 1),
+                        backgroundColor: ["#ffcc80", "#ffab91", "#ff8a80", "#f48fb1", "#ce93d8", "#b39ddb", "#90caf9", "#81d4fa"],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+						legend: {
+							display: false // Ẩn legend bên ngoài
+						},
+						tooltip: {
+							enabled: false // Tắt tooltip khi hover
+						},
+                        datalabels: {
+                            color: 'black',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            formatter: (value, context) => context.chart.data.labels[context.dataIndex] || "",
+                            anchor: 'center',
+                            align: 'center',
+                            display: function(context) {
+                                return context.dataset.data[context.dataIndex] > 0;
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+		let lastWinner = "";
+
+        function adjustColor(color, amount) {
+            let colorInt = parseInt(color.slice(1), 16);
+            let r = (colorInt >> 16) + amount;
+            let g = ((colorInt >> 8) & 0x00FF) + amount;
+            let b = (colorInt & 0x0000FF) + amount;
+            r = Math.max(Math.min(255, r), 0);
+            g = Math.max(Math.min(255, g), 0);
+            b = Math.max(Math.min(255, b), 0);
+            return `rgb(${r},${g},${b})`;
+        }
+
+		let rotation = 0;
+
+function spinWheel() {
+    let sliceAngle = 360 / names.length;
+    let rotations = Math.floor(Math.random() * 5 + 5) * 360;
+    let randomStopAngle = Math.random() * 360; // Để dừng ở góc ngẫu nhiên
+    let totalRotation = rotations + randomStopAngle;
+    let duration = 5000;
+    let start = null;
+
+    function animateSpin(timestamp) {
+        if (!start) start = timestamp;
+        let progress = timestamp - start;
+        let easeOut = 1 - Math.pow(1 - progress / duration, 3);
+        rotation = easeOut * totalRotation;
+        wheelCanvas.style.transform = `rotate(${rotation}deg)`;
+
+        if (progress < duration) {
+            requestAnimationFrame(animateSpin);
+        } else {
+            let finalRotation = (rotation % 360 + 360 - 90) % 360;
+            let winningIndex = Math.floor((360 - finalRotation) / sliceAngle) % names.length;
+
+            lastWinner = names[winningIndex];
+            let winnerColor = wheelChart.data.datasets[0].backgroundColor[winningIndex];
+            document.getElementById("winnerHeader").style.backgroundColor = adjustColor(winnerColor, -30);
+            document.getElementById("winnerText").innerText = lastWinner;
+            document.getElementById("winnerModal").style.display = "block";
+        }
+    }
+    requestAnimationFrame(animateSpin);
+}
+
+
+
+		function closeModal() {
+			document.getElementById("winnerModal").style.display = "none"; // Đóng modal
+		}
+
+		function removeWinner() {
+			names = names.filter(name => name !== lastWinner); // Xóa khỏi pie
+			document.getElementById("nameInput").value = names.join("\n"); // Xóa khỏi textarea
+			
+			drawWheel(); // Cập nhật chart
+			closeModal(); // Đóng modal
+		}
+
+		function updateNames() {
+			let nameInput = document.getElementById("nameInput").value.split(/\r?\n/);
+
+			// Cập nhật nội dung từng pie mà không xóa dòng trống
+			names = [...nameInput]; // Giữ nguyên số lượng dòng kể cả dòng trống
+			wheelChart.data.labels = names;
+			wheelChart.data.datasets[0].data = names.map(name => 1); // Tất cả pies có dữ liệu
+			wheelChart.update();
+		}
+
+
+
+        
+		function handleEnter(event) {
+			if (event.key === "Enter") {
+				event.preventDefault(); // Ngăn textarea xuống dòng thật
+
+				names.push(""); // Thêm một pie trống
+				document.getElementById("nameInput").value += "\n"; // Giữ sync với textarea
+
+				wheelChart.data.labels = names;
+				wheelChart.data.datasets[0].data.push(1); // Thêm dữ liệu cho pie
+				wheelChart.update(); // Chỉ cập nhật chart khi Enter
+			}
+		}		
+
+        
+        drawWheel();
+    </script>
+</body>
+</html>

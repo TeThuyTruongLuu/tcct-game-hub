@@ -1,0 +1,147 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+/* Reset cơ bản */
+/* Reset cơ bản */
+* {
+    margin: 0;
+    padding: auto;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+@font-face {
+    font-family: 'AmpleSoft'; /* Tên bạn muốn đặt cho font */
+    src: url('fonts/AmpleSoft.ttf') format('truetype'); /* Đường dẫn đến file font */
+    font-weight: thin; /* Trọng lượng mặc định */
+    font-style: normal; /* Kiểu mặc định */
+}
+
+body {
+    font-family: AmpleSoft;
+    text-align: center;
+    background-color: #FFEEEE; /* Nền pastel mềm mại hơn */
+    color: #5a5a5a;
+    padding: 20px;
+}
+
+/* Tiêu đề */
+h1 {
+    font-size: 38px;
+    font-weight: bold;
+    color: #ff9f43; /* Màu cam pastel */
+    text-transform: uppercase;
+    margin-bottom: 10px;
+	padding-top: 100px;
+	font-family: AmpleSoft;
+}
+
+.points {
+    font-size: 18px;
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+/* Bố cục danh sách game */
+.game-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Căn tự động, min 250px */
+    gap: 15px; /* Khoảng cách đều giữa các game */
+    max-width: 900px;
+    margin: 20px auto; /* Căn giữa danh sách game */
+    padding: 10px;
+}
+
+/* Ô game */
+.game-item {
+    background: #fff8e7; /* Màu nền pastel */
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 220px; /* Cố định chiều cao */
+    width: 100%; /* Tự động co dãn */
+    cursor: pointer;
+}
+
+.game-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Hình ảnh game */
+.game-item img {
+    max-width: 150px;
+    height: 150px;
+    object-fit: cover; /* Đảm bảo hình không bị méo */
+    border-radius: 10px;
+    margin-bottom: 10px;
+	margin-top: -30px;
+}
+
+/* Tên game */
+.game-item .game-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #5a5a5a;
+	margin-bottom: -30px;
+}
+
+#login-container {
+    margin-bottom: 20px;
+}
+
+.scoreboard-container {
+    margin: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #f4b400;
+    color: white;
+}
+
+
+
+/* Responsive: Hiển thị đẹp trên điện thoại */
+@media (max-width: 750px) {
+	.game-list {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+		gap: 15px; /* Khoảng cách đều giữa các game */
+		max-width: 650px;
+		margin: 20px auto; /* Căn giữa danh sách game */
+		padding: 5px;
+	}
+}
