@@ -10,7 +10,7 @@ let timer;
 let timerPaused = false;
 let timeElapsed = 0;
 let timeLeft = 120;
-let score = 0;
+let playerScore = 0;
 let currentLevel = 0;
 let isYouTubePlaying = false;
 let shuffleCount = currentLevel === 0 ? 3 : 10;
@@ -51,7 +51,7 @@ window.onload = function () {
 
     if (savedLevel !== null) {
         loadLevel(parseInt(savedLevel));
-        score = savedScore ? parseInt(savedScore) : 0;
+        playerScore = savedScore ? parseInt(savedScore) : 0;
         updateScoreUI();
         localStorage.removeItem("savedLevel"); // ✅ Chỉ xóa savedLevel, giữ savedScore
     } else {
@@ -69,6 +69,14 @@ window.addEventListener("resize", () => {
 	assignImages();
 });
 
+window.addEventListener("beforeunload", async function (event) {
+    if (playerScore > 0) {
+        console.log("🔥 Người chơi thoát game, lưu điểm trước...");
+        event.preventDefault(); // Chặn đóng tab ngay lập tức
+        event.returnValue = "Dữ liệu đang được lưu..."; // Hiển thị cảnh báo thoát
+        await saveScoreToDB("Nối hình", playerScore); // Đợi Firestore lưu điểm xong
+    }
+});
 
 //Setting button + Musics
 settingsBtn.addEventListener("click", () => { //Open setting
@@ -578,16 +586,17 @@ function updateTilePositions() {
 
 //Part 5: Cộng điểm, check game over
 function updateScoreUI() {
-    document.getElementById("score").textContent = score;
+    document.getElementById("score").textContent = playerScore;
 }
 
 function updateScore() {
     if (currentLevel === 0) {
-        score += 10; // Level 1: Mỗi cặp +10 điểm
+        playerScore += 10; // Level 1: Mỗi cặp +10 điểm
     } else {
-        score += 1; // Level Max: Mỗi cặp +1 điểm
+        playerScore += 1; // Level Max: Mỗi cặp +1 điểm
     }
     updateScoreUI();
+	saveScoreToDB("Nối hình", playerScore);
 }
 
 function checkIfAllTilesMatched() {
@@ -606,13 +615,13 @@ function checkGameOver() {
     if (checkIfAllTilesMatched()) {
         stopTimer();
         let bonus = (currentLevel === 0) ? timeLeft : Math.max(0, 1000 - timeElapsed);
-        score += bonus;
+        playerScore += bonus;
         updateScoreUI();
-        alert(`🎉 Hết game! Bạn nhận được ${bonus} điểm thưởng. Tổng điểm: ${score}`);
+        alert(`🎉 Hết game! Bạn nhận được ${bonus} điểm thưởng. Tổng điểm: ${playerScore}`);
         
         if (currentLevel === 0) {
             localStorage.setItem("savedLevel", 1);
-            localStorage.setItem("savedScore", score);
+            localStorage.setItem("savedScore", playerScore);
             loadLevel(1);
         } else {
             alert("🎉 Bạn đã hoàn thành toàn bộ game!");
@@ -628,7 +637,7 @@ function handleGameLoss() {
 function resetGameAfterLoss() {
     stopTimer(); // Dừng bất kỳ timer nào đang chạy
     currentLevel = 0;
-    score = 0;
+    playerScore = 0;
     timeLeft = 120;
     shuffleCount = 3; // Reset số lần shuffle về mặc định
     updateShuffleButton();
@@ -758,11 +767,11 @@ function resetGame() {
     stopTimer();
 
     if (currentLevel === 0) { // Level 1: Reset về mặc định
-        score = 0;
+        playerScore = 0;
         timeLeft = 120;
     } else { // Level Max: Giữ điểm của Level 1, reset thời gian về 0
         let savedScore = localStorage.getItem("savedScore");
-        score = savedScore ? parseInt(savedScore) : 0;
+        playerScore = savedScore ? parseInt(savedScore) : 0;
         timeElapsed = 0;
     }
 

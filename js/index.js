@@ -58,78 +58,6 @@ if (!firebase.apps.length) {
 // Lấy Firestore
 const db = firebase.firestore();
 
-
-/* 
-// Đảm bảo script chỉ chạy sau khi DOM đã load
-document.addEventListener("DOMContentLoaded", function () {
-    console.log("🔥 DOM đã load xong!");
-
-    // Kiểm tra nếu Firebase đã khởi tạo
-    if (!firebase.apps.length) {
-        console.error("❌ Firebase chưa được khởi tạo!");
-        return;
-    }
-
-    // Kiểm tra nếu các button có tồn tại
-    const startButton = document.getElementById("start-button");
-    const playWithoutLoginButton = document.getElementById("play-without-login");
-
-    if (startButton) {
-        startButton.addEventListener("click", async () => {
-            const codeInput = document.getElementById("code-input").value.trim();
-            const nicknameInput = document.getElementById("nickname-input").value.trim();
-
-            if (codeInput !== "TCCT" || !nicknameInput) {
-                alert("Nhập đúng mã 'TCCT' và điền tên hợp lệ nha bồ ơi.");
-                return;
-            }
-
-            console.log(`📌 Đăng nhập với tên: ${nicknameInput}`);
-
-            const userRef = db.collection("users").doc(nicknameInput);
-            const userDoc = await userRef.get();
-
-            if (userDoc.exists) {
-                alert(`Chào mừng trở lại, ${nicknameInput}!`);
-            } else {
-                await userRef.set({ username: nicknameInput });
-                alert(`Tạo tài khoản thành công! Xin chào, ${nicknameInput}.`);
-            }
-
-            localStorage.setItem("username", nicknameInput);
-
-            // Ẩn modal và hiển thị game
-            document.getElementById("login-modal").style.display = "none";
-            document.getElementById("welcome-message").style.display = "block";
-            document.getElementById("display-name").innerText = nicknameInput;
-
-            document.querySelector(".points").style.display = "block";
-            document.querySelector(".scoreboard-container").style.display = "flex";
-            document.querySelector(".game-list").style.display = "grid";
-            document.getElementById("scoreboard").style.display = "block";
-			updateTotalScore();
-        });
-    } else {
-        console.error("❌ Nút 'Bắt đầu' không tồn tại!");
-    }
-
-    if (playWithoutLoginButton) {
-        playWithoutLoginButton.addEventListener("click", () => {
-            console.log("🎮 Chơi không đăng nhập");
-
-            document.getElementById("login-modal").style.display = "none";
-            document.querySelector(".game-list").style.display = "grid";
-            document.querySelector(".points").style.display = "none";
-            document.querySelector(".scoreboard-container").style.display = "none";
-            document.getElementById("scoreboard").style.display = "none";
-
-            alert("Bồ đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
-        });
-    } else {
-        console.error("❌ Nút 'Chơi không đăng nhập' không tồn tại!");
-    }
-}); */
-
 document.addEventListener("DOMContentLoaded", function () {
     console.log("🔥 DOM đã load xong!");
 
@@ -199,7 +127,7 @@ function logout() {
 }
 
 
-async function updateScore(game, newScore) {
+async function saveScoreToDB(game, newScore) {
     const username = localStorage.getItem("username");
     if (!username) {
         alert("Bạn chưa đăng nhập, điểm sẽ không được lưu!");
@@ -241,7 +169,7 @@ async function updateScore(game, newScore) {
     }
 }
 
-window.updateScore = updateScore;
+window.saveScoreToDB = saveScoreToDB;
 
 
 

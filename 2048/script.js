@@ -51,7 +51,7 @@ window.addEventListener("beforeunload", async function (event) {
         console.log("🔥 Người chơi thoát game, lưu điểm trước...");
         event.preventDefault(); // Chặn đóng tab ngay lập tức
         event.returnValue = "Dữ liệu đang được lưu..."; // Hiển thị cảnh báo thoát
-        await updateScore("2048", playerScore); // Đợi Firestore lưu điểm xong
+        await saveScoreToDB("2048", playerScore); // Đợi Firestore lưu điểm xong
     }
 });
 
@@ -570,7 +570,7 @@ function checkGameOver() {
 				const minutes = Math.floor(timer / 60);
 				const seconds = timer % 60;
                 alert(`Hooray! Chúc mừng bồ tu thành chính quả 2048 vẻ mặt sau ${formatTime(minutes)}:${formatTime(seconds)} bị bào mòn bởi tư bản!`);
-				updateScore("2048", playerScore);
+				saveScoreToDB("2048", playerScore);
                 restartGame();
                 return;
             }
@@ -584,7 +584,7 @@ function checkGameOver() {
 		const minutes = Math.floor(timer / 60);
 		const seconds = timer % 60;
         alert("Tèo, tư bản chiếu tướng bồ rồi.");
-		updateScore("2048", playerScore);
+		saveScoreToDB("2048", playerScore);
         restartGame();
     }
 }
@@ -608,7 +608,7 @@ function checkWin() {
             if (grid[row][col] === 2048) {  // Ô giá trị cao nhất
                 stopTimer();
                 alert(`🎉 Hooray! Chúc mừng bồ tu thành chính quả 2048 vẻ mặt sau ${formatTime(Math.floor(timer / 60))}:${formatTime(timer % 60)} bị bào mòn bởi tư bản!`);
-				updateScore("2048", playerScore);
+				saveScoreToDB("2048", playerScore);
                 restartGame();
                 return true;
             }
