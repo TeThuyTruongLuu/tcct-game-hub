@@ -8,14 +8,14 @@
 </head>
 <body>
     <h1>Kho game hê hê<br>Phong tạo</h1>
-	
-	<div id="login-container">
-		<input type="text" id="username" placeholder="Tên đăng nhập">
-		<input type="password" id="tcctCode" placeholder="Mật khẩu chung">
-		<button onclick="login()">Đăng nhập</button>
-	</div>
-	<p id="welcome-message" style="display: none;">Chào, <span id="display-name"></span>!</p>
 
+	<form id="login-form" onsubmit="event.preventDefault(); login();">
+		<input type="text" id="username" placeholder="Tên đăng nhập" required>
+		<input type="password" id="tcctCode" placeholder="Mật khẩu chung" required>
+		<button type="submit">Đăng nhập</button>
+	</form>
+	
+	<p id="welcome-message" style="display: none;">Chào, <span id="display-name"></span>!</p>
 
     <p class="points">Tổng điểm: <span id="user-points">N/A</span></p>
 	<div class="scoreboard-container">
