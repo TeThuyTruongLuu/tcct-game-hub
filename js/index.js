@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelector(".scoreboard-container").style.display = "none";
             document.getElementById("scoreboard").style.display = "none";
 
-            alert("Bạn đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
+            alert("Bồ đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
         });
     } else {
         console.error("❌ Nút 'Chơi không đăng nhập' không tồn tại!");
