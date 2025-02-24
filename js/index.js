@@ -28,7 +28,7 @@ function onDeviceReady() {
     document.getElementById('deviceready').classList.add('ready');
 }
 
-// Kiểm tra nếu Firebase đã khởi tạo
+// Kiểm tra nếu Firebase đã được khởi tạo
 if (!firebase.apps.length) {
     const firebaseConfig = {
         apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
@@ -41,7 +41,7 @@ if (!firebase.apps.length) {
     };
 
     firebase.initializeApp(firebaseConfig);
-    console.log("🔥 Firebase đã được khởi tạo trong index.js!");
+    console.log("🔥 Firebase đã được khởi tạo!");
 }
 
 // Lấy Firestore
