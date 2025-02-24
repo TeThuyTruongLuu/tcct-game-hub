@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+	<script src="Firebase.js"></script>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phong - TCCT Game Hub</title>
     <link rel="stylesheet" href="css/index.css">
 </head>
+
 <body>
     <h1>Kho game hê hê<br>Phong tạo</h1>
 
-	<form id="login-form" onsubmit="event.preventDefault(); login();">
+	<div id="login-form" onsubmit="event.preventDefault(); login();">
 		<input type="text" id="username" placeholder="Tên đăng nhập" required>
 		<input type="password" id="tcctCode" placeholder="Mật khẩu chung" required>
 		<button type="submit">Đăng nhập</button>
-	</form>
+	</div>
 	
 	<p id="welcome-message" style="display: none;">Chào, <span id="display-name"></span>!</p>
 
