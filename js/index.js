@@ -28,9 +28,6 @@ function onDeviceReady() {
     document.getElementById('deviceready').classList.add('ready');
 }
 
-// Thêm Firebase SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
