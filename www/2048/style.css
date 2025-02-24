@@ -1,0 +1,433 @@
+/* Tổng quan */
+@font-face {
+    font-family: '000 Chinacat [TeddyBear]'; /* Tên bạn muốn đặt cho font */
+    src: url('./fonts/000 Chinacat [TeddyBear].ttf') format('truetype'); /* Đường dẫn đến file font */
+    font-weight: thin; /* Trọng lượng mặc định */
+    font-style: normal; /* Kiểu mặc định */
+}
+
+
+body {
+    font-family: '000 Chinacat [TeddyBear]';
+    text-align: center;
+    background-color: #faf8ef;
+    margin: 0;
+    padding: 20px;
+	font-size: 14px;
+}
+
+h1, h2 {
+    margin-bottom: 10px; /* Giảm khoảng cách dưới */
+}
+
+/* Phần chọn nhân vật */
+#character-selection {
+    margin-bottom: 20px;
+}
+
+#character-list {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.character {
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.character img {
+    width: 100px;
+    height: 100px;
+    border-radius: 5px;
+    touch-action: none; /* Ngăn cuộn màn hình khi sử dụng cảm ứng */
+    cursor: grab;
+}
+
+/* Bảng gán tile */
+#tile-assignment {
+    margin-top: 0px;
+}
+
+#tile-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+	align-content: center;
+	margin: 0 auto;
+    justify-content: center;
+    width: 700px; /* Đặt chiều rộng cụ thể */
+    height: 475px; /* Đặt chiều cao cụ thể */
+
+}
+
+#character-tiles img {
+    width: 80px; /* Thử nghiệm kích thước */
+    height: 80px;
+    object-fit: cover;
+    margin: 10px;
+    border-radius: 5px;
+    cursor: grab;
+}
+
+
+.tile-slot {
+    width: 120px; /* Tăng kích thước để nội dung hiển thị đẹp hơn */
+    height: 120px; /* Cân bằng với chiều rộng */
+    border: 2px dashed #aaaaaa; /* Thay đổi màu đường viền */
+    border-radius: 10px; /* Tăng bo góc cho mềm mại hơn */
+    background-color: #fafafa; /* Màu nền sáng hơn */
+    text-align: center;
+    font-size: 14px; /* Điều chỉnh kích thước chữ */
+    font-weight: bold;
+    line-height: 120px; /* Đảm bảo chữ nằm giữa theo chiều dọc */
+    color: #333; /* Màu chữ dễ đọc hơn */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng nhẹ */
+    transition: all 0.2s ease; /* Hiệu ứng chuyển đổi khi hover */
+}
+
+/* Hình ảnh trong các tile-slot */
+.tile-slot img {
+    width: 100%; /* Đảm bảo ảnh chiếm toàn bộ ô nhưng không vượt quá kích thước slot */
+    height: 100%; /* Đảm bảo ảnh không méo */
+    object-fit: cover; /* Giữ tỷ lệ hình ảnh phù hợp */
+    border-radius: 5px; /* Bo góc giống các slot */
+}
+
+
+/* Layer hình ảnh trong game */
+.tile {
+    width: 100%; /* Chiếm toàn bộ chiều rộng của cột */
+    height: 100%; /* Chiếm toàn bộ chiều cao của ô */
+    aspect-ratio: 1 / 1; /* Đảm bảo ô luôn vuông */
+    background-color: #cdc1b4; /* Màu nền mặc định cho ô trống */
+    border-radius: 5px; /* Bo góc cho ô */
+    position: relative;
+    overflow: hidden;
+}
+
+
+/* Hình ảnh nền */
+.tile img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Đảm bảo hình không bị méo */
+    top: 0;
+    left: 0;
+    z-index: 1; /* Nằm dưới các layer khác */
+}
+
+/* Layer màu phía trên */
+.tile .tile-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Màu mặc định trong suốt, sẽ thay đổi qua JS */
+    z-index: 2;
+    opacity: 0.5;
+}
+
+/* Layer chữ */
+.tile .tile-text {
+    position: absolute;
+    top: 75%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    z-index: 3;
+
+    font-size: 14px; /* Điều chỉnh kích thước chữ */
+    text-align: center;
+	white-space: nowrap;
+    opacity: 1;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 1), /* Glow cường độ thấp */
+                 0 0 10px rgba(255, 255, 255, 0.8), /* Glow cường độ trung bình */
+                 0 0 15px rgba(255, 255, 255, 0.5); /* Glow cường độ cao */
+}
+
+
+#musicDropdown {
+    font-size: 16px;
+    padding: 8px 12px; /* Nội dung bên trong */
+    border: 2px solid #ccc;
+    border-radius: 8px; /* Bo góc */
+    background-color: #f9f9f9;
+    color: #3c3a32;
+    display: block;
+    margin: 0 auto; /* Căn giữa */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Tạo hiệu ứng đổ bóng */
+    transition: all 0.2s ease; /* Hiệu ứng hover */
+	margin-bottom: 10px;
+}
+
+#musicDropdown:hover {
+    border-color: #ff7f50; /* Màu viền nổi bật hơn khi hover */
+    background-color: #fff; /* Màu nền sáng hơn */
+}
+
+/* Style cho ô nhập URL nếu hiện */
+#youtubeInputContainer {
+    margin-top: 5px; /* Khoảng cách với dropdown */
+    text-align: center;
+    width: 500px;
+    margin: 0 auto;
+	margin-bottom: 10px;
+}
+
+#youtubeInputContainer label {
+    font-size: 14px;
+    color: #3c3a32;
+}
+
+#youtubePlayer {
+    display: none; /* Ẩn video */
+}
+
+#youtubeUrl {
+    font-size: 14px;
+    padding: 6px 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 80%; /* Chiều rộng vừa phải */
+    box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#playCustomMusicButton {
+    background-color: #f57c00;
+    color: white;
+    font-size: 14px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+#playCustomMusicButton:hover {
+    background-color: #e65100;
+}
+
+#pauseMusicButton {
+    background-color: #d32f2f;
+    color: white;
+    font-size: 14px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+#pauseMusicButton:hover {
+    background-color: #b71c1c;
+}
+
+
+/* Bảng game */
+#game-container {
+    margin-top: 20px;
+}
+
+#game-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 8 cột cho bảng 8x8 */
+    grid-template-rows: repeat(5, 1fr);
+    gap: 5px;
+    background: #bbada0;
+    padding: 10px;
+    border-radius: 10px;
+    width: 500px; /* Đặt chiều rộng cụ thể */
+    height: 500px; /* Đặt chiều cao cụ thể */
+    margin: 0 auto; /* Canh giữa bảng game */
+	touch-action: none;
+}
+
+#confirm-selection {
+    font-family: '000 Chinacat [TeddyBear]'; /* Sử dụng font TeddyBear */
+    font-weight: bold; /* In đậm */
+    color: white; /* Màu chữ */
+    background-color: #4CAF50; /* Màu nền xanh lá */
+    border: none; /* Xóa viền mặc định */
+    border-radius: 10px; /* Bo góc */
+    padding: 15px 30px; /* Khoảng cách trong nút */
+    cursor: pointer; /* Thay đổi con trỏ khi hover */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Hiệu ứng đổ bóng */
+    transition: all 0.3s ease; /* Hiệu ứng mượt khi hover */
+    text-transform: uppercase; /* Viết hoa chữ */
+}
+
+/* Hiệu ứng khi hover */
+#confirm-selection:hover {
+    background-color: #45a049; /* Đổi màu nền */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3); /* Tăng đổ bóng */
+    transform: scale(1.05); /* Phóng to nhẹ */
+}
+
+#restart-button {
+    margin-top: 20px;
+    font-family: '000 Chinacat [TeddyBear]'; /* Sử dụng font TeddyBear */
+    font-weight: bold; /* In đậm */
+    color: white; /* Màu chữ */
+    background-color: #a43d3d;
+    border: none; /* Xóa viền mặc định */
+    border-radius: 10px; /* Bo góc */
+    padding: 15px 30px; /* Khoảng cách trong nút */
+    cursor: pointer; /* Thay đổi con trỏ khi hover */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Hiệu ứng đổ bóng */
+    transition: all 0.3s ease; /* Hiệu ứng mượt khi hover */
+    text-transform: uppercase; /* Viết hoa chữ */
+}
+
+#restart-button:hover {
+	background-color: #872d2d;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3); /* Tăng đổ bóng */
+    transform: scale(1.05); /* Phóng to nhẹ */
+}
+
+@media (max-width: 700px) {
+	#character-list {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.2vw;
+		align-content: center;
+		margin: 0 auto;
+		justify-content: center;		
+	}
+	.character {
+		border: 2px solid #ddd;
+		border-radius: 5px;
+		padding: 10px;
+		text-align: center;
+		cursor: pointer;
+	}
+
+	.character img {
+		width: 25vw;
+		height: 25vw;
+		border-radius: 5px;
+		touch-action: none; /* Ngăn cuộn màn hình khi sử dụng cảm ứng */
+		cursor: grab;
+	}
+
+	/* Bảng gán tile */
+	#tile-assignment {
+		margin-top: 20vw;
+	}
+
+	#tile-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		align-content: center;
+		margin: 0 auto;
+		justify-content: center;
+		width: 80vw; /* Đặt chiều rộng cụ thể */
+
+	}
+
+	#character-tiles img {
+		width: 80px; /* Thử nghiệm kích thước */
+		height: 80px;
+		object-fit: cover;
+		margin: 10px;
+		border-radius: 5px;
+		cursor: grab;
+	}
+
+
+	.tile-slot {
+		width: 25vw; /* Tăng kích thước để nội dung hiển thị đẹp hơn */
+		height: 25vw; /* Cân bằng với chiều rộng */
+		border: 2px dashed #aaaaaa; /* Thay đổi màu đường viền */
+		border-radius: 10px; /* Tăng bo góc cho mềm mại hơn */
+		background-color: #fafafa; /* Màu nền sáng hơn */
+		text-align: center;
+		font-size: 2.5vw; /* Điều chỉnh kích thước chữ */
+		font-weight: bold;
+		line-height: 140px; /* Đảm bảo chữ nằm giữa theo chiều dọc */
+		color: #333; /* Màu chữ dễ đọc hơn */
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng nhẹ */
+		transition: all 0.2s ease; /* Hiệu ứng chuyển đổi khi hover */
+	}
+
+
+	#musicDropdown {
+		padding: 8px 12px; /* Nội dung bên trong */
+		border: 2px solid #ccc;
+		border-radius: 8px; /* Bo góc */
+		background-color: #f9f9f9;
+		color: #3c3a32;
+		display: block;
+		margin: 0 auto; /* Căn giữa */
+		box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Tạo hiệu ứng đổ bóng */
+		transition: all 0.2s ease; /* Hiệu ứng hover */
+		margin-bottom: 10px;
+		font-size: 3.5vw;
+		width: 80vw;
+	}
+
+
+	/* Style cho ô nhập URL nếu hiện */
+	#youtubeInputContainer {
+		margin-top: 5px; /* Khoảng cách với dropdown */
+		text-align: center;
+		width: 100%; /* Chỉ chiếm toàn bộ chiều rộng của phần tử cha, không vượt khung */
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-direction: column; /* Sắp xếp theo chiều dọc */
+		margin-bottom: 10px;
+	}
+
+	#playCustomMusicButton:hover {
+		background-color: #e65100;
+	}
+
+
+	/* Bảng game */
+	#game-container {
+		margin-top: 20px;
+	}
+
+	#game-board {
+		display: grid;
+		grid-template-columns: repeat(5, 1fr); /* 8 cột cho bảng 8x8 */
+		grid-template-rows: repeat(5, 1fr);
+		gap: 5px;
+		background: #bbada0;
+		padding: 10px;
+		border-radius: 10px;
+		width: 85vw; /* Đặt chiều rộng cụ thể */
+		height: 85vw; /* Đặt chiều cao cụ thể */
+		margin: 0 auto; /* Canh giữa bảng game */
+		touch-action: none;
+	}
+
+	#confirm-selection {
+		font-family: '000 Chinacat [TeddyBear]'; /* Sử dụng font TeddyBear */
+		font-weight: bold; /* In đậm */
+		color: white; /* Màu chữ */
+		background-color: #4CAF50; /* Màu nền xanh lá */
+		border: none; /* Xóa viền mặc định */
+		border-radius: 10px; /* Bo góc */
+		padding: 15px 30px; /* Khoảng cách trong nút */
+		cursor: pointer; /* Thay đổi con trỏ khi hover */
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Hiệu ứng đổ bóng */
+		transition: all 0.3s ease; /* Hiệu ứng mượt khi hover */
+		text-transform: uppercase; /* Viết hoa chữ */
+	}
+
+
+	#restart-button {
+		margin-top: 100vw;
+	}
+	.tile .tile-text {
+		font-size: 2.5vw; /* Điều chỉnh kích thước chữ */
+	}
+}

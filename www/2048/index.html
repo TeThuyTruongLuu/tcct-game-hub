@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script src="https://www.youtube.com/iframe_api"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" href="favicon.png" type="image/png">
+    <title>2048 cách tư bản bào mòn tui</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="character-selection">
+	    <h1>2048 cách tư bản bào mòn tui</h1>
+		<h3><i>(Game by Phong)</i></h3>
+        <h2>Tui ở đây là</h2>
+        <div id="character-list">
+            <!-- Danh sách nhân vật để chọn -->
+            <div class="character" data-id="Khuu">
+                <img src="images/Khuu (1).png" alt="Khuu">
+                <p>Khưu</p>
+            </div>
+            <div class="character" data-id="Du">
+                <img src="images/Du (1).png" alt="Du">
+                <p>Dụ</p>
+            </div>
+            <div class="character" data-id="Vuong">
+                <img src="images/Vuong (1).png" alt="Vuong">
+                <p>Vương</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="tile-assignment" style="display: none;">
+        <h2>Kéo thả: Đây là tui khi...</h2>
+        <div id="tile-grid">
+            <!-- Các ô để gán ảnh -->
+            <div class="tile-slot" data-value="2">Mới tỉnh (2)</div>
+            <div class="tile-slot" data-value="4">Ra khỏi nhà (4)</div>
+            <div class="tile-slot" data-value="8">Đi làm (8)</div>
+            <div class="tile-slot" data-value="16">Vào họp (16)</div>
+            <div class="tile-slot" data-value="32">Sếp mắng (32)</div>
+            <div class="tile-slot" data-value="64">Hóng drama (64)</div>
+            <div class="tile-slot" data-value="128">Sếp hỏi task (128)</div>
+            <div class="tile-slot" data-value="256">Sếp nhắn (256)</div>
+            <div class="tile-slot" data-value="512">Lương tới (512)</div>
+            <div class="tile-slot" data-value="1024">Về nhà (1024)</div>
+            <div class="tile-slot" data-value="2048">Đi ngủ (2048)</div>
+        </div>
+        <div id="character-tiles">
+            <!-- Hình nhân vật sẽ xuất hiện ở đây -->
+        </div>
+        <button id="confirm-selection">Bắt đầu</button>
+		<h3>Cre: Phong's commissions by <a href="https://www.facebook.com/NamNunCute">Nấm Nùn</a></h3>
+    </div>
+
+	<div id="game-container" style="display: none;">
+		<h1>2048 cách tư bản bào mòn tui</h1>
+		
+		<h3 style="font-weight: normal;"><i>Nhạc chill trong lúc bị bào</i></h3>
+		<select id="musicDropdown" onchange="handleMusicSelection()">
+			<option value="https://www.youtube.com/watch?v=5Sb3W0ZY-1U">William Tell Oventure: Finale</option>
+			<option value="https://www.youtube.com/watch?v=3ZltabzNSDs">Heavy, Fast Classical Music - Mozart, Beethoven, Vivaldi, Bach...</option>
+			<option value="https://www.youtube.com/watch?v=OgyCBEgvF30">Eine Kleine Nachtmusik 1787</option>
+			<option value="https://www.youtube.com/watch?v=6DRXrGN-P2A">Flight of the Bumblebee</option>
+			<option value="https://www.youtube.com/watch?v=4Diu2N8TGKA">Offenbach - Can Can Music</option>
+			<option value="custom">Khác</option>
+		</select>
+
+		<div id="youtubeInputContainer" style="display: none;">
+			<label for="youtubeUrl">Nhập URL YouTube:</label>
+			<input type="text" id="youtubeUrl" placeholder="https://www.youtube.com/watch?v=...">
+		</div>
+		
+		<div style="margin-bottom: 10px;">
+			<button id="playCustomMusicButton" onclick="handleCustomMusic()">Phát</button>
+			<button id="pauseMusicButton" onclick="pauseMusic()">Ngừng</button>
+		</div>
+		
+		<audio id="backgroundMusic" loop></audio>
+		<div id="youtubePlayer" style="width: 0; height: 0; overflow: hidden;"></div>
+
+		<div id="timer" style="margin-bottom: 10px;">Thời gian bị bào: 00:00</div> <!-- Thêm timer -->
+
+		<div id="game-board">
+			<!-- Bảng game -->
+		</div>
+		<button id="restart-button">Reset cuộc đời</button>
+	</div>
+
+	<audio id="backgroundMusic" loop></audio>
+
+	<script src="DragDropTouch.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
