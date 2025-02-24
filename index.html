@@ -12,21 +12,22 @@
     <h1>Kho game hê hê<br>Phong tạo</h1>
 	
 	<div id="login-modal">
-		<h2>Đăng nhập</h2>
+		<h2>Tài khoản của bồ là?</h2>
 		<input type="text" id="code-input" placeholder="Nhập code là 'TCCT'">
 		<input type="text" id="nickname-input" placeholder="Tên của bồ">
 		<br>
-		<button id="start-button">Bắt đầu</button>
+		<button id="start-button">Đăng nhập</button>
+		<button id="play-without-login">Chơi không đăng nhập</button>
 	</div>
 
 	<p id="welcome-message" style="display: none;">Chào, <span id="display-name"></span>!</p>
 
     <p class="points" style="display: none;">Tổng điểm: <span id="user-points">N/A</span></p>
-	<div class="scoreboard-container">
+	<div class="scoreboard-container" style="display: none;">
 		<button onclick="showPersonalScores()">Bảng điểm cá nhân</button>
 		<button onclick="showLeaderboard()">Bảng kỷ lục</button>
 	</div>
-	<div id="scoreboard"></div>
+	<div id="scoreboard" style="display: none;"></div>
 
 
     <div class="game-list" style="display: none;">

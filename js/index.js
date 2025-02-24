@@ -103,6 +103,21 @@ if (savedUsername) {
     document.getElementById('display-name').innerText = savedUsername;
 }
 
+document.getElementById('play-without-login').addEventListener('click', () => {
+    // Ẩn modal đăng nhập
+    document.getElementById('login-modal').style.display = 'none';
+
+    // Hiển thị danh sách game
+    document.querySelector('.game-list').style.display = 'grid';
+
+    // Ẩn luôn tổng điểm và bảng điểm (vì không có đăng nhập)
+    document.querySelector('.points').style.display = 'none';
+    document.querySelector('.scoreboard-container').style.display = 'none';
+    document.getElementById('scoreboard').style.display = 'none';
+
+    alert("Bạn đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
+});
+
 
 
 async function saveHighScore(gameName, score) {

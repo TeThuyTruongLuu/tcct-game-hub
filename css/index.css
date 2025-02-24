@@ -134,6 +134,23 @@ h1 {
     text-align: center;
 }
 
+#play-without-login {
+    background: #6c757d; /* Xám nhẹ để phân biệt */
+    color: white;
+    font-size: 16px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    width: 100%;
+    margin-top: 10px;
+}
+
+#play-without-login:hover {
+    background: #495057; /* Màu xám đậm hơn khi hover */
+}
+
 #start-button {
     background: #ff9f43;
     color: white;
@@ -185,10 +202,7 @@ h1 {
     background: #ff7043;
 }
 
-/* Ẩn tổng điểm và bảng điểm khi chưa đăng nhập */
-.points, .scoreboard-container {
-    display: none;
-}
+
 
 
 table {
