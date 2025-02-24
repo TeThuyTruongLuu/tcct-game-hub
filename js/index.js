@@ -60,47 +60,49 @@ async function testFirestore() {
 // Gọi hàm kiểm tra Firestore
 testFirestore();
 
-// Mật khẩu chung do bồ đặt
-const MASTER_PASSWORD = "TCCT"; 
+document.getElementById('start-button').addEventListener('click', async () => {
+    const codeInput = document.getElementById('code-input').value.trim();
+    const nicknameInput = document.getElementById('nickname-input').value.trim();
 
-async function login() {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("tcctCode").value.trim();
-
-    if (password !== MASTER_PASSWORD) {
-        alert("Sai mật khẩu, thử lại!");
+    if (codeInput !== "TCCT" || !nicknameInput) {
+        alert("Nhập đúng mã 'TCCT' và điền tên hợp lệ nha bồ ơi.");
         return;
     }
 
-    // Kiểm tra xem tên có tồn tại chưa
-    const userRef = doc(db, "users", username);
+    const userRef = doc(db, "users", nicknameInput);
     const userDoc = await getDoc(userRef);
 
     if (userDoc.exists()) {
-        // Đã có tên này => Cho đăng nhập luôn
-        alert(`Chào mừng trở lại, ${username}!`);
+        alert(`Chào mừng trở lại, ${nicknameInput}!`);
     } else {
-        // Chưa có => Tạo tài khoản mới
-        await setDoc(userRef, { username });
-        alert(`Tạo tài khoản thành công! Xin chào, ${username}.`);
+        await setDoc(userRef, { username: nicknameInput });
+        alert(`Tạo tài khoản thành công! Xin chào, ${nicknameInput}.`);
     }
 
     // Lưu vào localStorage để nhớ người chơi
-    localStorage.setItem("username", username);
-    
-    // Ẩn form đăng nhập, hiển thị tên người chơi
-    document.getElementById("login-container").style.display = "none";
-    document.getElementById("welcome-message").style.display = "block";
-    document.getElementById("display-name").innerText = username;
-}
+    localStorage.setItem("username", nicknameInput);
 
-// Kiểm tra nếu có người chơi đang đăng nhập
+    // Ẩn modal đăng nhập, hiển thị tên người chơi & game
+    document.getElementById('login-modal').style.display = 'none';
+    document.getElementById('welcome-message').style.display = 'block';
+    document.getElementById('display-name').innerText = nicknameInput;
+
+    // Hiển thị danh sách game + điểm
+    document.querySelector('.points').style.display = 'block';
+    document.querySelector('.scoreboard-container').style.display = 'flex';
+    document.querySelector('.game-list').style.display = 'grid';
+    document.getElementById('scoreboard').style.display = 'block';
+});
+
+
+// Kiểm tra nếu có người chơi đã đăng nhập trước đó
 const savedUsername = localStorage.getItem("username");
 if (savedUsername) {
-    document.getElementById("login-container").style.display = "none";
-    document.getElementById("welcome-message").style.display = "block";
-    document.getElementById("display-name").innerText = savedUsername;
+    document.getElementById('login-modal').style.display = 'none';
+    document.getElementById('welcome-message').style.display = 'block';
+    document.getElementById('display-name').innerText = savedUsername;
 }
+
 
 
 async function saveHighScore(gameName, score) {

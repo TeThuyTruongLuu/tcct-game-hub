@@ -1,10 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-	<script src="Firebase.js"></script>
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phong - TCCT Game Hub</title>
@@ -13,16 +10,18 @@
 
 <body>
     <h1>Kho game hê hê<br>Phong tạo</h1>
-
-	<div id="login-form" onsubmit="event.preventDefault(); login();">
-		<input type="text" id="username" placeholder="Tên đăng nhập" required>
-		<input type="password" id="tcctCode" placeholder="Mật khẩu chung" required>
-		<button type="submit">Đăng nhập</button>
-	</div>
 	
+	<div id="login-modal">
+		<h2>Đăng nhập</h2>
+		<input type="text" id="code-input" placeholder="Nhập code là 'TCCT'">
+		<input type="text" id="nickname-input" placeholder="Tên của bồ">
+		<br>
+		<button id="start-button">Bắt đầu</button>
+	</div>
+
 	<p id="welcome-message" style="display: none;">Chào, <span id="display-name"></span>!</p>
 
-    <p class="points">Tổng điểm: <span id="user-points">N/A</span></p>
+    <p class="points" style="display: none;">Tổng điểm: <span id="user-points">N/A</span></p>
 	<div class="scoreboard-container">
 		<button onclick="showPersonalScores()">Bảng điểm cá nhân</button>
 		<button onclick="showLeaderboard()">Bảng kỷ lục</button>
@@ -30,7 +29,7 @@
 	<div id="scoreboard"></div>
 
 
-    <div class="game-list">
+    <div class="game-list" style="display: none;">
         <div class="game-item" onclick="window.location.href='2048/index.html'">
             <img src="img/2048.png" alt="2048">
             <p class="game-name">2048</p>
