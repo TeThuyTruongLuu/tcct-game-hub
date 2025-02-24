@@ -137,45 +137,87 @@ async function saveHighScore(gameName, score) {
     }
 }
 
+let personalScoresVisible = false; // Biến để kiểm tra trạng thái hiển thị
 
 async function showPersonalScores() {
+    const scoreboard = document.getElementById("scoreboard");
+
+    if (personalScoresVisible) {
+        scoreboard.innerHTML = ""; // Ẩn bảng điểm khi bấm lại
+        personalScoresVisible = false;
+        return;
+    }
+
     const username = localStorage.getItem("username");
     if (!username) {
         alert("Bạn cần đăng nhập!");
         return;
     }
 
-    const q = query(collection(db, "userScores"));
-    const querySnapshot = await getDocs(q);
+    const scoresRef = firebase.firestore().collection("userScores");
+    const q = scoresRef.where("username", "==", username).orderBy("score", "desc").limit(10);
 
-    let html = "<h2>Bảng điểm cá nhân</h2><table><tr><th>Game</th><th>Điểm cao nhất</th><th>Thời gian</th></tr>";
-    querySnapshot.forEach((doc) => {
-        if (doc.data().username === username) {
-            html += `<tr><td>${doc.data().game}</td><td>${doc.data().score}</td><td>${doc.data().updatedAt}</td></tr>`;
+    try {
+        const querySnapshot = await q.get();
+        let html = "<h2>Bảng điểm cá nhân</h2><table><tr><th>Game</th><th>Điểm cao nhất</th><th>Thời gian</th></tr>";
+
+        if (querySnapshot.empty) {
+            html += `<tr><td colspan="3">N/A</td></tr>`; // Không có dữ liệu thì hiển thị "N/A"
+        } else {
+            querySnapshot.forEach((doc) => {
+                html += `<tr><td>${doc.data().game}</td><td>${doc.data().score}</td><td>${doc.data().updatedAt}</td></tr>`;
+            });
         }
-    });
-    html += "</table>";
-
-    document.getElementById("scoreboard").innerHTML = html;
-}
-
-
-async function showLeaderboard() {
-    let html = "<h2>Bảng kỷ lục</h2>";
-
-    const gameNames = ["2048", "Lật hình", "Thần quyết", "Nối hình"];
-    for (let game of gameNames) {
-        html += `<h3>${game}</h3><table><tr><th>Người chơi</th><th>Điểm</th></tr>`;
-        const q = query(collection(db, "userScores"), where("game", "==", game), orderBy("score", "desc"), limit(10));
-        const querySnapshot = await getDocs(q);
-
-        querySnapshot.forEach((doc) => {
-            html += `<tr><td>${doc.data().username}</td><td>${doc.data().score}</td></tr>`;
-        });
 
         html += "</table>";
+        scoreboard.innerHTML = html;
+        personalScoresVisible = true; // Đánh dấu bảng điểm đang hiển thị
+    } catch (error) {
+        console.error("❌ Lỗi khi lấy bảng điểm cá nhân:", error);
+    }
+}
+
+
+let leaderboardVisible = false; // Biến để kiểm tra trạng thái hiển thị
+
+async function showLeaderboard() {
+    const scoreboard = document.getElementById("scoreboard");
+
+    if (leaderboardVisible) {
+        scoreboard.innerHTML = ""; // Ẩn bảng điểm khi bấm lại
+        leaderboardVisible = false;
+        return;
     }
 
-    document.getElementById("scoreboard").innerHTML = html;
+    let html = "<h2>Bảng kỷ lục</h2>";
+    const gameNames = ["2048", "Lật hình", "Nối hình"]; // Bỏ "Thần quyết" khỏi danh sách
+
+    for (let game of gameNames) {
+        html += `<h3>${game}</h3><table><tr><th>Người chơi</th><th>Điểm</th></tr>`;
+
+        const scoresRef = firebase.firestore().collection("userScores");
+        const q = scoresRef.where("game", "==", game).orderBy("score", "desc").limit(10);
+
+        try {
+            const querySnapshot = await q.get();
+            
+            if (querySnapshot.empty) {
+                html += `<tr><td colspan="2">N/A</td></tr>`; // Nếu không có ai chơi game này, hiển thị "N/A"
+            } else {
+                querySnapshot.forEach((doc) => {
+                    html += `<tr><td>${doc.data().username}</td><td>${doc.data().score}</td></tr>`;
+                });
+            }
+
+            html += "</table>";
+        } catch (error) {
+            console.error(`❌ Lỗi khi lấy bảng kỷ lục cho game ${game}:`, error);
+        }
+    }
+
+    scoreboard.innerHTML = html;
+    leaderboardVisible = true; // Đánh dấu bảng kỷ lục đang hiển thị
 }
+
+
 
