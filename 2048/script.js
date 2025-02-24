@@ -14,8 +14,8 @@ let touchEndY = 0; // Tọa độ Y khi kết thúc vuốt
 // Biến lưu trạng thái
 let youtubePlayer; // Player YouTube
 let youtubeReady = false;
-let currentMusicSource = null; // Trạng thái nguồn nhạc (YouTube)
-
+let currentMusicSource = null;
+let playerScore = 0;
 
 
 function onYouTubeIframeAPIReady() {
@@ -45,6 +45,11 @@ function checkYouTubeAPI(callback) {
     }
 }
 
+window.addEventListener("beforeunload", function () {
+    if (playerScore > 0) {
+        updateScore("2048", playerScore); // 🔥 Lưu điểm trước khi thoát
+    }
+});
 
 
 
@@ -366,6 +371,7 @@ function restartGame() {
     stopTimer(); // Dừng timer hiện tại
     timerStarted = false; // Đặt lại trạng thái để khởi động timer khi di chuyển lần đầu
     document.getElementById("timer").textContent = "Thời gian bị bào: 00:00"; // Hiển thị mặc định
+	playerScore = 0;
     createBoard(); // Reset bảng chơi
     renderBoard(); // Hiển thị lại bảng
 }
@@ -528,6 +534,8 @@ function compressAndMerge(line) {
     for (let i = 0; i < compressed.length - 1; i++) {
         if (compressed[i] === compressed[i + 1]) {
             compressed[i] *= 2; // Gộp ô
+            console.log(`Điểm hiện tại: ${playerScore}`);
+            playerScore += compressed[i]; // 🔥 Cộng điểm vào tổng điểm
             compressed[i + 1] = 0; // Ô tiếp theo thành trống
         }
     }
@@ -535,6 +543,7 @@ function compressAndMerge(line) {
     while (compressed.length < gridSize) compressed.push(0); // Bổ sung ô trống
     return compressed;
 }
+
 
 // Kiểm tra điều kiện thắng/thua
 function checkGameOver() {
@@ -561,6 +570,7 @@ function checkGameOver() {
 				const minutes = Math.floor(timer / 60);
 				const seconds = timer % 60;
                 alert(`Hooray! Chúc mừng bồ tu thành chính quả 2048 vẻ mặt sau ${formatTime(minutes)}:${formatTime(seconds)} bị bào mòn bởi tư bản!`);
+				updateScore("2048", playerScore);
                 restartGame();
                 return;
             }
@@ -574,6 +584,7 @@ function checkGameOver() {
 		const minutes = Math.floor(timer / 60);
 		const seconds = timer % 60;
         alert("Tèo, tư bản chiếu tướng bồ rồi.");
+		updateScore("2048", playerScore);
         restartGame();
     }
 }
@@ -597,6 +608,7 @@ function checkWin() {
             if (grid[row][col] === 2048) {  // Ô giá trị cao nhất
                 stopTimer();
                 alert(`🎉 Hooray! Chúc mừng bồ tu thành chính quả 2048 vẻ mặt sau ${formatTime(Math.floor(timer / 60))}:${formatTime(timer % 60)} bị bào mòn bởi tư bản!`);
+				updateScore("2048", playerScore);
                 restartGame();
                 return true;
             }

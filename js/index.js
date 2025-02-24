@@ -94,6 +94,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelector(".scoreboard-container").style.display = "flex";
             document.querySelector(".game-list").style.display = "grid";
             document.getElementById("scoreboard").style.display = "block";
+			updateTotalScore();
         });
     } else {
         console.error("❌ Nút 'Bắt đầu' không tồn tại!");
@@ -117,25 +118,46 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-async function saveHighScore(gameName, score) {
+async function updateScore(game, newScore) {
     const username = localStorage.getItem("username");
     if (!username) {
-        alert("Bạn cần đăng nhập để lưu điểm!");
+        alert("Bạn chưa đăng nhập, điểm sẽ không được lưu!");
         return;
     }
 
-    const userScoreRef = doc(db, "userScores", username + "_" + gameName);
-    const userScoreDoc = await getDoc(userScoreRef);
-
-    if (!userScoreDoc.exists() || score > userScoreDoc.data().score) {
-        await setDoc(userScoreRef, {
-            username,
-            game: gameName,
-            score,
-            updatedAt: new Date().toISOString()
-        });
+    const scoresRef = firebase.firestore().collection("userScores");
+    const userScoreRef = scoresRef.where("username", "==", username).where("game", "==", game);
+    
+    try {
+        const querySnapshot = await userScoreRef.get();
+        if (querySnapshot.empty) {
+            // Nếu chưa có điểm, tạo mới
+            await scoresRef.add({
+                username: username,
+                game: game,
+                score: newScore,
+                updatedAt: new Date().toISOString()
+            });
+            console.log(`🔥 Điểm mới của ${username} (${game}): ${newScore}`);
+        } else {
+            // Nếu đã có điểm, chỉ cập nhật nếu cao hơn
+            const doc = querySnapshot.docs[0];
+            const oldScore = doc.data().score;
+            if (newScore > oldScore) {
+                await scoresRef.doc(doc.id).update({
+                    score: newScore,
+                    updatedAt: new Date().toISOString()
+                });
+                console.log(`🔥 Điểm của ${username} (${game}) được cập nhật lên ${newScore}`);
+            } else {
+                console.log(`⚠️ Điểm ${newScore} không cao hơn ${oldScore}, không cập nhật.`);
+            }
+        }
+    } catch (error) {
+        console.error("❌ Lỗi khi cập nhật điểm:", error);
     }
 }
+
 
 let personalScoresVisible = false; // Biến để kiểm tra trạng thái hiển thị
 
@@ -220,4 +242,34 @@ async function showLeaderboard() {
 }
 
 
+async function updateTotalScore() {
+    const username = localStorage.getItem("username");
+    if (!username) {
+        console.warn("⚠️ Người chơi chưa đăng nhập, không cập nhật tổng điểm.");
+        return;
+    }
+
+    const scoresRef = firebase.firestore().collection("userScores");
+    const q = scoresRef.where("username", "==", username);
+
+    try {
+        const querySnapshot = await q.get();
+        let totalScore = 0;
+
+        if (querySnapshot.empty) {
+            console.log(`⚠️ Người chơi ${username} chưa có điểm trong game nào.`);
+            document.getElementById("user-points").innerText = "N/A";
+            return;
+        }
+
+        querySnapshot.forEach((doc) => {
+            totalScore += doc.data().score; // Cộng điểm cao nhất của từng game
+        });
+
+        console.log(`🔥 Tổng điểm của ${username}: ${totalScore}`);
+        document.getElementById("user-points").innerText = totalScore;
+    } catch (error) {
+        console.error("❌ Lỗi khi cập nhật tổng điểm:", error);
+    }
+}
 
