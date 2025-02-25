@@ -47,7 +47,7 @@ h1 {
     color: #ff9f43; /* Màu cam pastel */
     text-transform: uppercase;
     margin-bottom: 10px;
-	padding-top: 2vw;
+	padding-top: 5vw;
 	font-family: AmpleSoft;
 }
 
@@ -295,12 +295,12 @@ th {
 /* Container chứa nhân vật và bong bóng thoại */
 #character-callout {
     position: absolute;
-    padding-top: 10px; /* Hạ xuống thấp hơn nữa */
+    margin-top: 20px; /* Hạ xuống thấp hơn nữa */
     right: 10vw; /* Căn phải nhưng không quá sát mép */
     display: flex;
     align-items: flex-end;
     gap: 10px;
-	padding-bottom: 2vw;
+	padding-bottom: 5vw;
 }
 
 /* Bong bóng thoại */
@@ -330,23 +330,6 @@ th {
     cursor: pointer;
 }
 
-/* Responsive cho mobile */
-@media (max-width: 768px) {
-    #character-callout {
-        right: 5vw; /* Điều chỉnh nhỏ hơn cho mobile */
-        bottom: 5px;
-    }
-
-    #callout-avatar {
-        width: 50px;
-        height: 50px;
-    }
-
-    #callout-bubble {
-        max-width: 200px;
-        font-size: 12px;
-    }
-}
 
 
 
