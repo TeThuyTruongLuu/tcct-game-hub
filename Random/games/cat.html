@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Sách Lật</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: powderblue;
+            font-family: sans-serif;
+        }
+
+        .book-container {
+            position: relative;
+            width: 700px;
+            height: 500px;
+            perspective: 1500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .book {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .paper {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            perspective: 1500px;
+        }
+
+        .left-page, .right-page {
+            width: 50%;
+            height: 100%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid black;
+            position: absolute;
+            top: 0;
+        }
+
+        .left-page {
+            left: 0;
+            transform-origin: right;
+            transform: rotateY(0deg);
+        }
+
+        .right-page {
+            right: 0;
+            transform-origin: left;
+            transform: rotateY(0deg);
+        }
+
+        .flipped .left-page {
+            transform: rotateY(-180deg);
+        }
+
+        .flipped .right-page {
+            transform: rotateY(180deg);
+        }
+
+        button {
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 30px;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="question" placeholder="Nhập câu hỏi...">
+    <div class="book-container">
+        <button onclick="prevPage()">⟨</button>
+        <div class="book" id="book">
+            <div class="paper" id="p1">
+                <div class="left-page">
+                    <img id="randomImage" src="" alt="Hình ảnh" />
+                </div>
+                <div class="right-page" id="randomText"></div>
+            </div>
+        </div>
+        <button onclick="nextPage()">⟩</button>
+    </div>
+
+    <script>
+        const imageFiles = [
+            "Cá Dụ 1.png", "Cáo Diệp 1.png", "Cáo tuyết Lam 1.png", "Cao.png", "Chu.png", "Chung.png", "Chuột Duệ 1.png", "Corgi Lư 1.png", "Cúi An 1.png", "Cún bự Bao 1.png"
+        ];
+        
+        const texts = [
+            "ROLL điểm.", "Đừng làm chỗ dựa, hãy làm tấm gương sao?", "Cậu không được thế này, tuyệt đối không được.",
+            "Không thả là bất hạnh của Trung Thảo Đường, thả thì là bất hạnh của tất cả các đội.", "Đoán không ra, hầy, đoán không ra.",
+            "Khoảng cách này chỉ là tạm thời thôi, cậu có tiềm năng rất lớn!", "Cậu vẫn còn rất trẻ, hãy tiếp tục cố gắng, rồi sẽ có một ngày nào đó cậu vượt qua tất cả mọi người.",
+            "Nếu như may mắn cũng là sai lầm, vậy thì tôi nguyện ý sai càng thêm sai.", "Gánh nặng này........ Quá nặng rồi.", "Tự tin lên, đừng hoài nghi bản thân."
+        ];
+        
+        let currentIndex = 0;
+
+        function updatePage(index) {
+            document.getElementById("randomText").textContent = texts[index];
+            document.getElementById("randomImage").src = `matching_game/images/${imageFiles[index]}`;
+        }
+
+        function nextPage() {
+            if (currentIndex < texts.length - 1) {
+                document.getElementById("p1").classList.add("flipped");
+                setTimeout(() => {
+                    currentIndex++;
+                    updatePage(currentIndex);
+                }, 500);
+            }
+        }
+
+        function prevPage() {
+            if (currentIndex > 0) {
+                document.getElementById("p1").classList.remove("flipped");
+                setTimeout(() => {
+                    currentIndex--;
+                    updatePage(currentIndex);
+                }, 500);
+            }
+        }
+
+        updatePage(currentIndex);
+    </script>
+</body>
+</html>
