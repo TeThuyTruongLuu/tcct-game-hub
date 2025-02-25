@@ -291,15 +291,16 @@ th {
     color: white;
 }
 
+
 /* Container chứa nhân vật và bong bóng thoại */
 #character-callout {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
+    position: absolute;
+    padding-top: 10px; /* Hạ xuống thấp hơn nữa */
+    right: 10vw; /* Căn phải nhưng không quá sát mép */
     display: flex;
     align-items: flex-end;
     gap: 10px;
-    z-index: 1000;
+	padding-bottom: 2vw;
 }
 
 /* Bong bóng thoại */
@@ -314,28 +315,39 @@ th {
     color: #333;
     border: 1px solid #7ab064;
     position: relative;
+    transition: opacity 0.3s ease-in-out;
 }
 
-/* Tạo đuôi bong bóng */
-#callout-bubble::after {
-    content: "";
-    position: absolute;
-    bottom: -10px;
-    left: 20px;
-    border-width: 10px;
-    border-style: solid;
-    border-color: #ffffff transparent transparent transparent;
-}
+
 
 /* Ảnh nhân vật */
 #callout-avatar {
-    width: 70px;
-    height: 70px;
+    width: 60px;
+    height: 60px;
     object-fit: contain;
     border-radius: 50%;
-    border: 1px solid #7ab064 ;
+    border: 1px solid #7ab064;
     cursor: pointer;
 }
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+    #character-callout {
+        right: 5vw; /* Điều chỉnh nhỏ hơn cho mobile */
+        bottom: 5px;
+    }
+
+    #callout-avatar {
+        width: 50px;
+        height: 50px;
+    }
+
+    #callout-bubble {
+        max-width: 200px;
+        font-size: 12px;
+    }
+}
+
 
 
 /* Responsive: Hiển thị đẹp trên điện thoại */
