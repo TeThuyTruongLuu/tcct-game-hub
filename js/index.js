@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelector(".scoreboard-container").style.display = "flex";
             document.querySelector(".game-list").style.display = "grid";
             document.getElementById("scoreboard").style.display = "block";
-			document.getElementById("character-callout").style.display = "block";
+			document.getElementById("character-callout").style.display = "flex";
 
             updateTotalScore();
         });
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelector(".scoreboard-container").style.display = "none";
             document.getElementById("scoreboard").style.display = "none";
             document.getElementById("logout-button").style.display = "none";
-			document.getElementById("character-callout").style.display = "block";
+			document.getElementById("character-callout").style.display = "flex";
 
             alert("Bồ đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
         });
