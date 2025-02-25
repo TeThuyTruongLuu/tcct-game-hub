@@ -80,6 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelector(".scoreboard-container").style.display = "flex";
         document.querySelector(".game-list").style.display = "grid";
         document.getElementById("scoreboard").style.display = "block";
+		document.getElementById("character-callout").style.display = "flex";
         updateTotalScore();
     }
 
