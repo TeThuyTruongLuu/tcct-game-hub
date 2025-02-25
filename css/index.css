@@ -47,7 +47,7 @@ h1 {
     color: #ff9f43; /* Màu cam pastel */
     text-transform: uppercase;
     margin-bottom: 10px;
-	padding-top: 10vw;
+	padding-top: 2vw;
 	font-family: AmpleSoft;
 }
 
@@ -196,6 +196,8 @@ h1 {
 	font-family: AmpleSoft;
 }
 
+
+
 .scoreboard-container button {
     background: #ff9f43;
     color: white;
@@ -230,11 +232,15 @@ h1 {
 }
 
 
-
 table {
-    width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
+    width: 70%; /* Thu gọn bảng xuống 70% màn hình */
+    margin: 1vw auto; /* Căn giữa bảng */
+    background: #ffeeee; /* Nền pastel nhẹ */
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 table, th, td {
@@ -248,6 +254,88 @@ th {
     color: white;
 }
 
+/* Bố cục chung của bảng kỷ lục */
+.leaderboard-container {
+    width: 70%;
+    margin: 20px auto;
+    text-align: center;
+}
+
+/* Thanh tab */
+.leaderboard-tabs {
+    display: flex;
+    justify-content: center;
+    background: #f8f8f8;
+    border-radius: 30px;
+    padding: 5px;
+    width: fit-content;
+    margin: 0 auto 15px;
+}
+
+/* Nút tab */
+.tab-btn {
+    background: transparent;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+/* Khi nút được chọn */
+.tab-btn.active {
+    background: #3a2e25;
+    color: white;
+}
+
+/* Container chứa nhân vật và bong bóng thoại */
+#character-callout {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 1000;
+}
+
+/* Bong bóng thoại */
+#callout-bubble {
+    background: #ffffff;
+    padding: 10px 15px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 250px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    border: 1px solid #7ab064;
+    position: relative;
+}
+
+/* Tạo đuôi bong bóng */
+#callout-bubble::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 20px;
+    border-width: 10px;
+    border-style: solid;
+    border-color: #ffffff transparent transparent transparent;
+}
+
+/* Ảnh nhân vật */
+#callout-avatar {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    border-radius: 50%;
+    border: 1px solid #7ab064 ;
+    cursor: pointer;
+}
 
 
 /* Responsive: Hiển thị đẹp trên điện thoại */

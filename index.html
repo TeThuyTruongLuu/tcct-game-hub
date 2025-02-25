@@ -26,7 +26,7 @@
 		<button id="play-without-login">Chơi ẩn danh</button>
 	</div>
 
-	<p id="welcome-message" style="display: none;">Chào, <span id="display-name"></span> ~ヾ(・ω・)!</p>
+	<p id="welcome-message" style="display: none;">Hé lô <span id="display-name"></span> ~ヾ(・ω・)!</p>
 	<button id="logout-button" onclick="logout()" style="display: none;">Đăng xuất</button>
 	<br>
 	
@@ -35,6 +35,16 @@
 	<div class="scoreboard-container" style="display: none;">
 		<button onclick="showPersonalScores()">Bảng điểm cá nhân</button>
 		<button onclick="showLeaderboard()">Bảng kỷ lục</button>
+	</div>
+	<div id="leaderboard-section" style="display: none;">
+		<div class="leaderboard-tabs">
+			<button class="tab-btn active" data-game="2048">2048</button>
+			<button class="tab-btn" data-game="Lật hình">Lật hình</button>
+			<button class="tab-btn" data-game="Nối hình">Nối hình</button>
+		</div>
+		<div id="leaderboard-content">
+			<!-- Nội dung bảng xếp hạng sẽ được cập nhật ở đây -->
+		</div>
 	</div>
 	<div id="scoreboard" style="display: none;"></div>
 
@@ -60,6 +70,12 @@
     </div>
 	
     <div id="game-container"></div>
+		
+	<div id="character-callout">
+		<div id="callout-bubble">Xin chào! Tôi là trợ thủ của bạn!</div>
+		<img id="callout-avatar" src="2048/images/Vuong (6).png" alt="Nhân vật">
+	</div>
+
     <script>
         function loadGame(game) {
             document.getElementById('game-container').innerHTML = `<iframe src="${game}/index.html" width="100%" height="500px" frameborder="0"></iframe>`;
