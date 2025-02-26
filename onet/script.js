@@ -120,15 +120,18 @@ function playMusic() { //Phát nhạc
     if (musicSelect.value === "custom") {
         let youtubeUrl = youtubeInput.value.trim();
         if (youtubeUrl) {
-            let videoId = extractYouTubeID(youtubeUrl);
-            if (videoId) {
-                youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}`;
-                youtubePlayer.style.display = "block";
-                isYouTubePlaying = true;
-                bgMusic.pause();
-            } else {
-                alert("Link YouTube không hợp lệ!");
-            }
+			let { videoId, playlistId } = extractYouTubeID(youtubeUrl);
+
+			if (playlistId) {
+				// 🔥 Phát playlist nếu có
+				youtubePlayer.src = `https://www.youtube.com/embed/videoseries?list=${playlistId}&autoplay=1&loop=1`;
+			} else if (videoId) {
+				// 🔥 Phát video nếu không có playlist
+				youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}`;
+			} else {
+				alert("Link YouTube không hợp lệ!");
+				return;
+			}
         } else {
             alert("Vui lòng nhập link YouTube!");
         }
@@ -138,6 +141,7 @@ function playMusic() { //Phát nhạc
         bgMusic.load();
         bgMusic.play();
         youtubePlayer.style.display = "none";
+		youtubePlayer.setVolume(50);
         isYouTubePlaying = false;
     }
 }
@@ -150,11 +154,19 @@ function stopMusic() { //Dừng nhạc
     isYouTubePlaying = false;
 }
 
-function extractYouTubeID(youtubeUrl) { //Lấy link
-    const regex = /(?:https?:\/\/)?(?:www\.)?(youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]+)/;
-    const match = youtubeUrl.match(regex);
-    return match ? match[2] : null;
+function extractYouTubeID(youtubeUrl) { // Lấy Video ID & Playlist ID
+    const videoRegex = /(?:https?:\/\/)?(?:www\.)?(youtube\.com\/.*[?&]v=|youtu\.be\/)([a-zA-Z0-9_-]+)/;
+    const playlistRegex = /[?&]list=([a-zA-Z0-9_-]+)/;
+
+    const videoMatch = youtubeUrl.match(videoRegex);
+    const playlistMatch = youtubeUrl.match(playlistRegex);
+
+    const videoId = videoMatch ? videoMatch[2] : null;
+    const playlistId = playlistMatch ? playlistMatch[1] : null;
+
+    return { videoId, playlistId };
 }
+
 
 playButton.addEventListener("click", playMusic);
 stopButton.addEventListener("click", stopMusic);
