@@ -469,17 +469,21 @@ function drawConnection(path) {
         let tile2 = board[row2][col2].element.getBoundingClientRect();
 
         let x1 = ((tile1.left + tileSize / 2) / window.innerWidth) * 100;
-        let y1 = ((tile1.top + tileSize / 2 + boardRect.top*2.5) / window.innerWidth) * 100;
+        //let y1 = ((tile1.top + tileSize / 2 + boardRect.top*3) / window.innerWidth) * 100;
+		let y1 = ((tile1.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.3 : boardRect.top * 3)) / window.innerWidth) * 100;
         let x2 = ((tile2.left + tileSize / 2) / window.innerWidth) * 100;
-        let y2 = ((tile2.top + tileSize / 2 + boardRect.top*2.5) / window.innerWidth) * 100;
+        //let y2 = ((tile2.top + tileSize / 2 + boardRect.top*3) / window.innerWidth) * 100;
+		let y2 = ((tile2.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.3 : boardRect.top * 3)) / window.innerWidth) * 100;
+
 		
+		//let tileSize = window.innerWidth < 700 ? window.innerWidth * 0.1 : 80;
 
         let line = document.createElement("div");
         line.classList.add("line");
 
         if (row1 === row2) { // Đường ngang
             line.style.width = `${Math.abs(x2 - x1)}vw`;
-            line.style.height = "0.3vw";
+            line.style.height = "0.4vw";
             line.style.left = `${Math.min(x1, x2)}vw`;
             line.style.top = `${y1 - 0.35}vw`;
         } else if (col1 === col2) { // Đường dọc
@@ -576,7 +580,7 @@ function updateTilePositions() {
             if (!tile.hidden) {
                 let tileRect = tile.element.getBoundingClientRect();
                 tile.x = ((tileRect.left + tileSize / 2) - boardRect.left) / window.innerWidth * 100;
-                tile.y = ((tileRect.top + tileSize / 2) + boardRect.top*2) / window.innerHeight * 100;
+                tile.y = ((tileRect.top + tileSize / 2) + boardRect.top) / window.innerHeight * 100;
             }
         }
     }
@@ -706,7 +710,7 @@ function shuffleBoard() {
         }
     }
 
-    updateTilePositions();
+//    updateTilePositions();
 
     if (shuffled) {
         console.log(`✅ Shuffle thành công! Số lần shuffle còn lại: ${shuffleCount}`);
@@ -769,10 +773,12 @@ function resetGame() {
     if (currentLevel === 0) { // Level 1: Reset về mặc định
         playerScore = 0;
         timeLeft = 120;
+		loadLevel(0);
     } else { // Level Max: Giữ điểm của Level 1, reset thời gian về 0
         let savedScore = localStorage.getItem("savedScore");
         playerScore = savedScore ? parseInt(savedScore) : 0;
         timeElapsed = 0;
+		loadLevel(1);
     }
 
     updateScoreUI();

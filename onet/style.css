@@ -265,6 +265,12 @@ p {
 	#play-music, #stop-music {
 		font-size: 4vw;
 	}
+    .line {
+		position: absolute;
+        border-radius: 1vw;
+        box-shadow: 0px 0px 2vw rgba(255, 87, 51, 0.8);
+		transform: translateX(calc(-1.5vw));
+    }
 }
 
 
@@ -310,12 +316,5 @@ p {
         width: 100%;
         height: 100%;
         border-radius: 2vw;
-    }
-
-    .line {
-		position: absolute;
-        border-radius: 1vw;
-        box-shadow: 0px 0px 2vw rgba(255, 87, 51, 0.8);
-		transform: translateY(calc(-100vw));
     }
 }
