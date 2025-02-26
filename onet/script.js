@@ -283,6 +283,7 @@ function loadLevel(levelIndex) {
     if (currentLevel === 0) {
         timeLeft = 120;
     } else {
+		alert("Bạn nên xoay ngang màn hình và reset game trước khi chơi màn này trên đt!");
         timeElapsed = 0;
         document.getElementById("timer").textContent = "0:00";
     }
@@ -470,10 +471,10 @@ function drawConnection(path) {
 
         let x1 = ((tile1.left + tileSize / 2) / window.innerWidth) * 100;
         //let y1 = ((tile1.top + tileSize / 2 + boardRect.top*3) / window.innerWidth) * 100;
-		let y1 = ((tile1.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.3 : boardRect.top * 3)) / window.innerWidth) * 100;
+		let y1 = ((tile1.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.04 : boardRect.top * 3)) / window.innerWidth) * 100;
         let x2 = ((tile2.left + tileSize / 2) / window.innerWidth) * 100;
         //let y2 = ((tile2.top + tileSize / 2 + boardRect.top*3) / window.innerWidth) * 100;
-		let y2 = ((tile2.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.3 : boardRect.top * 3)) / window.innerWidth) * 100;
+		let y2 = ((tile2.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.04 : boardRect.top * 3)) / window.innerWidth) * 100;
 
 		
 		//let tileSize = window.innerWidth < 700 ? window.innerWidth * 0.1 : 80;
