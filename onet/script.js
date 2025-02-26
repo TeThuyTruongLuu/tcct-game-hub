@@ -121,13 +121,14 @@ function playMusic() { //Phát nhạc
         let youtubeUrl = youtubeInput.value.trim();
         if (youtubeUrl) {
 			let { videoId, playlistId } = extractYouTubeID(youtubeUrl);
+			let embedUrl = "";
 
 			if (playlistId) {
-				// 🔥 Phát playlist nếu có
-				youtubePlayer.src = `https://www.youtube.com/embed/videoseries?list=${playlistId}&autoplay=1&loop=1`;
+				// ✅ Phát cả playlist, tự động chuyển bài
+				embedUrl = `https://www.youtube.com/embed/videoseries?list=${playlistId}&autoplay=1&loop=1&playlist=${playlistId}&enablejsapi=1`;
 			} else if (videoId) {
-				// 🔥 Phát video nếu không có playlist
-				youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}`;
+				// ✅ Phát một video duy nhất
+				embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&enablejsapi=1`;
 			} else {
 				alert("Link YouTube không hợp lệ!");
 				return;
