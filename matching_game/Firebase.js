@@ -1,27 +1,8 @@
 // Khai báo biến toàn cục
-let db;
+
 let youtubePlayer;
 let isYouTubePlaying = false;
 let backgroundMusic = new Audio('musics/background music.m4a');
-
-function initializeApp() {
-    // Cấu hình Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyDrRgPPldi8hy04k8aSy8r2wCy91RrgqUM",
-        authDomain: "tcct-project-tran.firebaseapp.com",
-        databaseURL: "https://tcct-project-tran-default-rtdb.firebaseio.com",
-        projectId: "tcct-project-tran",
-        storageBucket: "tcct-project-tran.firebasestorage.app",
-        messagingSenderId: "826272441955",
-        appId: "1:826272441955:web:86a1f521ccee2e9d3e3a56",
-        measurementId: "G-D9EN3NEFD6"
-    };
-
-    // Khởi tạo Firebase
-    firebase.initializeApp(firebaseConfig);
-    const firestore = firebase.firestore();
-    db = firestore.collection("leaderboard"); // Gán db trực tiếp là collection "leaderboard"
-}
 
 
 // Chờ DOM tải hoàn chỉnh trước khi gắn sự kiện
@@ -293,103 +274,120 @@ function convertTimeToSeconds(timeString) {
 // Hàm tính toán lại thứ hạng và điểm cho tất cả người chơi
 async function recalculateAllRanksAndPoints() {
     try {
-        // Lấy tất cả các bản ghi
-        const allScoresSnapshot = await db.get();
+        console.log("📊 Bắt đầu tính lại thứ hạng và điểm số...");
+        
+        const scoresRef = db.collection("userScores").where("game", "==", "Lật hình");
+        const querySnapshot = await scoresRef.get();
+        let players = [];
 
-        // Sắp xếp các bản ghi dựa trên tổng số giây
-        const sortedDocs = allScoresSnapshot.docs.sort((a, b) => {
-            const timeA = convertTimeToSeconds(a.data().totalTime);
-            const timeB = convertTimeToSeconds(b.data().totalTime);
-            return timeA - timeB;
+        // Lưu tất cả dữ liệu người chơi vào mảng
+        querySnapshot.forEach(doc => {
+            players.push({ id: doc.id, ...doc.data() });
         });
 
-        let uniqueRank = 1;
+        if (players.length === 0) {
+            console.warn("⚠️ Không có người chơi nào trong database!");
+            return { success: false, message: "Không có người chơi nào để tính toán lại." };
+        }
+
+        // 🚀 Sắp xếp danh sách theo thời gian hoàn thành (từ nhanh nhất đến chậm nhất)
+        players.sort((a, b) => compareTimeStrings(a.totalTime, b.totalTime));
+
+        let rank = 1;
         let previousTime = null;
         let groupPlayers = [];
 
-        for (const doc of sortedDocs) {
-            const data = doc.data();
-            const currentTime = convertTimeToSeconds(data.totalTime);
+        // 🔄 Cập nhật thứ hạng và điểm số
+        for (let i = 0; i < players.length; i++) {
+            let currentTime = players[i].totalTime;
 
-            // Nếu thời gian của người chơi khác với thời gian của nhóm hiện tại
+            // Nếu thời gian hoàn thành khác với nhóm trước đó, cấp điểm cho nhóm cũ
             if (previousTime !== null && currentTime !== previousTime) {
-                // Cấp điểm cho nhóm người chơi hiện tại
-                const points = getPointsForRank(uniqueRank);
-                for (const playerDoc of groupPlayers) {
-                    await db.doc(playerDoc.id).update({
-                        rank: uniqueRank,
-                        points: points
+                const points = getPointsForRank(rank);
+                for (const player of groupPlayers) {
+                    await db.collection("userScores").doc(player.id).update({
+                        rank: rank,
+                        score: points
                     });
                 }
-
-                // Tăng `uniqueRank` lên đúng bằng số lượng người chơi trong nhóm hiện tại
-                uniqueRank += groupPlayers.length;
+                rank += groupPlayers.length; // Nhảy rank đúng số lượng nhóm cũ
                 groupPlayers = [];
             }
 
             // Thêm người chơi vào nhóm hiện tại
-            groupPlayers.push(doc);
+            groupPlayers.push(players[i]);
             previousTime = currentTime;
         }
 
-        // Xử lý nhóm cuối cùng (nếu có)
+        // Cập nhật nhóm cuối cùng nếu còn người chơi
         if (groupPlayers.length > 0) {
-            const points = getPointsForRank(uniqueRank);
-            for (const playerDoc of groupPlayers) {
-                await db.doc(playerDoc.id).update({
-                    rank: uniqueRank,
-                    points: points
+            const points = getPointsForRank(rank);
+            for (const player of groupPlayers) {
+                await db.collection("userScores").doc(player.id).update({
+                    rank: rank,
+                    score: points
                 });
             }
         }
 
-        console.log("Thứ hạng và điểm số đã được tính toán lại cho toàn bộ người chơi.");
-        return { success: true, message: "Thứ hạng và điểm số đã được cập nhật." };
+        console.log("✅ Hoàn tất cập nhật thứ hạng và điểm số!");
+        return { success: true, message: "Cập nhật thứ hạng và điểm số thành công." };
+
     } catch (error) {
-        console.error("Error recalculating ranks and points: ", error);
+        console.error("❌ Lỗi khi tính toán lại thứ hạng và điểm số:", error);
         return { success: false, error: error.message };
     }
 }
 
 
+
 // Hàm hiển thị bảng xếp hạng
-window.displayLeaderboard = async function() {
+async function displayLeaderboard() {
+    console.log("📜 Đang lấy bảng xếp hạng từ Firebase...");
+    const leaderboardElement = document.getElementById("leaderboard");
+
+    leaderboardElement.innerHTML = `
+        <tr>
+            <th>Hạng</th>
+            <th>Tên</th>
+            <th>Thời gian</th>
+            <th>Điểm</th>
+        </tr>
+    `;
+
     try {
-        const recalculateResult = await recalculateAllRanksAndPoints();
+        const scoresRef = db.collection("userScores")
+            .where("game", "==", "Lật hình")
+            .orderBy("score", "desc")
+            .limit(10);
 
-        if (!recalculateResult.success) {
-            console.log("Lỗi khi tính toán lại thứ hạng và điểm số:", recalculateResult.message);
-            return;
-        }
-
-        const querySnapshot = await db.orderBy("rank", "asc").get();
-
-        const leaderboardElement = document.getElementById("leaderboard");
-        leaderboardElement.innerHTML = `
-            <tr>
-                <th style="width: 25%;">Hạng</th>
-                <th style="width: 25%;">Tên</th>
-                <th style="width: 25%;">Thời gian</th>
-                <th style="width: 25%;">Điểm</th>
-            </tr>
-        `;
+        const querySnapshot = await scoresRef.get();
+        let rank = 1;
 
         querySnapshot.forEach((doc) => {
             const entry = doc.data();
             const row = document.createElement("tr");
-			row.innerHTML = `
-                <td style="width: 10%;">${entry.rank}</td>
-                <td style="width: 40%;">${entry.playerName}</td>
-                <td style="width: 30%;">${entry.totalTime}</td>
-                <td style="width: 20%;">${entry.points}</td>
+            row.innerHTML = `
+                <td>${rank++}</td>
+                <td>${entry.username}</td>
+                <td>${entry.totalTime}</td>
+                <td>${entry.score}</td>
             `;
             leaderboardElement.appendChild(row);
         });
+
+        console.log("✅ Bảng xếp hạng đã cập nhật!");
     } catch (error) {
-        console.log("Error getting leaderboard data: ", error);
+        console.error("❌ Lỗi khi lấy bảng xếp hạng:", error);
     }
 }
 
 
-// Đảm bảo initializeApp được gọi khi trang web load
-initializeApp();
+window.addEventListener("beforeunload", async function (event) {
+    if (playerScore > 0) {
+        console.log("🔥 Khoan thoát game, đợi lưu rồi thoát...");
+        event.preventDefault(); // Chặn đóng tab ngay lập tức
+        event.returnValue = "Dữ liệu đang được lưu..."; // Hiển thị cảnh báo thoát
+        await saveScoreToDB("Lật hình", result.points); // Đợi Firestore lưu điểm xong
+    }
+});

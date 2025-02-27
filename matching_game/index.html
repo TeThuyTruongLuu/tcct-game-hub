@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<script src="Firebase.js"></script>
-<script src="https://www.youtube.com/iframe_api"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tìm hình giống nhau</title>
+	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <meta charset="UTF-8">
+	<script src="../js/index.js"></script>
+	<script src="Firebase.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm hình giống nhau</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+	<script src="https://www.youtube.com/iframe_api"></script>
 <style>
 	@font-face {
 		font-family: 'AmpleSoft';
@@ -355,8 +356,7 @@
 		</div>
 	</div>
 	<audio id="background-music" loop>
-		<source src="musics/background-music.m4a" type="audio/mpeg">
-		Trình duyệt của bạn không hỗ trợ audio HTML5.
+		<source src="musics/background music.m4a" type="audio/mpeg">
 	</audio>
 
 
@@ -603,40 +603,76 @@ function resetCards(isMatch) {
 // Hiển thị điểm cuối và cập nhật bảng xếp hạng
 async function showFinalScore() {
     stopTimer();
-    console.log("showFinalScore is called"); // Log để kiểm tra xem hàm có được gọi
+    console.log("🏆 Hiển thị bảng điểm cuối cùng!");
 
-    // Tính toán thời gian hoàn thành của người chơi
     const newTotalTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-    if (!db) {
-        console.error("Database not initialized.");
+    if (!playerName) {
+        console.error("❌ Không có tên người chơi!");
         return;
     }
 
-    // Gọi updatePlayerResult để cập nhật kỷ lục của người chơi
-    const result = await updatePlayerResult(playerName, newTotalTime);
+    // ✅ Định dạng document ID theo `username-game`
+    const docId = `${playerName}-Lật hình`;
 
-    // Recalculate leaderboard to synchronize ranks and points
-    const recalculateResult = await recalculateAllRanksAndPoints();
-    if (!recalculateResult.success) {
-        console.error("Error recalculating leaderboard ranks:", recalculateResult.error);
-    }
-	
-    if (!result.success) {
-        // Trường hợp không vượt qua kỷ lục cũ hoặc có lỗi xảy ra
-        document.getElementById('result-player-name').textContent = `Tên người chơi: ${playerName}`;
-        document.getElementById('result-time').textContent = `Thời gian hoàn thành mới: ${newTotalTime}`;
-        document.getElementById('result-rank').textContent = "";
-        document.getElementById('result-score').textContent = result.message || "Đã xảy ra lỗi trong quá trình cập nhật.";
-        document.getElementById('result-old-record').textContent = result.oldRecordTime ? `Thời gian kỷ lục cũ: ${result.oldRecordTime}` : "";
+    console.log(`🔥 Cập nhật thời gian cho ${playerName}: ${newTotalTime} | ID: ${docId}`);
+
+    try {
+        const scoresRef = db.collection("userScores").doc(docId);
+        const docSnapshot = await scoresRef.get();
+
+        if (!docSnapshot.exists) {
+            // 🆕 Nếu chưa có dữ liệu, tạo mới document theo đúng format
+            await scoresRef.set({
+                username: playerName,
+                game: "Lật hình",
+                totalTime: newTotalTime,
+                score: 0, // Điểm sẽ tính sau
+                updatedAt: new Date().toISOString()
+            });
+        } else {
+            // 🔄 Nếu đã có dữ liệu, chỉ cập nhật nếu thời gian mới tốt hơn
+            const existingData = docSnapshot.data();
+            if (compareTimeStrings(newTotalTime, existingData.totalTime) < 0) {
+                await scoresRef.update({
+                    totalTime: newTotalTime,
+                    updatedAt: new Date().toISOString()
+                });
+            }
+        }
+
+        // 🔥 Cập nhật lại thứ hạng & điểm số
+        const recalculateResult = await recalculateAllRanksAndPoints();
+        if (!recalculateResult.success) {
+            console.error("❌ Lỗi tính lại thứ hạng:", recalculateResult.message);
+            return;
+        }
+
+        // ✅ Lấy lại điểm số mới từ Firebase theo đúng `username-game`
+        console.log("📡 Lấy điểm mới từ Firebase...");
+        const updatedDoc = await db.collection("userScores").doc(docId).get();
+
+        if (updatedDoc.exists) {
+            const playerData = updatedDoc.data();
+            console.log(`✅ Điểm mới của ${playerName}: ${playerData.score}`);
+
+            // 🔥 Hiển thị điểm ngay lập tức
+			document.getElementById('result-score').textContent = `Thời gian hoàn thành: ${playerData.totalTime}`;
+            document.getElementById('result-score').textContent = `Điểm: ${playerData.score}`;
+			
+        } else {
+            console.error("❌ Không tìm thấy điểm mới của người chơi!");
+        }
+
         document.getElementById('result-panel').style.display = 'block';
-    } else {
-        // Trường hợp có kỷ lục mới hoặc cập nhật thành công
-        document.getElementById('result-player-name').textContent = `Tên người chơi: ${playerName}`;
-        document.getElementById('result-time').textContent = `Thời gian: ${newTotalTime}`;
-        document.getElementById('result-panel').style.display = 'block';
+        console.log("✅ Cập nhật bảng điểm thành công!");
+
+    } catch (error) {
+        console.error("❌ Lỗi khi cập nhật kết quả:", error);
     }
 }
+
+
+
 
 
 

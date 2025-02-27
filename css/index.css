@@ -338,7 +338,7 @@ th {
 @media (max-width: 750px) {
 	.game-list {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 		gap: 15px; /* Khoảng cách đều giữa các game */
 		max-width: 650px;
 		margin: 20px auto; /* Căn giữa danh sách game */
