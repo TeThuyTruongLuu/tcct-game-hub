@@ -11,14 +11,14 @@
 <title>Tìm hình giống nhau</title>
 <style>
 	@font-face {
-		font-family: 'AmpleSoft'; /* Tên bạn muốn đặt cho font */
-		src: url('../css/fonts/AmpleSoft.ttf') format('truetype'); /* Đường dẫn đến file font */
-		font-weight: thin; /* Trọng lượng mặc định */
-		font-style: normal; /* Kiểu mặc định */
+		font-family: 'AmpleSoft';
+		src: url('../css/fonts/AmpleSoft.ttf') format('truetype');
+		font-weight: thin;
+		font-style: normal;
 	}
 	@font-face {
-		font-family: 'AmpleSoft Light'; /* Tên bạn muốn đặt cho font */
-		src: url('../css/fonts/AmpleSoft Light.otf') format('truetype'); /* Đường dẫn đến file font */
+		font-family: 'AmpleSoft Light';
+		src: url('../css/fonts/AmpleSoft Light.otf') format('truetype');
 	}
     body {
         display: flex;
@@ -61,41 +61,6 @@
 		justify-content: center;
 		padding-top: 20vw;
     }
-
-    /* Thiết kế bảng nhập mã */
-    #login-modal {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px;
-        border-radius: 14px;
-        background-color: #fcfcfc;
-        box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 10;
-        color: #1F271B;
-        width: 70vw;
-        max-width: 50%;
-        box-sizing: border-box;
-    }
-    #login-modal h2 {
-        font-size: 24px;
-        margin-bottom: 15px;
-    }
-    #login-modal input {
-        margin: 10px 0;
-        padding: 12px;
-        font-size: 16px;
-        border: 1px solid #808080;
-        border-radius: 8px;
-        width: 100%;
-        max-width: 350px;
-        box-sizing: border-box;
-		font-family: AmpleSoft Light;
-    }
 	.styled-table {
 		width: 80vw;
 		margin: 20px auto;
@@ -110,23 +75,19 @@
 		color: #FFFFFF;
 		font-weight: bold;
 	}
-
 	.styled-table th, .styled-table td {
 		padding: 12px 15px;
 		border: 1px solid #ddd;
-		word-wrap: break-word; /* Ngắt dòng khi từ quá dài */
-		word-break: break-word; /* Hỗ trợ ngắt từ khi từ quá dài */
-		white-space: normal; /* Cho phép xuống dòng */
+		word-wrap: break-word;
+		word-break: break-word;
+		white-space: normal;
 	}
-
 	.styled-table tbody tr {
 		background-color: #FFBAB9;
 	}
-
 	.styled-table tbody tr:nth-child(even) {
 		background-color: #e9e9e9;
 	}
-
 	.leaderboard-container h3 {
 		text-align: center;
 		font-size: 24px;
@@ -325,13 +286,6 @@
 </head>
 <body>
     <div class="timer-board">Thời gian: <span id="timer">00:00</span></div>
-    <div id="login-modal">
-        <h2>Đăng nhập</h2>
-        <input type="text" id="code-input" placeholder="Nhập code là 'Tran'">
-        <input type="text" id="nickname-input" placeholder="Tên của bồ">
-		<br>
-        <button id="start-button">Bắt đầu</button>
-    </div>
 	<div>
 		<div id="memory-instructions" style="align: center;">
 			<h2>Thời gian ghi nhớ</h2>
@@ -409,7 +363,6 @@
 
 <script>
 // Biến toàn cục
-let playerName = "";
 let seconds = 0;
 let minutes = 0;
 let timerInterval;
@@ -417,6 +370,13 @@ let firstCard = null;
 let secondCard = null;
 let canFlip = true;
 let matchedPairs = 0;
+let playerName = localStorage.getItem('username');
+
+if (!playerName) {
+    console.error("Không có tên người chơi từ app ngoài!");
+} else {
+    console.log(`Tên người chơi: ${playerName}`);
+}
 
 // Khai báo hình ảnh và âm thanh
 const images = [
@@ -489,28 +449,23 @@ function stopTimer() {
     clearInterval(timerInterval);
 }
 
-// Bắt đầu trò chơi khi nhấn nút "Bắt đầu"
-document.getElementById('start-button').addEventListener('click', () => {
-    const codeInput = document.getElementById('code-input').value.trim();
-    const nicknameInput = document.getElementById('nickname-input').value.trim();
-
-    if (codeInput === "Tran" && nicknameInput) {
-        playerName = nicknameInput;
-        document.getElementById('login-modal').style.display = 'none';
-        document.querySelector('.game-board').style.display = 'grid';
-		document.getElementById('memory-instructions').style.display = 'block';
-		document.getElementById('cre').style.display = 'block';
-        // Hiển thị mặt trước của tất cả thẻ để ghi nhớ
-        document.querySelectorAll('.card').forEach(card => {
-            card.classList.add('flip');
-        });
-
-        // Hiển thị nút "Sẵn sàng" sau khi các thẻ đã mở
-        document.getElementById('ready-button').style.display = 'block';
-    } else {
-        alert("Nhập đúng mã 'Tran' và tên hợp lệ nha bồ ơi.");
+window.onload = function() {
+    if (!playerName) {
+        console.error("Không có tên người chơi, không thể bắt đầu!");
+        return;
     }
-});
+    
+    document.querySelector('.game-board').style.display = 'grid';
+    document.getElementById('memory-instructions').style.display = 'block';
+    document.getElementById('cre').style.display = 'block';
+
+    document.querySelectorAll('.card').forEach(card => {
+        card.classList.add('flip');
+    });
+
+    document.getElementById('ready-button').style.display = 'block';
+};
+
 
 // Tạo các thẻ
 gameGrid.forEach(item => {
