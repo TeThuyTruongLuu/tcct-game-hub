@@ -1,0 +1,29 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+.puzzle-container {
+    position: relative;
+    width: 2100px;
+    height: 1480px;
+    border: 2px solid #333;
+    background-color: #fff;
+    transform: scale(0.5); /* Thu nhỏ 50% */
+    transform-origin: top left; /* Điểm gốc thu nhỏ */
+}
+
+.puzzle-piece {
+    position: absolute;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    cursor: move;
+    transition: transform 0.2s ease;
+}
+
+.puzzle-piece:hover {
+    transform: scale(1.05);
+}

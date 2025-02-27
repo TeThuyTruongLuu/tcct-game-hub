@@ -66,10 +66,11 @@ h1 {
 /* Bố cục danh sách game */
 .game-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Căn tự động, min 250px */
-    gap: 15px; /* Khoảng cách đều giữa các game */
+    /* grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); */
+	grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
     max-width: 900px;
-    margin: 20px auto; /* Căn giữa danh sách game */
+    margin: 20px auto;
     padding: 10px;
 }
 
@@ -337,10 +338,33 @@ th {
 @media (max-width: 750px) {
 	.game-list {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
 		gap: 15px; /* Khoảng cách đều giữa các game */
 		max-width: 650px;
 		margin: 20px auto; /* Căn giữa danh sách game */
 		padding: 5px;
+	}
+	.game-item img {
+		width: 100%; /* Tự điều chỉnh theo khung */
+		max-height: 80%; /* Giữ hình nhỏ gọn hơn */
+		object-fit: cover; /* Hiển thị toàn bộ hình mà không bị cắt */
+		border-radius: 5px;
+		margin-bottom: 5px;
+		margin-top: -30px;
+	}
+	.game-item {
+		background: #fff8e7; /* Màu nền pastel */
+		border-radius: 15px;
+		padding: 15px;
+		text-align: center;
+		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+		transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		height: 100%; /* Cố định chiều cao */
+		width: 100%; /* Tự động co dãn */
+		cursor: pointer;
 	}
 }

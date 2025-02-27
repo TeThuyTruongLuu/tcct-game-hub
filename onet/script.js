@@ -62,8 +62,11 @@ window.onload = function () {
 };
 
 window.addEventListener("resize", () => {
-    tileSize = window.innerWidth < 700 ? window.innerWidth * 0.1 : 80; 
-	
+    if (currentLevel === 0) { // 🔥 Level 1: Giữ kích thước lớn hơn
+        tileSize = window.innerWidth < 700 ? window.innerWidth * 0.1 : 80;
+    } else { // 🔥 Level Max: Giảm kích thước để vừa khung
+        tileSize = Math.min(window.innerWidth / boardSize.cols, window.innerHeight / boardSize.rows);
+    }
 	adjustSettingsButton();
     createBoard(); 
 	assignImages();
@@ -294,7 +297,6 @@ function loadLevel(levelIndex) {
     if (currentLevel === 0) {
         timeLeft = 120;
     } else {
-		alert("Bạn nên xoay ngang màn hình và reset game trước khi chơi màn này trên đt!");
         timeElapsed = 0;
         document.getElementById("timer").textContent = "0:00";
     }
@@ -387,7 +389,12 @@ function findPath(tile1, tile2) {
     console.log("Path found:", path);
 
     if (path && path.length > 1) {
-        drawConnection(path); // 🔥 Đảm bảo vẽ path trước khi return
+        // 🔥 Gọi đúng hàm vẽ theo level
+        if (currentLevel === 1) {
+            drawConnectionUpdated(path);
+        } else {
+            drawConnection(path);
+        }
         return path;
     }
 
@@ -480,15 +487,11 @@ function drawConnection(path) {
         let tile1 = board[row1][col1].element.getBoundingClientRect();
         let tile2 = board[row2][col2].element.getBoundingClientRect();
 
-        let x1 = ((tile1.left + tileSize / 2) / window.innerWidth) * 100;
-        //let y1 = ((tile1.top + tileSize / 2 + boardRect.top*3) / window.innerWidth) * 100;
-		let y1 = ((tile1.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.04 : boardRect.top * 3)) / window.innerWidth) * 100;
-        let x2 = ((tile2.left + tileSize / 2) / window.innerWidth) * 100;
-        //let y2 = ((tile2.top + tileSize / 2 + boardRect.top*3) / window.innerWidth) * 100;
-		let y2 = ((tile2.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.04 : boardRect.top * 3)) / window.innerWidth) * 100;
-
-		
-		//let tileSize = window.innerWidth < 700 ? window.innerWidth * 0.1 : 80;
+        let x1 = ((tile1.left + tileSize / 2) / window.innerWidth) * 100;		
+		let y1 = ((tile1.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.03 : boardRect.top)) / window.innerWidth) * 100;
+        
+		let x2 = ((tile2.left + tileSize / 2) / window.innerWidth) * 100;
+		let y2 = ((tile2.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.03 : boardRect.top)) / window.innerWidth) * 100;
 
         let line = document.createElement("div");
         line.classList.add("line");
@@ -532,7 +535,7 @@ function drawConnectionUpdated(path) {
 		
 
         let line = document.createElement("div");
-        line.classList.add("line");
+        line.classList.add("line2");
 
         if (row1 === row2) { // Đường ngang
             line.style.width = `${Math.abs(x2 - x1)}vw`;
@@ -639,6 +642,7 @@ function checkGameOver() {
             localStorage.setItem("savedLevel", 1);
             localStorage.setItem("savedScore", playerScore);
             loadLevel(1);
+			alert("Nhấn reset khi vừa vào level Max để load lại bảng!");
         } else {
             alert("🎉 Bạn đã hoàn thành toàn bộ game!");
         }
@@ -795,9 +799,9 @@ function resetGame() {
 
     updateScoreUI();
     updateTimerUI();
-
-    createBoard();
-    assignImages();
+    setTimeout(() => { // ✅ Đợi một chút để cập nhật layout trước khi gọi resize
+        window.dispatchEvent(new Event("resize"));
+    }, 50);
     startTimer();
 }
 
