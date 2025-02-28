@@ -194,6 +194,11 @@ function getPointsForRank(rank) {
     return 5;
 }
 
+function convertTimeToSeconds(timeString) {
+    const parts = timeString.split(":").map(Number);
+    return parts[0] * 60 + parts[1]; // Chuyển phút thành giây và cộng giây
+}
+
 // Hàm cập nhật kết quả cho người chơi mới hoặc cập nhật thời gian mới cho người chơi hiện tại
 async function updatePlayerResult(playerName, newTotalTime) {
     const leaderboardRef = db;
@@ -257,7 +262,14 @@ async function updatePlayerResult(playerName, newTotalTime) {
             rank,
             points,
             message: "Đã cập nhật kỷ lục mới thành công."
-        };
+        }
+		const totalTimeInSeconds = convertTimeToSeconds(newTotalTime);
+		
+		if (window.saveScoreToDB) {
+			window.saveScoreToDB("Lật hình", 0, newTotalTime, totalTimeInSeconds);
+		} else {
+			console.error("❌ Lỗi: Không tìm thấy hàm saveScoreToDB!");
+		};
 
     } catch (error) {
         console.error("Error updating player result: ", error);
@@ -356,10 +368,12 @@ async function displayLeaderboard() {
     `;
 
     try {
-        const scoresRef = db.collection("userScores")
-            .where("game", "==", "Lật hình")
-            .orderBy("score", "desc")
-            .limit(10);
+		const scoresRef = db.collection("userScores")
+			.where("game", "==", "Lật hình")
+			.orderBy("totalTimeInSeconds", "asc")
+			.orderBy("score", "desc")
+			.limit(10);
+
 
         const querySnapshot = await scoresRef.get();
         let rank = 1;

@@ -82,19 +82,21 @@ window.addEventListener("beforeunload", async function (event) {
 });
 
 //Setting button + Musics
-settingsBtn.addEventListener("click", () => { //Open setting
+settingsBtn.addEventListener("click", () => { // 🔥 Khi mở cài đặt
     settingsModal.style.display = "flex";
-    clearInterval(timer);
-    timerPaused = true;
-});
-
-closeSettings.addEventListener("click", () => { //Close setting
-    settingsModal.style.display = "none";
-    if (timerPaused) {
-        startTimer();
-        timerPaused = false;
+    if (!timerPaused) {
+        clearInterval(timer);
+        timerPaused = true;
     }
 });
+
+closeSettings.addEventListener("click", () => { // 🔥 Khi đóng cài đặt
+    settingsModal.style.display = "none";
+    if (timerPaused) {
+        startTimer(); // 🔥 Tiếp tục thời gian thay vì reset
+    }
+});
+
 
 function adjustSettingsButton() { //Căn chỉnh vị trí nút
     const settingsBtn = document.getElementById("settings-btn");
@@ -182,10 +184,15 @@ function updateTimerUI() { //UI hiển thị
 }
 
 function startTimer() {
-    stopTimer();
+    stopTimer(); // Đảm bảo không có timer cũ chạy
 
-    if (currentLevel === 0) { // Level 1: Đếm ngược
-        document.getElementById("timer").textContent = "2:00";
+    if (currentLevel === 0) { // 🔥 Level 1: Đếm ngược
+        if (timerPaused) {
+            timerPaused = false;
+        } else {
+            timeLeft = 120; // 🔥 Chỉ đặt lại nếu KHÔNG phải tiếp tục từ tạm dừng
+        }
+        
         timer = setInterval(() => {
             timeLeft--;
             updateTimerUI();
@@ -194,9 +201,13 @@ function startTimer() {
                 handleGameLoss();
             }
         }, 1000);
-    } else { // Level Max: Đếm lên
-        timeElapsed = 0;
-        document.getElementById("timer").textContent = "0:00";
+    } else { // 🔥 Level Max: Đếm lên
+        if (timerPaused) {
+            timerPaused = false;
+        } else {
+            timeElapsed = 0; // 🔥 Chỉ đặt lại nếu KHÔNG phải tiếp tục từ tạm dừng
+        }
+
         timer = setInterval(() => {
             timeElapsed++;
             let minutes = Math.floor(timeElapsed / 60);

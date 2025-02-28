@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	loadLeaderboard();
 });
 
-async function loadLeaderboard(game) {
+/* async function loadLeaderboard(game) {
     const leaderboardContent = document.getElementById("leaderboard-content");
 
     leaderboardContent.innerHTML = `<h3>Bảng xếp hạng</h3>`;
@@ -188,7 +188,58 @@ async function loadLeaderboard(game) {
     } catch (error) {
         console.error(`❌ Lỗi khi lấy bảng xếp hạng cho ${game}:`, error);
     }
+} */
+
+async function loadLeaderboard(game) {
+    const leaderboardContent = document.getElementById("leaderboard-content");
+
+    if (!game) {
+        console.error("❌ Lỗi: Game không hợp lệ hoặc bị undefined.");
+        return;
+    }
+
+    leaderboardContent.innerHTML = `<h3>Bảng xếp hạng</h3>`;
+
+    const scoresRef = firebase.firestore().collection("userScores");
+
+    let q;
+    if (game === "Lật hình") {
+        q = scoresRef.where("game", "==", game).orderBy("totalTimeInSeconds", "asc").limit(10); 
+    } else {
+        q = scoresRef.where("game", "==", game).orderBy("score", "desc").limit(10);
+    }
+
+    try {
+        const querySnapshot = await q.get();
+        
+        let html = "";
+        if (game === "Lật hình") {
+            html += `<table><tr><th>Người chơi</th><th>Thời gian (s)</th><th>Điểm</th></tr>`;
+        } else {
+            html += `<table><tr><th>Người chơi</th><th>Điểm</th></tr>`;
+        }
+
+        if (querySnapshot.empty) {
+            html += `<tr><td colspan="${game === "Lật hình" ? 3 : 2}">Chưa có dữ liệu</td></tr>`;
+        } else {
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                if (game === "Lật hình") {
+                    html += `<tr><td>${data.username}</td><td>${data.totalTime || "N/A"}</td><td>${data.score}</td></tr>`;
+                } else {
+                    html += `<tr><td>${data.username}</td><td>${data.score}</td></tr>`;
+                }
+            });
+        }
+
+        html += `</table>`;
+        leaderboardContent.innerHTML += html;
+    } catch (error) {
+        console.error(`❌ Lỗi khi tải bảng xếp hạng ${game}:`, error);
+    }
 }
+
+
 
 
 
@@ -196,6 +247,7 @@ function logout() {
     localStorage.removeItem("username"); // Xóa tên đăng nhập khỏi bộ nhớ
     location.reload(); // Tải lại trang để về màn hình đăng nhập
 }
+
 
 
 async function saveScoreToDB(game, newScore) {
@@ -409,6 +461,155 @@ function updateCallout() {
     document.getElementById("callout-avatar").src = `2048/images/${characterImage}`;
     document.getElementById("callout-bubble").innerText = getRandomDialogue(characterImage);
 }
+
+async function loadCharacterQuote() {
+    const username = localStorage.getItem("username");
+    if (!username) return;
+
+    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
+    const quoteRef = firebase.firestore().collection("characterQuotes").doc(`${selectedCharacter}-${username}`);
+    const quoteDoc = await quoteRef.get();
+
+    let displayedQuote = "Xin chào! Tôi là trợ thủ của bạn!";
+    if (quoteDoc.exists) {
+        displayedQuote = quoteDoc.data().quote;
+    }
+
+    document.getElementById("callout-bubble").innerText = displayedQuote;
+}
+
+// Gọi hàm khi load trang
+document.addEventListener("DOMContentLoaded", () => {
+    loadCharacterQuote();
+});
+
+
+async function updateOldLeaderboardData() {
+    const scoresRef = firebase.firestore().collection("userScores");
+    
+    try {
+        const querySnapshot = await scoresRef.where("game", "==", "Lật hình").get();
+        let count = 0;
+
+        querySnapshot.forEach(async (doc) => {
+            const data = doc.data();
+
+            if (!data.totalTimeInSeconds && data.totalTime) {
+                const totalTimeParts = data.totalTime.split(":").map(Number);
+                const totalTimeInSeconds = totalTimeParts[0] * 60 + totalTimeParts[1]; // Chuyển thành giây
+
+                await scoresRef.doc(doc.id).update({
+                    totalTimeInSeconds: totalTimeInSeconds
+                });
+
+                console.log(`✅ Đã cập nhật ${data.username}: ${data.totalTime} → ${totalTimeInSeconds}s`);
+                count++;
+            }
+        });
+
+        console.log(`🎉 Đã cập nhật xong ${count} bản ghi.`);
+    } catch (error) {
+        console.error("❌ Lỗi khi cập nhật dữ liệu:", error);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const settingsButton = document.getElementById("settings-btn");
+    const settingsModal = document.getElementById("settings-modal");
+    const modalOverlay = document.getElementById("modal-overlay");
+    const closeSettingsButton = document.getElementById("close-settings");
+
+    if (settingsButton && settingsModal && modalOverlay) {
+        settingsButton.addEventListener("click", function () {
+            settingsModal.style.display = "block";
+            modalOverlay.style.display = "block";
+        });
+    }
+
+    if (closeSettingsButton) {
+        closeSettingsButton.addEventListener("click", function () {
+            settingsModal.style.display = "none";
+            modalOverlay.style.display = "none";
+        });
+    }
+    modalOverlay.addEventListener("click", function () {
+        settingsModal.style.display = "none";
+        modalOverlay.style.display = "none";
+    });
+});
+
+
+// Cập nhật nhân vật đã chọn
+function updateCharacterSelection() {
+    const selectedCharacter = document.getElementById("character-select").value;
+    localStorage.setItem("selectedCharacter", selectedCharacter);
+    console.log(`🔄 Nhân vật được chọn: ${selectedCharacter}`);
+
+    // Kiểm tra nếu đủ điểm để thêm thoại
+    checkUserPoints();
+}
+
+// Kiểm tra số điểm người chơi
+async function checkUserPoints() {
+    const username = localStorage.getItem("username");
+    if (!username) return;
+
+    const userRef = firebase.firestore().collection("userScores").doc(username);
+    const userDoc = await userRef.get();
+
+    let totalPoints = 0;
+    if (userDoc.exists) {
+        totalPoints = userDoc.data().score || 0;
+    }
+
+    const messageElement = document.getElementById("quote-message");
+    const inputElement = document.getElementById("custom-quote");
+    const submitButton = document.querySelector("#custom-quote-section button");
+
+    if (totalPoints >= 1000) {
+        const allowedQuotes = Math.floor(totalPoints / 1000);
+        messageElement.innerHTML = `Bạn có thể thêm ${allowedQuotes} câu thoại vào kho.`;
+        inputElement.style.display = "block";
+        submitButton.style.display = "block";
+    } else {
+        messageElement.innerHTML = "Bạn chưa có đủ điểm để thêm thoại, sẽ dùng kho thoại mặc định.";
+        inputElement.style.display = "none";
+        submitButton.style.display = "none";
+    }
+}
+
+// Lưu câu thoại mới vào database
+async function submitCustomQuote() {
+    const username = localStorage.getItem("username");
+    if (!username) return;
+
+    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
+    const customQuote = document.getElementById("custom-quote").value.trim();
+    if (!customQuote) {
+        alert("Vui lòng nhập câu thoại!");
+        return;
+    }
+
+    const quoteRef = firebase.firestore().collection("characterQuotes").doc(`${selectedCharacter}-${username}`);
+
+    try {
+        await quoteRef.set({
+            character: selectedCharacter,
+            username: username,
+            quote: customQuote,
+            createdAt: new Date().toISOString()
+        });
+
+        alert("✅ Câu thoại đã được thêm vào kho!");
+        document.getElementById("custom-quote").value = ""; // Xóa input sau khi lưu
+    } catch (error) {
+        console.error("❌ Lỗi khi lưu thoại:", error);
+    }
+}
+
+
+// 🚀 Gọi hàm để chạy cập nhật
+updateOldLeaderboardData();
 
 // Chạy khi trang tải xong
 document.addEventListener("DOMContentLoaded", updateCallout);
