@@ -1,24 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
-// Wait for the deviceready event before using any of Cordova's device APIs.
-// See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 document.addEventListener('deviceready', onDeviceReady, false);
 
 function onDeviceReady() {
@@ -28,18 +7,19 @@ function onDeviceReady() {
     document.getElementById('deviceready').classList.add('ready');
 }
 
+//Load login
 document.addEventListener("deviceready", function() {
     document.addEventListener("backbutton", function(e) {
         const loginModal = document.getElementById("login-modal");
         if (loginModal.style.display === "none") {
-            e.preventDefault(); // 🔥 Ngăn không quay lại màn hình đăng nhập
-            navigator.app.exitApp(); // 🔥 Thoát ứng dụng luôn
+            e.preventDefault();
+            navigator.app.exitApp();
         }
     }, false);
 }, false);
 
 
-// Kiểm tra nếu Firebase đã được khởi tạo
+// Kiểm tra Firebase
 if (!firebase.apps.length) {
     const firebaseConfig = {
         apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
@@ -58,6 +38,7 @@ if (!firebase.apps.length) {
 // Lấy Firestore
 const db = firebase.firestore();
 
+//Kiểm tra điều kiện log-in, log-out
 document.addEventListener("DOMContentLoaded", function () {
     console.log("🔥 DOM đã load xong!");
 
@@ -81,6 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelector(".game-list").style.display = "grid";
         document.getElementById("scoreboard").style.display = "block";
 		document.getElementById("character-callout").style.display = "flex";
+		document.getElementById("settings-btn").style.display = "block";
         updateTotalScore();
     }
 
@@ -118,6 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelector(".game-list").style.display = "grid";
             document.getElementById("scoreboard").style.display = "block";
 			document.getElementById("character-callout").style.display = "flex";
+			document.getElementById("settings-btn").style.display = "block";
 
             updateTotalScore();
         });
@@ -144,6 +127,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("scoreboard").style.display = "none";
             document.getElementById("logout-button").style.display = "none";
 			document.getElementById("character-callout").style.display = "flex";
+			document.getElementById("settings-btn").style.display = "block";
 
             alert("Bồ đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
         });
@@ -161,34 +145,63 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 	loadLeaderboard();
+	adjustSettingsButton();
 });
 
-/* async function loadLeaderboard(game) {
-    const leaderboardContent = document.getElementById("leaderboard-content");
+function logout() {
+    localStorage.removeItem("username");
+    location.reload();
+}
 
-    leaderboardContent.innerHTML = `<h3>Bảng xếp hạng</h3>`;
 
-    const scoresRef = firebase.firestore().collection("userScores");
-    const q = scoresRef.where("game", "==", game).orderBy("score", "desc").limit(10);
+//Lưu điểm
+async function saveScoreToDB(game, newScore) {
+    const username = localStorage.getItem("username");
+    if (!username) {
+        alert("Bạn chưa đăng nhập, điểm sẽ không được lưu!");
+        return;
+    }
+
+    const scoreDocId = `${username}-${game}`; // 🔥 Tạo ID duy nhất cho mỗi user-game
+    const scoreRef = firebase.firestore().collection("userScores").doc(scoreDocId);
 
     try {
-        const querySnapshot = await q.get();
-        let html = `<table><tr><th>Người chơi</th><th>Điểm</th></tr>`;
-
-        if (querySnapshot.empty) {
-            html += `<tr><td colspan="2">Chưa có dữ liệu</td></tr>`;
-        } else {
-            querySnapshot.forEach((doc) => {
-                html += `<tr><td>${doc.data().username}</td><td>${doc.data().score}</td></tr>`;
+        const docSnapshot = await scoreRef.get();
+        if (!docSnapshot.exists) {
+            // 🔥 Nếu chưa có dữ liệu, tạo mới
+            await scoreRef.set({
+                username: username,
+                game: game,
+                score: newScore,
+                updatedAt: new Date().toISOString()
             });
+            console.log(`🆕 Tạo điểm mới: ${username} - ${game}: ${newScore}`);
+        } else {
+            const oldScore = docSnapshot.data().score;
+            if (newScore > oldScore) {
+                // 🔥 Nếu điểm mới cao hơn điểm cũ, ghi đè lên
+                await scoreRef.update({
+                    score: newScore,
+                    updatedAt: new Date().toISOString()
+                });
+                console.log(`✅ Cập nhật điểm: ${username} - ${game}: ${newScore}`);
+            } else {
+                console.log("⚠️ Điểm mới không cao hơn điểm cũ, không cập nhật.");
+            }
         }
 
-        html += `</table>`;
-        leaderboardContent.innerHTML += html;
+        // 🔥 Cập nhật tổng điểm sau khi thay đổi điểm của game
+        updateTotalScore();
     } catch (error) {
-        console.error(`❌ Lỗi khi lấy bảng xếp hạng cho ${game}:`, error);
+        console.error("❌ Lỗi khi cập nhật điểm:", error);
     }
-} */
+}
+
+window.saveScoreToDB = saveScoreToDB;
+
+//Leaderboard + Personal score
+let personalScoresVisible = false;
+let leaderboardVisible = false;
 
 async function loadLeaderboard(game) {
     const leaderboardContent = document.getElementById("leaderboard-content");
@@ -240,60 +253,6 @@ async function loadLeaderboard(game) {
 }
 
 
-
-
-
-function logout() {
-    localStorage.removeItem("username"); // Xóa tên đăng nhập khỏi bộ nhớ
-    location.reload(); // Tải lại trang để về màn hình đăng nhập
-}
-
-
-
-async function saveScoreToDB(game, newScore) {
-    const username = localStorage.getItem("username");
-    if (!username) {
-        alert("Bạn chưa đăng nhập, điểm sẽ không được lưu!");
-        return;
-    }
-
-    const scoreDocId = `${username}-${game}`; // 🔥 Tạo ID duy nhất cho mỗi user-game
-    const scoreRef = firebase.firestore().collection("userScores").doc(scoreDocId);
-
-    try {
-        const docSnapshot = await scoreRef.get();
-        if (!docSnapshot.exists) {
-            // 🔥 Nếu chưa có dữ liệu, tạo mới
-            await scoreRef.set({
-                username: username,
-                game: game,
-                score: newScore,
-                updatedAt: new Date().toISOString()
-            });
-            console.log(`🆕 Tạo điểm mới: ${username} - ${game}: ${newScore}`);
-        } else {
-            const oldScore = docSnapshot.data().score;
-            if (newScore > oldScore) {
-                // 🔥 Nếu điểm mới cao hơn điểm cũ, ghi đè lên
-                await scoreRef.update({
-                    score: newScore,
-                    updatedAt: new Date().toISOString()
-                });
-                console.log(`✅ Cập nhật điểm: ${username} - ${game}: ${newScore}`);
-            } else {
-                console.log("⚠️ Điểm mới không cao hơn điểm cũ, không cập nhật.");
-            }
-        }
-
-        // 🔥 Cập nhật tổng điểm sau khi thay đổi điểm của game
-        updateTotalScore();
-    } catch (error) {
-        console.error("❌ Lỗi khi cập nhật điểm:", error);
-    }
-}
-
-window.saveScoreToDB = saveScoreToDB;
-
 function formatDate(isoString) {
     const date = new Date(isoString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -303,8 +262,6 @@ function formatDate(isoString) {
     return `${day}/${month}/${year}`;
 }
 
-
-let personalScoresVisible = false; // Biến để kiểm tra trạng thái hiển thị
 
 async function showPersonalScores() {
     const scoreboard = document.getElementById("scoreboard");
@@ -348,10 +305,6 @@ async function showPersonalScores() {
 }
 
 
-
-let leaderboardVisible = false; // Biến để kiểm tra trạng thái hiển thị
-
-
 async function showLeaderboard() {
     const leaderboardSection = document.getElementById("leaderboard-section");
 
@@ -386,15 +339,349 @@ async function updateTotalScore() {
         }
 
         querySnapshot.forEach((doc) => {
-            totalScore += doc.data().score; // Cộng điểm cao nhất của từng game
+            totalScore += doc.data().score; // Cộng tổng điểm của tất cả game
         });
 
-        console.log(`🔥 Tổng điểm của ${username}: ${totalScore}`);
+        console.log(`🔥 Tổng điểm mới của ${username}: ${totalScore}`);
         document.getElementById("user-points").innerText = totalScore;
+
+        // 🔥 Cập nhật tổng điểm vào Firestore
+        const userRef = firebase.firestore().collection("users").doc(username);
+        await userRef.set({ totalScore: totalScore }, { merge: true });
+
+        console.log(`✅ Đã cập nhật tổng điểm vào Firestore.`);
     } catch (error) {
         console.error("❌ Lỗi khi cập nhật tổng điểm:", error);
     }
 }
+
+
+
+async function updateOldLeaderboardData() {
+    const scoresRef = firebase.firestore().collection("userScores");
+    
+    try {
+        const querySnapshot = await scoresRef.where("game", "==", "Lật hình").get();
+        let count = 0;
+
+        querySnapshot.forEach(async (doc) => {
+            const data = doc.data();
+
+            if (!data.totalTimeInSeconds && data.totalTime) {
+                const totalTimeParts = data.totalTime.split(":").map(Number);
+                const totalTimeInSeconds = totalTimeParts[0] * 60 + totalTimeParts[1]; // Chuyển thành giây
+
+                await scoresRef.doc(doc.id).update({
+                    totalTimeInSeconds: totalTimeInSeconds
+                });
+
+                console.log(`✅ Đã cập nhật ${data.username}: ${data.totalTime} → ${totalTimeInSeconds}s`);
+                count++;
+            }
+        });
+
+        console.log(`🎉 Đã cập nhật xong ${count} bản ghi.`);
+    } catch (error) {
+        console.error("❌ Lỗi khi cập nhật dữ liệu:", error);
+    }
+}
+
+updateOldLeaderboardData();
+
+//Nút setting
+document.addEventListener("DOMContentLoaded", function () {
+    const settingsButton = document.getElementById("settings-btn");
+    const settingsModal = document.getElementById("settings-modal");
+    const modalOverlay = document.getElementById("modal-overlay");
+    const closeSettingsButton = document.getElementById("close-settings");
+
+    if (settingsButton && settingsModal && modalOverlay) {
+        settingsButton.addEventListener("click", function () {
+            settingsModal.style.display = "block";
+            modalOverlay.style.display = "block";
+        });
+    }
+
+    if (closeSettingsButton) {
+        closeSettingsButton.addEventListener("click", function () {
+            settingsModal.style.display = "none";
+            modalOverlay.style.display = "none";
+        });
+    }
+    modalOverlay.addEventListener("click", function () {
+        settingsModal.style.display = "none";
+        modalOverlay.style.display = "none";
+    });
+});
+
+function adjustSettingButton() {
+    const settingBtn = document.getElementById("settings-btn");
+    const h1 = document.querySelector("h1");
+
+    if (settingBtn && h1) {
+        const h1Rect = h1.getBoundingClientRect();
+        settingBtn.style.top = `${h1Rect.top*1.5 + window.scrollY}px`;
+        settingBtn.style.right = `5vw`; // Cố định bên phải
+    }
+}
+
+// Gọi lại khi load trang và khi thay đổi kích thước cửa sổ
+window.onload = adjustSettingButton;
+window.onresize = adjustSettingButton;
+
+
+
+//Chọn nhân vật
+async function fetchCharacterImages() {
+    const character = getSelectedCharacter();
+    try {
+        console.log(`📡 Đang lấy ảnh cho nhân vật: ${character}`);
+
+        const imageRef = db.collection("characterImages").doc(character);
+        const imageDoc = await imageRef.get();
+
+        let images = ["https://i.imgur.com/cnzaFeS.png"]; // Ảnh mặc định
+
+        if (imageDoc.exists) {
+            images = imageDoc.data().images || images;
+        }
+
+        localStorage.setItem(`images_${character}`, JSON.stringify(images));
+        console.log("✅ Ảnh nhân vật đã được tải:", images);
+        return images;
+    } catch (error) {
+        console.error("❌ Lỗi khi lấy ảnh nhân vật:", error);
+        return null;
+    }
+}
+
+async function fetchCharacterQuotes() {
+    const character = getSelectedCharacter();
+    try {
+        console.log(`📡 Đang lấy thoại cho nhân vật: ${character}`);
+
+        const quoteRef = db.collection("characterQuotes").doc(character);
+        const quoteDoc = await quoteRef.get();
+
+        let dialogues = ["Xin chào! Tôi là trợ thủ của bạn!"]; // Thoại mặc định
+
+        if (quoteDoc.exists) {
+            dialogues = quoteDoc.data().quotes || dialogues;
+            const userQuotes = quoteDoc.data().userQuotes || {};
+            const username = localStorage.getItem("username");
+
+            if (username && userQuotes[username]) {
+                dialogues = dialogues.concat(userQuotes[username]);
+            }
+        }
+
+        localStorage.setItem(`dialogues_${character}`, JSON.stringify(dialogues));
+        console.log("✅ Thoại nhân vật đã được tải:", dialogues);
+        return dialogues;
+    } catch (error) {
+        console.error("❌ Lỗi khi lấy thoại nhân vật:", error);
+        return null;
+    }
+}
+
+async function showRandomCharacterImage() {
+    const character = getSelectedCharacter();
+
+    // ⚡ Thử lấy từ localStorage trước
+    let images = JSON.parse(localStorage.getItem(`images_${character}`)) || [];
+
+    if (images.length === 0) {
+        console.log(`📡 Không có ảnh trong localStorage, tải mới từ Firestore cho ${character}`);
+        images = await fetchCharacterImages(); // Tải mới từ Firestore
+    }
+
+    // Nếu vẫn không có ảnh nào, dùng ảnh mặc định
+    if (images.length === 0) {
+        images = ["https://i.imgur.com/cnzaFeS.png"]; // Ảnh mặc định
+    }
+
+    const randomImage = images[Math.floor(Math.random() * images.length)];
+    document.getElementById("callout-avatar").src = randomImage;
+
+    console.log(`🖼️ Cập nhật ảnh nhân vật: ${character} - ${randomImage}`);
+}
+
+
+async function showRandomCharacterQuote() {
+    const character = getSelectedCharacter();
+    let dialogues = JSON.parse(localStorage.getItem(`dialogues_${character}`)) || [];
+
+    if (dialogues.length === 0) {
+        dialogues = await fetchCharacterQuotes();
+    }
+
+    const randomDialogue = dialogues[Math.floor(Math.random() * dialogues.length)];
+    document.getElementById("callout-bubble").innerText = randomDialogue;
+
+    console.log(`💬 Cập nhật thoại nhân vật: ${randomDialogue}`);
+}
+
+
+
+// Gọi hàm khi trang tải xong
+document.addEventListener("DOMContentLoaded", showRandomCharacterImage);
+
+// Gọi hàm khi trang tải xong
+document.addEventListener("DOMContentLoaded", showRandomCharacterQuote);
+
+
+async function downloadCharacterData() {
+    const character = getSelectedCharacter();
+
+    console.log(`📥 Đang tải dữ liệu cho nhân vật: ${character}`);
+
+    // Xóa dữ liệu cũ trước khi tải dữ liệu mới
+    localStorage.removeItem(`images_${character}`);
+    localStorage.removeItem(`dialogues_${character}`);
+
+    const images = await fetchCharacterImages();
+    const dialogues = await fetchCharacterQuotes();
+	checkUserPoints();
+
+    if (images && dialogues) {
+        alert(`✅ Dữ liệu của ${character} đã được lưu để dùng offline!`);
+
+        // 🔥 Gọi lại hàm hiển thị ảnh & thoại mới ngay lập tức
+        setTimeout(() => {
+            showRandomCharacterImage();
+            showRandomCharacterQuote();
+        }, 300);
+    } else {
+        alert("❌ Không thể tải dữ liệu, kiểm tra kết nối mạng.");
+    }
+}
+
+function getSelectedCharacter() {
+    return document.getElementById("character-select")?.value || localStorage.getItem("selectedCharacter") || "Vương";
+}
+
+document.getElementById("character-select").addEventListener("change", async function () {
+    const selectedCharacter = this.value;
+    localStorage.setItem("selectedCharacter", selectedCharacter);
+
+    console.log(`🔄 Nhân vật đã đổi thành: ${selectedCharacter}`);
+
+    // Xóa dữ liệu nhân vật cũ trong localStorage để buộc tải dữ liệu mới
+    localStorage.removeItem(`images_${selectedCharacter}`);
+    localStorage.removeItem(`dialogues_${selectedCharacter}`);
+
+    // 🔥 Gọi lại hiển thị ảnh, thoại và check điểm số ngay khi đổi nhân vật
+    showRandomCharacterImage();
+    showRandomCharacterQuote();
+});
+
+
+
+async function checkUserPoints() {
+    const username = localStorage.getItem("username");
+    if (!username) {
+        console.warn("❌ Không tìm thấy username trong localStorage.");
+        return;
+    }
+
+    const userRef = firebase.firestore().collection("users").doc(username);
+    const userDoc = await userRef.get();
+
+    let totalPoints = 0;
+    if (userDoc.exists) {
+        totalPoints = userDoc.data().totalScore || 0;
+    }
+
+    console.log(`📝 Kiểm tra tổng điểm của ${username}: ${totalPoints}`);
+
+    const allowedQuotes = Math.floor(totalPoints / 1000);
+    console.log(`💬 Số câu thoại được phép nhập: ${allowedQuotes}`);
+
+    const messageElement = document.getElementById("quote-message");
+    const customQuoteSection = document.getElementById("custom-quote-section");
+    customQuoteSection.innerHTML = ""; // Xóa nội dung cũ
+
+    if (allowedQuotes > 0) {
+        messageElement.innerHTML = `Bạn có thể thêm ${allowedQuotes} câu thoại vào kho.`;
+        customQuoteSection.style.display = "block"; // 🔥 Hiển thị phần nhập thoại
+
+        for (let i = 0; i < allowedQuotes; i++) {
+            const input = document.createElement("input");
+            input.type = "text";
+            input.classList.add("custom-quote-input");
+            input.placeholder = `Nhập câu thoại #${i + 1}`;
+            input.dataset.index = i;
+
+            // Load thoại cũ từ database
+            loadUserQuote(username, i, input);
+
+            customQuoteSection.appendChild(input);
+        }
+
+        const submitButton = document.createElement("button");
+        submitButton.classList.add("green");
+        submitButton.innerText = "Lưu thoại";
+        submitButton.onclick = submitCustomQuotes;
+        customQuoteSection.appendChild(submitButton);
+    } else {
+        messageElement.innerHTML = "Bạn chưa có đủ điểm để thêm thoại, sẽ dùng kho thoại mặc định.";
+        customQuoteSection.style.display = "none"; // Ẩn phần nhập thoại nếu không đủ điểm
+    }
+}
+
+
+async function loadUserQuote(character, username, index, inputElement) {
+    const quoteRef = firebase.firestore().collection("characterQuotes").doc(character);
+    const quoteDoc = await quoteRef.get();
+
+    if (quoteDoc.exists) {
+        const userQuotes = quoteDoc.data().userQuotes || {};
+        if (userQuotes[username] && userQuotes[username][index]) {
+            inputElement.value = userQuotes[username][index]; // Hiển thị thoại cũ
+        }
+    }
+}
+
+async function submitCustomQuotes() {
+    const username = localStorage.getItem("username");
+    if (!username) return;
+
+    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
+    const inputs = document.querySelectorAll(".custom-quote-input");
+
+    let newQuotes = [];
+    inputs.forEach(input => {
+        if (input.value.trim() !== "") {
+            newQuotes.push(input.value.trim());
+        }
+    });
+
+    if (newQuotes.length === 0) {
+        alert("❌ Không có thoại nào để lưu.");
+        return;
+    }
+
+    const quoteRef = firebase.firestore().collection("characterQuotes").doc(selectedCharacter);
+
+    try {
+        const docSnapshot = await quoteRef.get();
+        let existingQuotes = docSnapshot.exists ? docSnapshot.data().userQuotes || {} : {};
+
+        existingQuotes[username] = newQuotes;
+
+        await quoteRef.set({ userQuotes: existingQuotes }, { merge: true });
+
+        alert("✅ Câu thoại đã được cập nhật!");
+    } catch (error) {
+        console.error("❌ Lỗi khi lưu thoại:", error);
+    }
+}
+
+
+
+
+
+
 
 const dialogueDatabase = {
     "Vuong (6).png": [
@@ -451,165 +738,5 @@ const dialogueDatabase = {
 };
 
 
-function getRandomDialogue(character) {
-    const dialogues = dialogueDatabase[character] || ["Xin chào! Tôi là trợ thủ của bạn!"];
-    return dialogues[Math.floor(Math.random() * dialogues.length)];
-}
-
-function updateCallout() {
-    const characterImage = "Vuong (6).png"; // Sau này có thể thay đổi theo lựa chọn người dùng
-    document.getElementById("callout-avatar").src = `2048/images/${characterImage}`;
-    document.getElementById("callout-bubble").innerText = getRandomDialogue(characterImage);
-}
-
-async function loadCharacterQuote() {
-    const username = localStorage.getItem("username");
-    if (!username) return;
-
-    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
-    const quoteRef = firebase.firestore().collection("characterQuotes").doc(`${selectedCharacter}-${username}`);
-    const quoteDoc = await quoteRef.get();
-
-    let displayedQuote = "Xin chào! Tôi là trợ thủ của bạn!";
-    if (quoteDoc.exists) {
-        displayedQuote = quoteDoc.data().quote;
-    }
-
-    document.getElementById("callout-bubble").innerText = displayedQuote;
-}
-
-// Gọi hàm khi load trang
-document.addEventListener("DOMContentLoaded", () => {
-    loadCharacterQuote();
-});
 
 
-async function updateOldLeaderboardData() {
-    const scoresRef = firebase.firestore().collection("userScores");
-    
-    try {
-        const querySnapshot = await scoresRef.where("game", "==", "Lật hình").get();
-        let count = 0;
-
-        querySnapshot.forEach(async (doc) => {
-            const data = doc.data();
-
-            if (!data.totalTimeInSeconds && data.totalTime) {
-                const totalTimeParts = data.totalTime.split(":").map(Number);
-                const totalTimeInSeconds = totalTimeParts[0] * 60 + totalTimeParts[1]; // Chuyển thành giây
-
-                await scoresRef.doc(doc.id).update({
-                    totalTimeInSeconds: totalTimeInSeconds
-                });
-
-                console.log(`✅ Đã cập nhật ${data.username}: ${data.totalTime} → ${totalTimeInSeconds}s`);
-                count++;
-            }
-        });
-
-        console.log(`🎉 Đã cập nhật xong ${count} bản ghi.`);
-    } catch (error) {
-        console.error("❌ Lỗi khi cập nhật dữ liệu:", error);
-    }
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    const settingsButton = document.getElementById("settings-btn");
-    const settingsModal = document.getElementById("settings-modal");
-    const modalOverlay = document.getElementById("modal-overlay");
-    const closeSettingsButton = document.getElementById("close-settings");
-
-    if (settingsButton && settingsModal && modalOverlay) {
-        settingsButton.addEventListener("click", function () {
-            settingsModal.style.display = "block";
-            modalOverlay.style.display = "block";
-        });
-    }
-
-    if (closeSettingsButton) {
-        closeSettingsButton.addEventListener("click", function () {
-            settingsModal.style.display = "none";
-            modalOverlay.style.display = "none";
-        });
-    }
-    modalOverlay.addEventListener("click", function () {
-        settingsModal.style.display = "none";
-        modalOverlay.style.display = "none";
-    });
-});
-
-
-// Cập nhật nhân vật đã chọn
-function updateCharacterSelection() {
-    const selectedCharacter = document.getElementById("character-select").value;
-    localStorage.setItem("selectedCharacter", selectedCharacter);
-    console.log(`🔄 Nhân vật được chọn: ${selectedCharacter}`);
-
-    // Kiểm tra nếu đủ điểm để thêm thoại
-    checkUserPoints();
-}
-
-// Kiểm tra số điểm người chơi
-async function checkUserPoints() {
-    const username = localStorage.getItem("username");
-    if (!username) return;
-
-    const userRef = firebase.firestore().collection("userScores").doc(username);
-    const userDoc = await userRef.get();
-
-    let totalPoints = 0;
-    if (userDoc.exists) {
-        totalPoints = userDoc.data().score || 0;
-    }
-
-    const messageElement = document.getElementById("quote-message");
-    const inputElement = document.getElementById("custom-quote");
-    const submitButton = document.querySelector("#custom-quote-section button");
-
-    if (totalPoints >= 1000) {
-        const allowedQuotes = Math.floor(totalPoints / 1000);
-        messageElement.innerHTML = `Bạn có thể thêm ${allowedQuotes} câu thoại vào kho.`;
-        inputElement.style.display = "block";
-        submitButton.style.display = "block";
-    } else {
-        messageElement.innerHTML = "Bạn chưa có đủ điểm để thêm thoại, sẽ dùng kho thoại mặc định.";
-        inputElement.style.display = "none";
-        submitButton.style.display = "none";
-    }
-}
-
-// Lưu câu thoại mới vào database
-async function submitCustomQuote() {
-    const username = localStorage.getItem("username");
-    if (!username) return;
-
-    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
-    const customQuote = document.getElementById("custom-quote").value.trim();
-    if (!customQuote) {
-        alert("Vui lòng nhập câu thoại!");
-        return;
-    }
-
-    const quoteRef = firebase.firestore().collection("characterQuotes").doc(`${selectedCharacter}-${username}`);
-
-    try {
-        await quoteRef.set({
-            character: selectedCharacter,
-            username: username,
-            quote: customQuote,
-            createdAt: new Date().toISOString()
-        });
-
-        alert("✅ Câu thoại đã được thêm vào kho!");
-        document.getElementById("custom-quote").value = ""; // Xóa input sau khi lưu
-    } catch (error) {
-        console.error("❌ Lỗi khi lưu thoại:", error);
-    }
-}
-
-
-// 🚀 Gọi hàm để chạy cập nhật
-updateOldLeaderboardData();
-
-// Chạy khi trang tải xong
-document.addEventListener("DOMContentLoaded", updateCallout);
