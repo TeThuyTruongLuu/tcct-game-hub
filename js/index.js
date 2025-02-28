@@ -602,7 +602,6 @@ async function setSelectedCharacter() {
 async function checkUserPoints() {
     const username = localStorage.getItem("username");
     if (!username) {
-        alert("Bạn chưa đăng nhập!");
         return;
     }
 
@@ -664,7 +663,6 @@ function displayQuoteInputs(existingQuotes, allowedQuotes) {
 async function submitCustomQuotes() {
     const username = localStorage.getItem("username");
     if (!username) {
-        alert("Bạn chưa đăng nhập!");
         return;
     }
 
@@ -705,14 +703,14 @@ async function fetchUserQuotes(character, username) {
         if (doc.exists) {
             const data = doc.data();
             const userQuotes = data.userQuotes || {};  // 🟢 Object chứa thoại user nhập
-            const defaultQuotes = data.quotes || [];   // 🟢 Danh sách thoại mặc định
+            //const defaultQuotes = data.quotes || [];   // 🟢 Danh sách thoại mặc định
             
             const userQuote = userQuotes[username] || "";  // 🔥 Thoại user đã nhập (nếu có)
 
             console.log(`✅ Thoại user đã tải: ${userQuote}`);
-            console.log(`✅ Thoại mặc định đã tải:`, defaultQuotes);
+            //console.log(`✅ Thoại mặc định đã tải:`, defaultQuotes);
 
-            return userQuote ? [userQuote] : defaultQuotes; // Nếu user có thoại thì lấy, nếu không thì dùng mặc định
+            return userQuote //? [userQuote] : defaultQuotes; // Nếu user có thoại thì lấy, nếu không thì dùng mặc định
         } else {
             console.log(`⚠️ Không tìm thấy thoại của ${character} trong database.`);
             return [];
