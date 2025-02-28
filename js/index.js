@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         document.querySelector(".game-list").style.display = "grid";
         document.getElementById("scoreboard").style.display = "block";
         document.getElementById("character-callout").style.display = "flex";
-        document.getElementById("settings-btn").style.display = "block";
+        document.getElementById("settings-btn-game").style.display = "block";
 
         // 📡 Tải dữ liệu từ Firestore nếu user đã đăng nhập
         const userRef = db.collection("users").doc(username);
@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     } else {
         console.warn("⚠️ Chế độ chơi ẩn danh. Điểm số không được lưu.");
-        document.getElementById("settings-btn").style.display = "block";
+        document.getElementById("settings-btn-game").style.display = "block";
     }
 
     console.log(`✅ Bias đã tải: ${selectedCharacter}, Tổng điểm: ${totalScore}`);
@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             document.querySelector(".game-list").style.display = "grid";
             document.getElementById("scoreboard").style.display = "block";
             document.getElementById("character-callout").style.display = "flex";
-            document.getElementById("settings-btn").style.display = "block";
+            document.getElementById("settings-btn-game").style.display = "block";
 
             //await initializeGame(); // 🔥 Load lại dữ liệu sau khi đăng nhập
         });
@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             document.getElementById("scoreboard").style.display = "none";
             document.getElementById("logout-button").style.display = "none";
             document.getElementById("character-callout").style.display = "flex";
-            document.getElementById("settings-btn").style.display = "block";
+            document.getElementById("settings-btn-game").style.display = "block";
 
             alert("Bồ đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
         });
@@ -421,7 +421,7 @@ updateOldLeaderboardData();
 
 //Nút setting
 document.addEventListener("DOMContentLoaded", function () {
-    const settingsButton = document.getElementById("settings-btn");
+    const settingsButton = document.getElementById("settings-btn-game");
     const settingsModal = document.getElementById("settings-modal");
     
     const closeSettingsButton = document.getElementById("close-settings");
@@ -444,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 function adjustSettingButton() {
-    const settingBtn = document.getElementById("settings-btn");
+    const settingBtn = document.getElementById("settings-btn-game");
     const h1 = document.querySelector("h1");
 
     if (settingBtn && h1) {
