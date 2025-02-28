@@ -52,17 +52,14 @@
 		<img id="settings-icon" src="onet/icon/setting (2).png" alt="Cài đặt">
 	</button>
 
-	<div id="modal-overlay" class="modal-overlay"></div>
-
 	<div id="settings-modal" class="modal">
 		<button id="close-settings">✖</button>
 		<h2>Cài đặt</h2>
 		<br>
 		<label for="character-select">Chọn nhân vật:</label>
-		<select id="character-select">
+		<select id="character-select" onchange="setSelectedCharacter();">
 			<option value="Vương">Vương</option>
 			<option value="Dụ">Dụ</option>
-			<option value="Lạc">Lạc</option>
 			<option value="Khưu">Khưu</option>
 			<option value="Khác">Khác</option>
 		</select>

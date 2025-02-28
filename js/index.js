@@ -145,7 +145,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 	loadLeaderboard();
-	adjustSettingsButton();
 });
 
 function logout() {
@@ -392,27 +391,25 @@ updateOldLeaderboardData();
 document.addEventListener("DOMContentLoaded", function () {
     const settingsButton = document.getElementById("settings-btn");
     const settingsModal = document.getElementById("settings-modal");
-    const modalOverlay = document.getElementById("modal-overlay");
+    
     const closeSettingsButton = document.getElementById("close-settings");
 
-    if (settingsButton && settingsModal && modalOverlay) {
+    if (settingsButton && settingsModal) {
         settingsButton.addEventListener("click", function () {
             settingsModal.style.display = "block";
-            modalOverlay.style.display = "block";
+            
         });
     }
 
     if (closeSettingsButton) {
         closeSettingsButton.addEventListener("click", function () {
             settingsModal.style.display = "none";
-            modalOverlay.style.display = "none";
+            
         });
     }
-    modalOverlay.addEventListener("click", function () {
-        settingsModal.style.display = "none";
-        modalOverlay.style.display = "none";
-    });
 });
+
+
 
 function adjustSettingButton() {
     const settingBtn = document.getElementById("settings-btn");
@@ -421,7 +418,7 @@ function adjustSettingButton() {
     if (settingBtn && h1) {
         const h1Rect = h1.getBoundingClientRect();
         settingBtn.style.top = `${h1Rect.top*1.5 + window.scrollY}px`;
-        settingBtn.style.right = `5vw`; // Cố định bên phải
+        settingBtn.style.right = `5vw`;
     }
 }
 
@@ -430,123 +427,91 @@ window.onload = adjustSettingButton;
 window.onresize = adjustSettingButton;
 
 
+//Chọn bias
+document.addEventListener("DOMContentLoaded", async function () {
+    console.log("🔥 DOM đã load xong!");
 
-//Chọn nhân vật
-async function fetchCharacterImages() {
-    const character = getSelectedCharacter();
-    try {
-        console.log(`📡 Đang lấy ảnh cho nhân vật: ${character}`);
+    const selectedCharacter = await loadUserBias(); // Tải bias đúng
+    await showRandomCharacterImage(); // Hiển thị hình ảnh nhân vật
+    await showRandomCharacterQuote(); // Hiển thị thoại nhân vật
+    await checkUserPoints(); // Kiểm tra điểm để hiển thị ô nhập thoại
+});
 
-        const imageRef = db.collection("characterImages").doc(character);
-        const imageDoc = await imageRef.get();
+async function loadUserBias() {
+    console.log("🔄 Đang tải bias của user...");
 
-        let images = ["https://i.imgur.com/cnzaFeS.png"]; // Ảnh mặc định
+    const username = localStorage.getItem("username");
+    let selectedCharacter = "Vương"; // Mặc định là Vương
 
-        if (imageDoc.exists) {
-            images = imageDoc.data().images || images;
+    if (username) {
+        const userRef = db.collection("users").doc(username);
+        const userDoc = await userRef.get();
+
+        if (userDoc.exists && userDoc.data().bias) {
+            selectedCharacter = userDoc.data().bias; // Nếu user có bias, lấy từ Firestore
+        } else {
+            // Nếu user chưa có bias, lưu mặc định là "Vương"
+            await userRef.set({ bias: "Vương" }, { merge: true });
         }
-
-        localStorage.setItem(`images_${character}`, JSON.stringify(images));
-        console.log("✅ Ảnh nhân vật đã được tải:", images);
-        return images;
-    } catch (error) {
-        console.error("❌ Lỗi khi lấy ảnh nhân vật:", error);
-        return null;
     }
+
+    // 🔥 Lưu bias vào LocalStorage để reload không mất
+    localStorage.setItem("selectedCharacter", selectedCharacter);
+    document.getElementById("character-select").value = selectedCharacter;
+
+    console.log(`✅ Bias đã tải: ${selectedCharacter}`);
+
+    return selectedCharacter;
 }
 
-async function fetchCharacterQuotes() {
-    const character = getSelectedCharacter();
-    try {
-        console.log(`📡 Đang lấy thoại cho nhân vật: ${character}`);
+async function setSelectedCharacter() {
+    const characterSelect = document.getElementById("character-select");
+    const selectedCharacter = characterSelect?.value || "Vương";
 
-        const quoteRef = db.collection("characterQuotes").doc(character);
-        const quoteDoc = await quoteRef.get();
+    console.log(`🔄 Người chơi đã chọn nhân vật: ${selectedCharacter}`);
 
-        let dialogues = ["Xin chào! Tôi là trợ thủ của bạn!"]; // Thoại mặc định
+    // 🔥 Luôn lưu vào LocalStorage
+    localStorage.setItem("selectedCharacter", selectedCharacter);
 
-        if (quoteDoc.exists) {
-            dialogues = quoteDoc.data().quotes || dialogues;
-            const userQuotes = quoteDoc.data().userQuotes || {};
-            const username = localStorage.getItem("username");
+    const username = localStorage.getItem("username");
 
-            if (username && userQuotes[username]) {
-                dialogues = dialogues.concat(userQuotes[username]);
-            }
-        }
-
-        localStorage.setItem(`dialogues_${character}`, JSON.stringify(dialogues));
-        console.log("✅ Thoại nhân vật đã được tải:", dialogues);
-        return dialogues;
-    } catch (error) {
-        console.error("❌ Lỗi khi lấy thoại nhân vật:", error);
-        return null;
+    if (username) {
+        // 🔥 Nếu user đã đăng nhập, cập nhật Firestore
+        const userRef = db.collection("users").doc(username);
+        await userRef.set({ bias: selectedCharacter }, { merge: true });
     }
+
+    // 🔥 Cập nhật ngay hình ảnh & thoại nhân vật mới
+    await showRandomCharacterImage();
+    await showRandomCharacterQuote();
+    await checkUserPoints();
 }
-
-async function showRandomCharacterImage() {
-    const character = getSelectedCharacter();
-
-    // ⚡ Thử lấy từ localStorage trước
-    let images = JSON.parse(localStorage.getItem(`images_${character}`)) || [];
-
-    if (images.length === 0) {
-        console.log(`📡 Không có ảnh trong localStorage, tải mới từ Firestore cho ${character}`);
-        images = await fetchCharacterImages(); // Tải mới từ Firestore
-    }
-
-    // Nếu vẫn không có ảnh nào, dùng ảnh mặc định
-    if (images.length === 0) {
-        images = ["https://i.imgur.com/cnzaFeS.png"]; // Ảnh mặc định
-    }
-
-    const randomImage = images[Math.floor(Math.random() * images.length)];
-    document.getElementById("callout-avatar").src = randomImage;
-
-    console.log(`🖼️ Cập nhật ảnh nhân vật: ${character} - ${randomImage}`);
-}
-
-
-async function showRandomCharacterQuote() {
-    const character = getSelectedCharacter();
-    let dialogues = JSON.parse(localStorage.getItem(`dialogues_${character}`)) || [];
-
-    if (dialogues.length === 0) {
-        dialogues = await fetchCharacterQuotes();
-    }
-
-    const randomDialogue = dialogues[Math.floor(Math.random() * dialogues.length)];
-    document.getElementById("callout-bubble").innerText = randomDialogue;
-
-    console.log(`💬 Cập nhật thoại nhân vật: ${randomDialogue}`);
-}
-
-
-
-// Gọi hàm khi trang tải xong
-document.addEventListener("DOMContentLoaded", showRandomCharacterImage);
-
-// Gọi hàm khi trang tải xong
-document.addEventListener("DOMContentLoaded", showRandomCharacterQuote);
-
 
 async function downloadCharacterData() {
-    const character = getSelectedCharacter();
+    const character = localStorage.getItem("selectedCharacter") || "Vương";
 
     console.log(`📥 Đang tải dữ liệu cho nhân vật: ${character}`);
 
-    // Xóa dữ liệu cũ trước khi tải dữ liệu mới
+    if (character === "Khác") {
+        alert("Bạn không thể tải nhân vật 'Khác', hãy liên hệ Phong.");
+        return;
+    }
+
+    // 🔥 Xóa dữ liệu nhân vật cũ trước khi tải dữ liệu mới
     localStorage.removeItem(`images_${character}`);
     localStorage.removeItem(`dialogues_${character}`);
 
-    const images = await fetchCharacterImages();
-    const dialogues = await fetchCharacterQuotes();
-	checkUserPoints();
+    // 🔄 Tải ảnh và thoại từ Firestore
+    const images = await fetchCharacterImages(character);
+    const dialogues = await fetchCharacterQuotes(character);
 
-    if (images && dialogues) {
+    // ✅ Lưu vào localStorage để dùng offline
+    localStorage.setItem(`images_${character}`, JSON.stringify(images));
+    localStorage.setItem(`dialogues_${character}`, JSON.stringify(dialogues));
+
+    if (images.length > 0 && dialogues.length > 0) {
         alert(`✅ Dữ liệu của ${character} đã được lưu để dùng offline!`);
 
-        // 🔥 Gọi lại hàm hiển thị ảnh & thoại mới ngay lập tức
         setTimeout(() => {
             showRandomCharacterImage();
             showRandomCharacterQuote();
@@ -556,187 +521,204 @@ async function downloadCharacterData() {
     }
 }
 
-function getSelectedCharacter() {
-    return document.getElementById("character-select")?.value || localStorage.getItem("selectedCharacter") || "Vương";
+async function fetchCharacterImages(character) {
+    const imageRef = db.collection("characterImages").doc(character);
+    const imageDoc = await imageRef.get();
+
+    if (imageDoc.exists) {
+        console.log(`📷 Ảnh của ${character} đã tải từ Firestore.`);
+        return imageDoc.data().images || [];
+    }
+    
+    console.warn(`⚠️ Không tìm thấy ảnh của ${character}, dùng ảnh mặc định.`);
+    return ["https://i.imgur.com/default.png"];
 }
 
-document.getElementById("character-select").addEventListener("change", async function () {
-    const selectedCharacter = this.value;
+async function fetchCharacterQuotes(character) {
+    const quoteRef = db.collection("characterQuotes").doc(character);
+    const quoteDoc = await quoteRef.get();
+
+    if (quoteDoc.exists) {
+        console.log(`💬 Thoại của ${character} đã tải từ Firestore.`);
+        return quoteDoc.data().quotes || [];
+    }
+    
+    console.warn(`⚠️ Không tìm thấy thoại của ${character}, dùng thoại mặc định.`);
+    return ["Xin chào! Tôi là trợ thủ của bạn!"];
+}
+
+async function showRandomCharacterImage() {
+    const character = localStorage.getItem("selectedCharacter") || "Vương";
+    let images = JSON.parse(localStorage.getItem(`images_${character}`)) || [];
+
+    if (images.length === 0) {
+        images = await fetchCharacterImages(character);
+        localStorage.setItem(`images_${character}`, JSON.stringify(images));
+    }
+
+    const randomImage = images[Math.floor(Math.random() * images.length)];
+    document.getElementById("callout-avatar").src = randomImage;
+
+    console.log(`🖼️ Hiển thị ảnh nhân vật: ${character} - ${randomImage}`);
+}
+
+async function showRandomCharacterQuote() {
+    const character = localStorage.getItem("selectedCharacter") || "Vương";
+    let dialogues = JSON.parse(localStorage.getItem(`dialogues_${character}`)) || [];
+
+    if (dialogues.length === 0) {
+        dialogues = await fetchCharacterQuotes(character);
+        localStorage.setItem(`dialogues_${character}`, JSON.stringify(dialogues));
+    }
+
+    const randomDialogue = dialogues[Math.floor(Math.random() * dialogues.length)];
+    document.getElementById("callout-bubble").innerText = randomDialogue;
+
+    console.log(`💬 Hiển thị thoại nhân vật: ${character} - "${randomDialogue}"`);
+}
+
+async function setSelectedCharacter() {
+    const characterSelect = document.getElementById("character-select");
+    const selectedCharacter = characterSelect?.value || "Vương";
+
+    console.log(`🔄 Người chơi đã chọn nhân vật: ${selectedCharacter}`);
+
+    // 🔥 Luôn lưu vào LocalStorage
     localStorage.setItem("selectedCharacter", selectedCharacter);
 
-    console.log(`🔄 Nhân vật đã đổi thành: ${selectedCharacter}`);
+    const username = localStorage.getItem("username");
 
-    // Xóa dữ liệu nhân vật cũ trong localStorage để buộc tải dữ liệu mới
-    localStorage.removeItem(`images_${selectedCharacter}`);
-    localStorage.removeItem(`dialogues_${selectedCharacter}`);
+    if (username) {
+        // 🔥 Nếu user đã đăng nhập, cập nhật Firestore
+        const userRef = db.collection("users").doc(username);
+        await userRef.set({ bias: selectedCharacter }, { merge: true });
+    }
 
-    // 🔥 Gọi lại hiển thị ảnh, thoại và check điểm số ngay khi đổi nhân vật
-    showRandomCharacterImage();
-    showRandomCharacterQuote();
-});
-
-
+    // 🔥 Tải dữ liệu nhân vật mới
+    await downloadCharacterData();
+    await checkUserPoints(); // 🔥 Kiểm tra & hiển thị ô nhập thoại
+}
 
 async function checkUserPoints() {
     const username = localStorage.getItem("username");
     if (!username) {
-        console.warn("❌ Không tìm thấy username trong localStorage.");
+        alert("Bạn chưa đăng nhập!");
         return;
     }
 
-    const userRef = firebase.firestore().collection("users").doc(username);
+    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
+    const userRef = db.collection("users").doc(username);
     const userDoc = await userRef.get();
 
-    let totalPoints = 0;
-    if (userDoc.exists) {
-        totalPoints = userDoc.data().totalScore || 0;
-    }
-
-    console.log(`📝 Kiểm tra tổng điểm của ${username}: ${totalPoints}`);
+    let totalPoints = userDoc.exists ? (userDoc.data().totalScore || 0) : 0;
+    console.log(`📝 Tổng điểm của ${username}: ${totalPoints}`);
 
     const allowedQuotes = Math.floor(totalPoints / 1000);
-    console.log(`💬 Số câu thoại được phép nhập: ${allowedQuotes}`);
+    console.log(`💬 Số ô thoại được phép nhập: ${allowedQuotes}`);
 
-    const messageElement = document.getElementById("quote-message");
-    const customQuoteSection = document.getElementById("custom-quote-section");
-    customQuoteSection.innerHTML = ""; // Xóa nội dung cũ
+    // 🔥 Lấy thoại đã lưu và hiển thị
+    const existingQuotes = await fetchUserQuotes(selectedCharacter, username);
+    
+    if (existingQuotes.length > 0) {
+        console.log(`✅ Đã tìm thấy thoại cũ của ${selectedCharacter}, hiển thị ngay.`);
+        displayQuoteInputs(existingQuotes, allowedQuotes);
+        return;
+    }
 
     if (allowedQuotes > 0) {
-        messageElement.innerHTML = `Bạn có thể thêm ${allowedQuotes} câu thoại vào kho.`;
-        customQuoteSection.style.display = "block"; // 🔥 Hiển thị phần nhập thoại
-
-        for (let i = 0; i < allowedQuotes; i++) {
-            const input = document.createElement("input");
-            input.type = "text";
-            input.classList.add("custom-quote-input");
-            input.placeholder = `Nhập câu thoại #${i + 1}`;
-            input.dataset.index = i;
-
-            // Load thoại cũ từ database
-            loadUserQuote(username, i, input);
-
-            customQuoteSection.appendChild(input);
-        }
-
-        const submitButton = document.createElement("button");
-        submitButton.classList.add("green");
-        submitButton.innerText = "Lưu thoại";
-        submitButton.onclick = submitCustomQuotes;
-        customQuoteSection.appendChild(submitButton);
+        console.log(`✅ User có ${totalPoints} điểm, đủ điều kiện nhập thoại.`);
+        displayQuoteInputs([], allowedQuotes);
     } else {
-        messageElement.innerHTML = "Bạn chưa có đủ điểm để thêm thoại, sẽ dùng kho thoại mặc định.";
-        customQuoteSection.style.display = "none"; // Ẩn phần nhập thoại nếu không đủ điểm
+        console.log(`❌ User chưa có đủ điểm (${totalPoints} điểm), ẩn ô nhập thoại.`);
+        document.getElementById("custom-quote-section").style.display = "none";
     }
 }
 
 
-async function loadUserQuote(character, username, index, inputElement) {
-    const quoteRef = firebase.firestore().collection("characterQuotes").doc(character);
-    const quoteDoc = await quoteRef.get();
+function displayQuoteInputs(existingQuotes, allowedQuotes) {
+    const customQuoteSection = document.getElementById("custom-quote-section");
+    const quoteMessage = document.getElementById("quote-message");
+    const inputField = document.getElementById("custom-quote"); // Ô nhập thoại
 
-    if (quoteDoc.exists) {
-        const userQuotes = quoteDoc.data().userQuotes || {};
-        if (userQuotes[username] && userQuotes[username][index]) {
-            inputElement.value = userQuotes[username][index]; // Hiển thị thoại cũ
-        }
+    // 🔥 Nếu user chưa đủ điểm và chưa có thoại, ẩn phần nhập thoại
+    if (allowedQuotes === 0 && existingQuotes.length === 0) {
+        customQuoteSection.style.display = "none";
+        return;
+    }
+
+    // 🔥 Hiển thị phần nhập thoại
+    customQuoteSection.style.display = "block";
+
+    // 🔥 Nếu đã có thoại, hiển thị lại
+    if (existingQuotes.length > 0) {
+        quoteMessage.innerText = "Thoại đã nhập trước đó:";
+        inputField.value = existingQuotes[0] || ""; // Hiển thị câu thoại đã nhập
+    } else {
+        quoteMessage.innerText = `💬 Bạn có thể nhập tối đa ${allowedQuotes} câu thoại.`;
+        inputField.value = ""; // Nếu chưa nhập, để input rỗng
     }
 }
+
+
 
 async function submitCustomQuotes() {
     const username = localStorage.getItem("username");
-    if (!username) return;
-
-    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
-    const inputs = document.querySelectorAll(".custom-quote-input");
-
-    let newQuotes = [];
-    inputs.forEach(input => {
-        if (input.value.trim() !== "") {
-            newQuotes.push(input.value.trim());
-        }
-    });
-
-    if (newQuotes.length === 0) {
-        alert("❌ Không có thoại nào để lưu.");
+    if (!username) {
+        alert("Bạn chưa đăng nhập!");
         return;
     }
 
-    const quoteRef = firebase.firestore().collection("characterQuotes").doc(selectedCharacter);
+    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
+    const quoteInputs = document.querySelectorAll(".custom-quote-input");
+
+    const quotes = [];
+    quoteInputs.forEach(input => {
+        if (input.value.trim() !== "") {
+            quotes.push(input.value.trim());
+        }
+    });
+
+    if (quotes.length === 0) {
+        alert("⚠️ Bạn chưa nhập câu thoại nào.");
+        return;
+    }
 
     try {
-        const docSnapshot = await quoteRef.get();
-        let existingQuotes = docSnapshot.exists ? docSnapshot.data().userQuotes || {} : {};
+        const userQuoteRef = db.collection("userQuotes").doc(username);
+        await userQuoteRef.set({ [selectedCharacter]: quotes }, { merge: true });
 
-        existingQuotes[username] = newQuotes;
-
-        await quoteRef.set({ userQuotes: existingQuotes }, { merge: true });
-
-        alert("✅ Câu thoại đã được cập nhật!");
+        console.log(`✅ Đã lưu thoại cho ${selectedCharacter}: ${JSON.stringify(quotes)}`);
+        alert("✅ Thoại đã được lưu thành công!");
     } catch (error) {
         console.error("❌ Lỗi khi lưu thoại:", error);
+        alert("❌ Đã xảy ra lỗi khi lưu thoại, thử lại sau.");
     }
 }
 
+async function fetchUserQuotes(character, username) {
+    try {
+        console.log(`📥 Đang lấy thoại của ${character} cho user ${username}...`);
 
+        const docRef = db.collection("characterQuotes").doc(character);
+        const doc = await docRef.get();
 
+        if (doc.exists) {
+            const data = doc.data();
+            const userQuotes = data.userQuotes || {};  // 🟢 Object chứa thoại user nhập
+            const defaultQuotes = data.quotes || [];   // 🟢 Danh sách thoại mặc định
+            
+            const userQuote = userQuotes[username] || "";  // 🔥 Thoại user đã nhập (nếu có)
 
+            console.log(`✅ Thoại user đã tải: ${userQuote}`);
+            console.log(`✅ Thoại mặc định đã tải:`, defaultQuotes);
 
-
-
-const dialogueDatabase = {
-    "Vuong (6).png": [
-        "ROLL điểm.",
-        "Đừng làm chỗ dựa, hãy làm tấm gương sao?",
-        "Cậu không được thế này, tuyệt đối không được.",
-        "Không thả là bất hạnh của Trung Thảo Đường, thả thì là bất hạnh của tất cả các đội.",
-        "Đoán không ra, hầy, đoán không ra.",
-        "Khoảng cách này chỉ là tạm thời thôi, cậu có tiềm năng rất lớn!",
-        "Cậu vẫn còn rất trẻ, hãy tiếp tục cố gắng, rồi sẽ có một ngày nào đó cậu vượt qua tất cả mọi người.",
-        "Nếu như may mắn cũng là sai lầm, vậy thì tôi nguyện ý sai càng thêm sai.",
-        "Gánh nặng này... Quá nặng rồi.",
-        "Tự tin lên, đừng hoài nghi bản thân.",
-        "Rất mong chờ trận đấu tiếp theo với hắn.",
-        "Tại thời khắc mấu chốt, anh ấy chưa từng thất bại. Anh ấy có thể thua, nhưng từ trước đến nay chưa từng khiến người khác mất đi niềm tin vào mình.",
-        "Giống ở đâu nhỉ...",
-        "Rõ ràng là họ đang bị dẫn trước, nhưng khi Vương Kiệt Hi vừa vào sân thì họ trông như chắc chắn sẽ thắng vậy.",
-        "Có lẽ là vậy!",
-        "Cơ hội thế này e rằng khó mà có được.",
-        "Tích cực, chủ động.",
-        "Bây giờ, tiếp tục huấn luyện.",
-        "Trận đấu tuyệt vời.",
-        "Cuối cùng cũng hiểu rồi.",
-        "Một trong những tuyển thủ đáng tin cậy nhất trong Liên minh.",
-        "Cocacola nhé, cảm ơn.",
-        "Tôi nghĩ là tôi có thể.",
-        "Đến rồi.",
-        "Lười rồi.",
-        "Tướng lang cố.",
-        "Cậu đùa cái gì? Thời gian của cậu dùng để lãng phí vào việc này sao?",
-        "Mỗi người chúng ta đều miễn cưỡng bản thân một chút, nghe theo mong muốn của anh ấy đi?",
-        "Ngày mai, ai cũng có ngày mai.",
-        "Cậu nghĩ chỉ có hắn mới cân được trình này sao?",
-        "Không thể mệt mỏi! Muốn tồn tại trong Liên minh thì phải ngược dòng mà đi.",
-        "Ký tên ở đâu?",
-        "Trước nay chưa từng xem thường đối thủ nào.",
-        "Chênh lệch thực lực không quyết định thắng bại, tranh tài là để chiến thắng, không phải để so sánh.",
-        "Cậu muốn thử à?",
-        "Tắt điện thoại di động.",
-        "Không có gì đặc biệt, chỉ là lối đánh quê mùa nhất.",
-        "Phải gánh lấy tương lai của Vi Thảo nhé!",
-        "Vương Kiệt Hi và Vương Bất Lưu Hành của anh ấy cứ thế không gì cản nổi, gánh lấy Vi Thảo bay về phía trước.",
-        "Có khó dùng không?",
-        "Đánh thua cũng không sao, nhưng đừng để mất niềm tin nhé!",
-        "Có đôi khi lựa chọn không phải là đúng hay sai, chỉ là cậu có kiên định bước tiếp hay không.",
-        "Tôi mong mọi người có thể tiếp tục và học được gì đó.",
-        "Nhất định.",
-        "Nói nhảm thì có nghĩa lý gì...",
-        "Các cậu kiểu gì cũng sẽ gặp lại.",
-        "Cậu tự tin quá nhỉ?",
-        "Vi Thảo mới là lựa chọn tốt nhất.",
-        "Dùng lối đánh em thoải mái nhất, am hiểu nhất, quen thuộc nhất là được rồi."
-    ]
-};
-
-
-
-
+            return userQuote ? [userQuote] : defaultQuotes; // Nếu user có thoại thì lấy, nếu không thì dùng mặc định
+        } else {
+            console.log(`⚠️ Không tìm thấy thoại của ${character} trong database.`);
+            return [];
+        }
+    } catch (error) {
+        console.error("❌ Lỗi khi lấy thoại user:", error);
+        return [];
+    }
+}
