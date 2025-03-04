@@ -511,38 +511,6 @@ async function setSelectedCharacter() {
 }
 
 
-async function downloadCharacterData() {
-    const character = localStorage.getItem("selectedCharacter") || "Vương";
-
-    console.log(`📥 Đang tải dữ liệu cho nhân vật: ${character}`);
-
-    if (character === "Khác") {
-        alert("Bạn không thể tải nhân vật 'Khác', hãy liên hệ Phong.");
-        return;
-    }
-
-    // 🔥 Xóa dữ liệu nhân vật cũ trước khi tải dữ liệu mới
-    localStorage.removeItem(`images_${character}`);
-    localStorage.removeItem(`dialogues_${character}`);
-
-    // 🔄 Tải ảnh và thoại từ Firestore
-    const images = await fetchCharacterImages(character);
-    const dialogues = await fetchCharacterQuotes(character);
-
-    if (images.length > 0 && dialogues.length > 0) {
-        localStorage.setItem(`images_${character}`, JSON.stringify(images));
-        localStorage.setItem(`dialogues_${character}`, JSON.stringify(dialogues));
-
-        setTimeout(() => {
-            showRandomCharacterImage();
-            showRandomCharacterQuote();
-        }, 300);
-        
-        alert("✅ Đã tải thành công!");
-    } else {
-        alert("❌ Không thể tải dữ liệu, kiểm tra kết nối mạng.");
-    }
-}
 
 async function fetchCharacterImages(character) {
     let images = JSON.parse(localStorage.getItem(`images_${character}`)) || [];
@@ -760,3 +728,35 @@ async function fetchUserQuotes(character, username) {
 }
 
 
+async function downloadCharacterData() {
+    const character = localStorage.getItem("selectedCharacter") || "Vương";
+
+    console.log(`📥 Đang tải dữ liệu cho nhân vật: ${character}`);
+
+    if (character === "Khác") {
+        alert("Bạn không thể tải nhân vật 'Khác', hãy liên hệ Phong.");
+        return;
+    }
+
+    // 🔥 Xóa dữ liệu nhân vật cũ trước khi tải dữ liệu mới
+    localStorage.removeItem(`images_${character}`);
+    localStorage.removeItem(`dialogues_${character}`);
+
+    // 🔄 Tải ảnh và thoại từ Firestore
+    const images = await fetchCharacterImages(character);
+    const dialogues = await fetchCharacterQuotes(character);
+
+    if (images.length > 0 && dialogues.length > 0) {
+        localStorage.setItem(`images_${character}`, JSON.stringify(images));
+        localStorage.setItem(`dialogues_${character}`, JSON.stringify(dialogues));
+
+        setTimeout(() => {
+            showRandomCharacterImage();
+            showRandomCharacterQuote();
+        }, 300);
+        
+        alert("✅ Đã tải thành công!");
+    } else {
+        alert("❌ Không thể tải dữ liệu, kiểm tra kết nối mạng.");
+    }
+}
