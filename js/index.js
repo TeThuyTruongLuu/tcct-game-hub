@@ -452,22 +452,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-function adjustSettingButton() {
-    const settingBtn = document.getElementById("settings-btn-game");
-    const h1 = document.querySelector("h1");
-
-    if (settingBtn && h1) {
-        const h1Rect = h1.getBoundingClientRect();
-        settingBtn.style.top = `${h1Rect.top*1.5 + window.scrollY}px`;
-        settingBtn.style.right = `5vw`;
-    }
-}
-
-// Gọi lại khi load trang và khi thay đổi kích thước cửa sổ
-window.onload = adjustSettingButton;
-window.onresize = adjustSettingButton;
-
-
 //Chọn bias
 async function loadUserBias() {
     console.log("🔄 Đang tải bias của user...");

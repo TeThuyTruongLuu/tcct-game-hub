@@ -3,143 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Sách Lật</title>
+    <title>Game Cuốn Sách</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: powderblue;
-            font-family: sans-serif;
+            background: linear-gradient(to bottom, #c8e6c9, #81c784);
+            overflow: hidden;
         }
-
+        input {
+            width: 50%;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
         .book-container {
             position: relative;
-            width: 700px;
-            height: 500px;
-            perspective: 1500px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 40vw;
+            max-width: 400px;
+            height: 300px;
+            perspective: 1200px;
         }
-
         .book {
+            width: 100%;
+            height: 100%;
             position: relative;
-            width: 100%;
-            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 1s;
         }
-
-        .paper {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            perspective: 1500px;
-        }
-
-        .left-page, .right-page {
-            width: 50%;
-            height: 100%;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid black;
-            position: absolute;
-            top: 0;
-        }
-
-        .left-page {
-            left: 0;
-            transform-origin: right;
+        .closed {
             transform: rotateY(0deg);
         }
-
-        .right-page {
-            right: 0;
-            transform-origin: left;
-            transform: rotateY(0deg);
-        }
-
-        .flipped .left-page {
+        .opened {
             transform: rotateY(-180deg);
         }
-
-        .flipped .right-page {
+        .cover {
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to bottom, #66bb6a, #43a047);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            backface-visibility: hidden;
+            position: absolute;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            left: 50%;
+            transform-origin: left;
+        }
+        .pages {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2);
             transform: rotateY(180deg);
+            backface-visibility: hidden;
         }
-
-        button {
+        .page-left, .page-right {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border-radius: 10px;
+            background: white;
+        }
+        .page-left img {
+            width: 80%;
+            max-height: 80%;
+        }
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
             border: none;
-            background-color: transparent;
             cursor: pointer;
-            margin: 10px;
-            font-size: 30px;
+            padding: 12px;
+            font-size: 24px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        .prev { left: -50px; }
+        .next { right: -50px; }
+		
+		@media (max-width: 768px) {
+			input {
+				width: 80%;
+				font-size: 16px;
+			}
+			.book-container {
+				width: 90vw;
+				height: auto;
+				max-width: 300px;
+			}
+			.book, .pages {
+				height: 200px;
+			}
+			.page-left, .page-right {
+				padding: 10px;
+				font-size: 14px;
+			}
+			.nav-button {
+				width: 35px;
+				height: 35px;
+				font-size: 20px;
+				padding: 8px;
+			}
+			.prev { left: -30px; }
+			.next { right: -30px; }
+		}
+
     </style>
 </head>
 <body>
-    <input type="text" id="question" placeholder="Nhập câu hỏi...">
+    <input type="text" placeholder="Nhập câu hỏi...">
     <div class="book-container">
-        <button onclick="prevPage()">⟨</button>
-        <div class="book" id="book">
-            <div class="paper" id="p1">
-                <div class="left-page">
-                    <img id="randomImage" src="" alt="Hình ảnh" />
-                </div>
-                <div class="right-page" id="randomText"></div>
+        <button class="nav-button prev" onclick="prevPage()">❮</button>
+        <div class="book closed" id="book">
+            <div class="cover">Nhấp để mở</div>
+            <div class="pages" id="pages">
+                <div class="page-left" id="image"></div>
+                <div class="page-right" id="text"></div>
             </div>
         </div>
-        <button onclick="nextPage()">⟩</button>
+        <button class="nav-button next" onclick="nextPage()">❯</button>
     </div>
 
     <script>
-        const imageFiles = [
-            "Cá Dụ 1.png", "Cáo Diệp 1.png", "Cáo tuyết Lam 1.png", "Cao.png", "Chu.png", "Chung.png", "Chuột Duệ 1.png", "Corgi Lư 1.png", "Cúi An 1.png", "Cún bự Bao 1.png"
+        const dialogues = [
+            { img: '../../2048/images/Du (1).png', text: 'Đây là câu chuyện đầu tiên.' },
+            { img: '../../2048/images/Khuu (1).png', text: 'Một ngày đẹp trời, nhân vật bước ra ngoài.' },
+            { img: '../../2048/images/Vuong (1).png', text: 'Hành trình kỳ diệu bắt đầu từ đây.' }
         ];
-        
-        const texts = [
-            "ROLL điểm.", "Đừng làm chỗ dựa, hãy làm tấm gương sao?", "Cậu không được thế này, tuyệt đối không được.",
-            "Không thả là bất hạnh của Trung Thảo Đường, thả thì là bất hạnh của tất cả các đội.", "Đoán không ra, hầy, đoán không ra.",
-            "Khoảng cách này chỉ là tạm thời thôi, cậu có tiềm năng rất lớn!", "Cậu vẫn còn rất trẻ, hãy tiếp tục cố gắng, rồi sẽ có một ngày nào đó cậu vượt qua tất cả mọi người.",
-            "Nếu như may mắn cũng là sai lầm, vậy thì tôi nguyện ý sai càng thêm sai.", "Gánh nặng này........ Quá nặng rồi.", "Tự tin lên, đừng hoài nghi bản thân."
-        ];
-        
         let currentIndex = 0;
+        
+        const book = document.getElementById('book');
+        const image = document.getElementById('image');
+        const text = document.getElementById('text');
 
-        function updatePage(index) {
-            document.getElementById("randomText").textContent = texts[index];
-            document.getElementById("randomImage").src = `matching_game/images/${imageFiles[index]}`;
+        function updatePage() {
+            image.innerHTML = `<img src="${dialogues[currentIndex].img}" alt="Story Image">`;
+            text.textContent = dialogues[currentIndex].text;
         }
+        
+        book.addEventListener('click', () => {
+            if (book.classList.contains('closed')) {
+                updatePage();
+                book.classList.remove('closed');
+                book.classList.add('opened');
+            }
+        });
 
         function nextPage() {
-            if (currentIndex < texts.length - 1) {
-                document.getElementById("p1").classList.add("flipped");
-                setTimeout(() => {
-                    currentIndex++;
-                    updatePage(currentIndex);
-                }, 500);
+            if (currentIndex < dialogues.length - 1) {
+                currentIndex++;
+                updatePage();
             }
         }
 
         function prevPage() {
             if (currentIndex > 0) {
-                document.getElementById("p1").classList.remove("flipped");
-                setTimeout(() => {
-                    currentIndex--;
-                    updatePage(currentIndex);
-                }, 500);
+                currentIndex--;
+                updatePage();
             }
         }
-
-        updatePage(currentIndex);
     </script>
 </body>
 </html>
