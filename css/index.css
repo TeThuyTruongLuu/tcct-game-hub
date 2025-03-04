@@ -26,16 +26,16 @@
 }
 
 @font-face {
-    font-family: 'AmpleSoft'; /* Tên bạn muốn đặt cho font */
-    src: url('fonts/AmpleSoft.ttf') format('truetype'); /* Đường dẫn đến file font */
-    font-weight: thin; /* Trọng lượng mặc định */
-    font-style: normal; /* Kiểu mặc định */
+    font-family: 'AmpleSoft';
+    src: url('fonts/AmpleSoft.ttf') format('truetype');
+    font-weight: thin;
+    font-style: normal;
 }
 
 body {
     font-family: AmpleSoft;
     text-align: center;
-    background-color: #FFEEEE; /* Nền pastel mềm mại hơn */
+    background-color: #FFEEEE;
     color: #5a5a5a;
     padding: 20px;
 }
