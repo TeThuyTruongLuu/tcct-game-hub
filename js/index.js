@@ -176,6 +176,15 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     loadLeaderboard();
+
+    const calloutAvatar = document.getElementById("callout-avatar");
+
+    if (calloutAvatar) {
+        calloutAvatar.addEventListener("click", function () {
+            showRandomCharacterImage();
+            showRandomCharacterQuote();
+        });
+    }
 });
 
 
