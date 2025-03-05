@@ -157,6 +157,7 @@
     <script>
         const dbName = "StoryDB";
         let db;
+        const channel = new BroadcastChannel("story_sync");
         const proxyUrl = "http://phong.tethuytruongluu1947.workers.dev/?url=";
 
         function openDatabase() {
@@ -220,8 +221,12 @@
 
 			
 		async function fetchStory() {
+//			let inputField = document.getElementById("storyLink");
+//			let url = inputField.value.trim().replace(/^https:\/\//, "http://"); // Chỉnh sửa URL
+//			inputField.value = url; // Cập nhật lại giá trị hiển thị
+			
 			let inputField = document.getElementById("storyLink");
-			let url = inputField.value.trim().replace(/^https:\/\//, "http://"); // Chỉnh sửa URL
+			let url = inputField.value.trim().replace(/^https:\/\//, "https://"); // Chỉnh sửa URL
 			inputField.value = url; // Cập nhật lại giá trị hiển thị
 
 			if (!url) {
