@@ -50,7 +50,8 @@
 			font-family: '000 Chinacat [TeddyBear]';
             width: 50%;
             height: 100%;
-            background: linear-gradient(to bottom, #66bb6a, #43a047);
+			background: white url('img/catwjx-cover.jpg') no-repeat center center;
+            <!-- background: linear-gradient(to bottom, #66bb6a, #43a047); -->
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -63,6 +64,7 @@
             left: 50%;
             transform-origin: left;
 			font-weight: bold;
+			background-size: 100%;
         }
         .pages {
             width: 100%;
@@ -168,7 +170,7 @@
 			<img src="../../img/prev.png" alt="Prev">
 		</button>
         <div class="book closed" id="book">
-            <div class="cover">Hỏi thần mèo</div>
+            <div class="cover"></div>
             <div class="pages" id="pages">
                 <div class="page-left" id="image"></div>
                 <div class="page-right" id="text"></div>
