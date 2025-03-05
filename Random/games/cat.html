@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Cuốn Sách</title>
     <style>
+		@font-face {
+			font-family: '000 Chinacat [TeddyBear]'; /* Tên bạn muốn đặt cho font */
+			src: url('../../css/fonts/000 Chinacat [TeddyBear].ttf') format('truetype'); /* Đường dẫn đến file font */
+		}
         body {
             display: flex;
             flex-direction: column;
@@ -43,6 +47,7 @@
             transform: rotateY(-180deg);
         }
         .cover {
+			font-family: '000 Chinacat [TeddyBear]';
             width: 50%;
             height: 100%;
             background: linear-gradient(to bottom, #66bb6a, #43a047);
@@ -51,13 +56,13 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 20px;
             backface-visibility: hidden;
             position: absolute;
             box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
             left: 50%;
             transform-origin: left;
+			font-weight: bold;
         }
         .pages {
             width: 100%;
@@ -78,32 +83,55 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            border-radius: 10px;
             background: white;
         }
+		.page-left {
+			border-radius: 0px 10px 10px 0px;
+			background: white url('img/catwjx-text.jpg') no-repeat center center;
+			background-size: auto 95%;
+			background-position: center;
+			transform: scaleX(-1);
+			box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+		}
+
+		.page-right {
+			font-family: '000 Chinacat [TeddyBear]';
+			border-radius: 0px 10px 10px 0px;
+			background: white url('img/catwjx-text.jpg') no-repeat center center;
+			background-size: auto 95%;
+			font-size: 16px;
+			text-align: center;
+		}
         .page-left img {
-            width: 80%;
-            max-height: 80%;
+            max-width: 120%;
+            height: 120%;
+			object-fit: contain;
+			transform: scaleX(-1);
         }
-        .nav-button {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            cursor: pointer;
-            padding: 12px;
-            font-size: 24px;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .prev { left: -50px; }
-        .next { right: -50px; }
+		.nav-button {
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+			background: rgba(0, 0, 0, 0.11);
+			border: none;
+			cursor: pointer;
+			padding: 0;
+			border-radius: 50%;
+			width: 2.5vw;
+			height: 2.5vw;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		.nav-button img {
+			width: 100%;
+			height: auto;
+		}
+		.next img {
+			transform: scaleX(-1);
+		}
+		.prev { left: -8vw; }
+		.next { right: -8vw; }
 		
 		@media (max-width: 768px) {
 			input {
@@ -116,7 +144,7 @@
 				max-width: 300px;
 			}
 			.book, .pages {
-				height: 200px;
+				height: 250px;
 			}
 			.page-left, .page-right {
 				padding: 10px;
@@ -125,11 +153,10 @@
 			.nav-button {
 				width: 35px;
 				height: 35px;
-				font-size: 20px;
 				padding: 8px;
 			}
-			.prev { left: -30px; }
-			.next { right: -30px; }
+			.prev { left: -40px; }
+			.next { right: -40px; }
 		}
 
     </style>
@@ -137,20 +164,24 @@
 <body>
     <input type="text" placeholder="Nhập câu hỏi...">
     <div class="book-container">
-        <button class="nav-button prev" onclick="prevPage()">❮</button>
+		<button class="nav-button prev" onclick="prevPage()">
+			<img src="../../img/prev.png" alt="Prev">
+		</button>
         <div class="book closed" id="book">
-            <div class="cover">Nhấp để mở</div>
+            <div class="cover">Hỏi thần mèo</div>
             <div class="pages" id="pages">
                 <div class="page-left" id="image"></div>
                 <div class="page-right" id="text"></div>
             </div>
         </div>
-        <button class="nav-button next" onclick="nextPage()">❯</button>
+		<button class="nav-button next" onclick="nextPage()">
+			<img src="../../img/prev.png" alt="Next">
+		</button>
     </div>
 
     <script>
         const dialogues = [
-            { img: '../../2048/images/Du (1).png', text: 'Đây là câu chuyện đầu tiên.' },
+            { img: 'img/catwjx-1.png', text: 'Đây là câu chuyện đầu tiên.' },
             { img: '../../2048/images/Khuu (1).png', text: 'Một ngày đẹp trời, nhân vật bước ra ngoài.' },
             { img: '../../2048/images/Vuong (1).png', text: 'Hành trình kỳ diệu bắt đầu từ đây.' }
         ];
