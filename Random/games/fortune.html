@@ -76,6 +76,33 @@
             color: red;
             font-weight: bold;
         }
+		.pagination {
+			display: flex;
+			justify-content: center;
+			margin-top: 15px;
+			gap: 5px;
+		}
+
+		.pagination button {
+			padding: 8px 12px;
+			border: 1px solid #6c5ce7;
+			background-color: #f7f1e3;
+			color: #6c5ce7;
+			cursor: pointer;
+			border-radius: 5px;
+			font-size: 14px;
+		}
+
+		.pagination button.active {
+			background-color: #6c5ce7;
+			color: white;
+		}
+
+		.pagination button:hover {
+			background-color: #5a4ae0;
+			color: white;
+		}
+
         @media (max-width: 600px) {
             table {
                 display: block;
@@ -83,6 +110,23 @@
                 white-space: nowrap;
             }
 			button {margin-top: 2vw;}
+			td, th {
+				word-wrap: break-word;
+				white-space: normal;
+			}
+			td:nth-child(2) {
+				min-width: 120px;
+				max-width: 250px;
+			}
+			td:nth-child(3) {
+				min-width: 70px;
+				max-width: 100px;
+			}
+
+			.table-container {
+				overflow-x: auto;
+				display: block;
+			}
         }
     </style>
 </head>
@@ -108,6 +152,7 @@
             </thead>
             <tbody id="storyTable"></tbody>
         </table>
+		<div class="pagination" id="pagination"></div>
     </div>
     <script>
         const dbName = "StoryDB";
@@ -131,20 +176,25 @@
                 console.error("Database error:", event.target.error);
             };
         }
-		
+						
 		function deleteStory(id) {
 			if (!id) {
 				console.error("Invalid ID:", id);
 				return;
 			}
 			console.log("Deleting story with ID:", id);
+
 			let transaction = db.transaction(["stories"], "readwrite");
 			let store = transaction.objectStore("stories");
 			let request = store.delete(id);
 
 			request.onsuccess = function() {
-				console.log("Deleted successfully!");
-				loadStories(); // Gọi ngay loadStories() để cập nhật lại bảng
+				console.log("Deleted successfully from IndexedDB!");
+
+				// Xóa dữ liệu trong mảng `allStories` và cập nhật UI ngay
+				allStories = allStories.filter(story => story.id !== id);
+				displayPage(currentPage); // Cập nhật UI sau khi xóa
+				updatePagination();
 			};
 
 			request.onerror = function(event) {
@@ -212,6 +262,8 @@
 						editor = editorMatch[1] || editorMatch[2] || editorMatch[3] || editorMatch[4];
 					}
 				});
+				
+				editor = editor.replace(/^@/, "").trim();
 
 
 				let review = "";
@@ -270,6 +322,68 @@
                 console.error("Error saving story:", event.target.error);
             };
         }
+		
+		const storiesPerPage = 15; // Số lượng truyện hiển thị trên mỗi trang
+		let currentPage = 1;
+		let allStories = [];
+
+		function loadStories() {
+			let transaction = db.transaction(["stories"], "readonly");
+			let store = transaction.objectStore("stories");
+			let request = store.getAll();
+			
+			request.onsuccess = function(event) {
+				allStories = event.target.result;
+				displayPage(1); // Luôn hiển thị trang đầu tiên khi load
+				updatePagination();
+			};
+
+			request.onerror = function(event) {
+				console.error("Error loading stories:", event.target.error);
+			};
+		}
+
+		function displayPage(page) {
+			let storyTable = document.getElementById("storyTable");
+			storyTable.innerHTML = "";
+			currentPage = page;
+
+			let start = (page - 1) * storiesPerPage;
+			let end = start + storiesPerPage;
+			let paginatedStories = allStories.slice(start, end);
+
+			paginatedStories.forEach((story, index) => {
+				let row = `<tr>
+					<td>${start + index + 1}</td>
+					<td>${story.title}</td>
+					<td>${story.tag}</td>
+					<td>${story.author}</td>
+					<td>${story.editor}</td>
+					<td>${story.status}</td>
+					<td><a href="${story.url}" target="_blank">4rum</a></td>
+					<td contenteditable="true" onblur="updateReview('${story.id}', this.innerText)">${story.review}</td>
+					<td class="delete-btn" onclick="deleteStory('${story.id}')">🗑</td>
+				</tr>`;
+				storyTable.innerHTML += row;
+			});
+
+			updatePagination();
+		}
+
+		function updatePagination() {
+			let paginationContainer = document.getElementById("pagination");
+			paginationContainer.innerHTML = "";
+			let totalPages = Math.ceil(allStories.length / storiesPerPage);
+
+			for (let i = 1; i <= totalPages; i++) {
+				let btn = document.createElement("button");
+				btn.innerText = i;
+				btn.className = i === currentPage ? "active" : "";
+				btn.onclick = () => displayPage(i);
+				paginationContainer.appendChild(btn);
+			}
+		}
+
 
         openDatabase();
     </script>
