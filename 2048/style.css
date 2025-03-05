@@ -161,7 +161,7 @@ h1, h2 {
 
 
 #musicDropdown {
-    font-size: 18px;
+    font-size: 16px;
     padding: 8px 12px; /* Nội dung bên trong */
     border: 2px solid #ccc;
     border-radius: 8px; /* Bo góc */
@@ -356,7 +356,7 @@ h1, h2 {
 		border-radius: 10px; /* Tăng bo góc cho mềm mại hơn */
 		background-color: #fafafa; /* Màu nền sáng hơn */
 		text-align: center;
-		font-size: 2.5vw; /* Điều chỉnh kích thước chữ */
+		font-size: 1.5vw; /* Điều chỉnh kích thước chữ */
 		line-height: 140px; /* Đảm bảo chữ nằm giữa theo chiều dọc */
 		color: #333; /* Màu chữ dễ đọc hơn */
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng nhẹ */
@@ -377,7 +377,7 @@ h1, h2 {
 		box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Tạo hiệu ứng đổ bóng */
 		transition: all 0.2s ease; /* Hiệu ứng hover */
 		margin-bottom: 10px;
-		font-size: 4vw;
+		font-size: 3vw;
 		width: 80vw;
 	}
 
