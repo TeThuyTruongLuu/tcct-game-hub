@@ -5,52 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tung Đồng Xu</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #ffebef;
-            font-family: 'Arial', sans-serif;
-        }
-        h1 {
-            font-size: 28px;
-            color: #d48806;
-            margin-bottom: 20px;
-        }
-        .coin-container {
-            width: 220px;
-            height: 220px;
-            position: relative;
-            perspective: 1000px;
-            margin-bottom: 30px;
-        }
-        .coin {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            transform-style: preserve-3d;
-            transition: transform 1.5s ease-in-out;
-        }
-        .coin img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 8px solid gold;
-            position: absolute;
-            backface-visibility: hidden;
-            background-color: gold;
-            object-fit: cover;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-		
-        .heads {
-            transform: rotateY(0deg);
-        }
-        .tails {
-            transform: rotateY(180deg);
-        }
+		body {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			background: radial-gradient(circle, #ffebef, #ffcccc);
+			font-family: 'Arial', sans-serif;
+		}
+
+		h1 {
+			font-size: 32px;
+			color: #d48806;
+			margin-bottom: 20px;
+			text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+		}
+
+		.coin-container {
+			width: 220px;
+			height: 220px;
+			position: relative;
+			perspective: 1200px;
+			margin-bottom: 30px;
+		}
+
+		.coin {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			transform-style: preserve-3d;
+			transition: transform 1.8s cubic-bezier(0.25, 1, 0.5, 1); /* Mượt hơn */
+		}
+
+		.coin img {
+			width: 100%;
+			height: 100%;
+			border-radius: 50%;
+			border: 1px solid gold;
+			position: absolute;
+			backface-visibility: hidden;
+			object-fit: cover;
+			box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+			background: linear-gradient(145deg, #e6c200, #ffdf4f, #c79a00);
+		}
+
+		.heads {
+			transform: rotateX(0deg);
+		}
+
+		.tails {
+			transform: rotateX(180deg);
+		}
+
         .flip-button {
             margin-top: 15px;
             padding: 14px 30px;
@@ -62,7 +69,6 @@
             font-size: 20px;
             font-weight: bold;
             transition: all 0.2s ease-in-out;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         .flip-button:hover {
             background-color: #b36b00;
@@ -107,12 +113,11 @@
     </div>
     
     <script>
-        function flipCoin() {
-            let coin = document.getElementById("coin");
-            let isHeads = Math.random() < 0.5;
-            coin.style.transform = `rotateY(${isHeads ? 0 : 180}deg) rotateX(${Math.floor(Math.random() * 4 + 3) * 360}deg)`;
-        }
-
+		function flipCoin() {
+			let coin = document.getElementById("coin");
+			let spins = Math.floor(Math.random() * 4 + 3) * 360; // Quay nhiều vòng hơn
+			coin.style.transform = `rotateX(${spins}deg)`; // Chỉ xoay trục X
+		}
 
         function updateImage(side, event) {
             let file = event.target.files[0];

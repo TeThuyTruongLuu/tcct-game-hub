@@ -550,7 +550,7 @@ async function fetchCharacterQuotes(character) {
     }
 
     console.warn(`⚠️ Không tìm thấy thoại của ${character}, dùng thoại mặc định.`);
-    return ["Xin chào! Tôi là trợ thủ của bạn!"];
+    return ["Xin chào! Tôi sẽ là trợ thủ của bạn!"];
 }
 
 

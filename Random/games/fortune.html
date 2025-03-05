@@ -3,135 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lắc Quẻ</title>
+    <title>Offline Story Reader</title>
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #f5f5dc;
-            font-family: 'Arial', sans-serif;
-        }
-        h1 {
-            font-size: 28px;
-            color: #8b4513;
-            margin-bottom: 20px;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
         }
         .container {
-            text-align: center;
-            position: relative;
-        }
-        .shake-box {
-            width: 160px;
-            height: 160px;
-            background-color: #b8860b;
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 20px;
             border-radius: 10px;
-            border: 5px solid #8b4513;
-            position: relative;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            padding-bottom: 20px;
-            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        .fortune-stick {
-            width: 8px;
-            height: 60px;
-            background-color: #d4af37;
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            transition: transform 0.3s ease-in-out;
-        }
-        .sticks-container {
-            position: absolute;
-            bottom: 0;
+        input, button, textarea {
+            margin: 10px 0;
+            padding: 10px;
             width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
         }
-        .stick {
-            width: 6px;
-            height: 50px;
-            background-color: #d4af37;
-            margin: 0 2px;
-            position: relative;
-            transition: transform 0.3s ease-in-out;
-        }
-        .shake-button {
+        table {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #8b4513;
-            color: white;
-            border: none;
-            border-radius: 8px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .delete-btn {
             cursor: pointer;
-            font-size: 16px;
-            transition: all 0.2s ease-in-out;
-        }
-        .shake-button:hover {
-            background-color: #6b3a0e;
-        }
-        .fortune-result {
-            margin-top: 20px;
-            font-size: 20px;
+            color: red;
             font-weight: bold;
-            color: #8b4513;
         }
     </style>
 </head>
 <body>
-    <h1>Lắc Quẻ</h1>
     <div class="container">
-        <div class="shake-box" onclick="shakeFortune()">
-            <div class="sticks-container" id="sticksContainer"></div>
-        </div>
-        <button class="shake-button" onclick="shakeFortune()">Lắc Quẻ</button>
-        <div class="fortune-result" id="fortuneResult"></div>
+        <h2>Lưu trữ truyện</h2>
+        <input type="text" id="storyLink" placeholder="Nhập link truyện (bỏ 's' trong 'https')">
+        <button onclick="fetchStory()">Lưu Truyện</button>
+        <h3>Danh sách truyện đã lưu</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Tên Truyện</th>
+                    <th>Tag</th>
+                    <th>Tác Giả</th>
+                    <th>Editor</th>
+                    <th>Tình Trạng</th>
+                    <th>Link</th>
+                    <th>Review</th>
+                    <th>Xóa</th>
+                </tr>
+            </thead>
+            <tbody id="storyTable"></tbody>
+        </table>
     </div>
-    
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            let sticksContainer = document.getElementById("sticksContainer");
-            for (let i = 0; i < 19; i++) {
-                let stick = document.createElement("div");
-                stick.classList.add("stick");
-                sticksContainer.appendChild(stick);
-            }
-        });
-        
-        function shakeFortune() {
-            let sticks = document.querySelectorAll(".stick");
-            let result = document.getElementById("fortuneResult");
-            
-            // Hiệu ứng lắc quẻ
-            sticks.forEach(stick => {
-                let randomOffset = Math.random() * 6 - 3;
-                stick.style.transform = `translateY(${randomOffset}px)`;
-            });
-            
-            setTimeout(() => {
-                let selectedStick = sticks[Math.floor(Math.random() * sticks.length)];
-                sticks.forEach(stick => {
-                    stick.style.transform = "translateY(0)";
-                });
-                selectedStick.style.transform = "translateY(-30px)";
-            }, 500);
-            
-            // Chọn ngẫu nhiên kết quả quẻ
-            let fortunes = ["Đại Cát", "Tiểu Cát", "Hung", "Đại Hung", "Bình Thường"];
-            let randomFortune = fortunes[Math.floor(Math.random() * fortunes.length)];
-            
-            setTimeout(() => {
-                result.innerText = `Kết quả: ${randomFortune}`;
-            }, 800);
+        const dbName = "StoryDB";
+        let db;
+        const proxyUrl = "http://phong.tethuytruongluu1947.workers.dev/?url=";
+
+        function openDatabase() {
+            let request = indexedDB.open(dbName, 1);
+            request.onupgradeneeded = function(event) {
+                db = event.target.result;
+                if (!db.objectStoreNames.contains("stories")) {
+                    db.createObjectStore("stories", { keyPath: "id" });
+                }
+            };
+            request.onsuccess = function(event) {
+                db = event.target.result;
+                cleanupInvalidStories();
+                loadStories();
+            };
+            request.onerror = function(event) {
+                console.error("Database error:", event.target.error);
+            };
         }
+
+        function deleteStory(id) {
+            if (!id || typeof id !== "string") {
+                console.error("Invalid ID:", id);
+                return;
+            }
+
+            console.log("Deleting story with ID:", id);
+            let transaction = db.transaction(["stories"], "readwrite");
+            let store = transaction.objectStore("stories");
+            let request = store.delete(id);
+
+            request.onsuccess = function() {
+                console.log("Deleted successfully!");
+                setTimeout(() => loadStories(), 100);
+            };
+
+            request.onerror = function(event) {
+                console.error("Error deleting story:", event.target.error);
+            };
+        }
+
+        function cleanupInvalidStories() {
+            let transaction = db.transaction(["stories"], "readwrite");
+            let store = transaction.objectStore("stories");
+            let request = store.openCursor();
+
+            request.onsuccess = function(event) {
+                let cursor = event.target.result;
+                if (cursor) {
+                    if (!cursor.value.id || typeof cursor.value.id !== "string") {
+                        console.log("Deleting invalid story:", cursor.value);
+                        store.delete(cursor.primaryKey);
+                    }
+                    cursor.continue();
+                }
+            };
+        }
+
+		async function fetchStory() {
+			let url = document.getElementById("storyLink").value;
+			if (!url) {
+				alert("Vui lòng nhập link truyện!");
+				return;
+			}
+			try {
+				let response = await fetch(proxyUrl + encodeURIComponent(url));
+				let text = await response.text();
+				let parser = new DOMParser();
+				let doc = parser.parseFromString(text, "text/html");
+
+				// ✅ Lấy trạng thái truyện (Hoàn, Ongoing,...)
+				let statusElement = doc.querySelector("h1.p-title-value span");
+				let status = statusElement ? statusElement.textContent.trim() : "Không rõ";
+
+				// ✅ Lấy tiêu đề và tag
+				let titleMatch = doc.querySelector("h1")?.innerText.match(/\[(.*?)\]\s*(\[.*?\])?(.*)/);
+				let title = titleMatch ? titleMatch[3].trim() : "Không rõ";
+				let tag = titleMatch && titleMatch[2] ? titleMatch[2].replace(/\[|\]/g, '') : (titleMatch ? titleMatch[1] : "Không rõ");
+
+				// ✅ Lấy tác giả (chỉ lấy sau "Tác giả:" và trước xuống dòng)
+				let author = "Không rõ";
+				let editor = "Không rõ";
+				doc.querySelectorAll("article.message-body.js-selectToQuote div").forEach(div => {
+					if (div.innerText.includes("Tác giả:")) {
+						author = div.innerText.split("Tác giả:")[1].split("\n")[0].trim();
+					}
+					if (div.innerText.includes("Edit:")) {
+						editor = div.innerText.split("Edit:")[1].split("\n")[0].trim();
+					}
+				});
+
+				let review = "";
+
+				saveStory({ id: crypto.randomUUID(), title, tag, author, editor, status, url, review });
+			} catch (error) {
+				console.error("Error fetching story:", error);
+				alert("Không thể lấy dữ liệu từ link này!");
+			}
+		}
+
+
+
+        function loadStories() {
+            let transaction = db.transaction(["stories"], "readonly");
+            let store = transaction.objectStore("stories");
+            let request = store.openCursor();
+            let storyTable = document.getElementById("storyTable");
+            storyTable.innerHTML = "";
+            let index = 1;
+            request.onsuccess = function(event) {
+                let cursor = event.target.result;
+                if (cursor) {
+                    console.log(cursor.value);
+                    let row = `<tr>
+                        <td>${index++}</td>
+                        <td>${cursor.value.title}</td>
+                        <td>${cursor.value.tag}</td>
+                        <td>${cursor.value.author}</td>
+                        <td>${cursor.value.editor}</td>
+                        <td>${cursor.value.status}</td>
+                        <td><a href="${cursor.value.url}" target="_blank">4rum</a> | <a href="${cursor.value.originalLink}" target="_blank">Gốc</a></td>
+                        <td contenteditable="true" onblur="updateReview('${cursor.value.id}', this.innerText)">${cursor.value.review}</td>
+                        <td class="delete-btn" onclick="deleteStory('${cursor.value.id}')">🗑</td>
+                    </tr>`;
+                    storyTable.innerHTML += row;
+                    cursor.continue();
+                }
+            };
+        }
+
+        function saveStory(story) {
+            let transaction = db.transaction(["stories"], "readwrite");
+            let store = transaction.objectStore("stories");
+            let request = store.put(story);
+            request.onsuccess = function() {
+                loadStories();
+            };
+            request.onerror = function(event) {
+                console.error("Error saving story:", event.target.error);
+            };
+        }
+
+        openDatabase();
     </script>
 </body>
 </html>
