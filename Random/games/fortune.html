@@ -3,44 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline Story Reader</title>
+    <title>Lưu trữ truyện</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f7f1e3;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
         }
         .container {
-            max-width: 900px;
-            margin: auto;
+            width: 90%;
+            max-width: 1000px;
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        input, button, textarea {
-            margin: 10px 0;
-            padding: 10px;
-            width: 100%;
-        }
+		.input-container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 10px;
+			margin-bottom: 15px;
+			width: 100%;
+		}
+
+		input {
+			width: 90%;
+			max-width: 400px; /* Giới hạn độ rộng tối đa để tránh quá to */
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+		}
+
+		button {
+			padding: 10px 20px;
+			background-color: #6c5ce7;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 16px;
+			font-weight: bold;
+			white-space: nowrap;
+		}
+
+		button:hover {
+			background-color: #5a4ae0;
+		}
+
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 15px;
+            background: white;
+            border-radius: 5px;
+            overflow: hidden;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 10px;
             text-align: left;
         }
         th {
-            background-color: #f4f4f4;
+            background-color: #dfe6e9;
         }
         .delete-btn {
             cursor: pointer;
             color: red;
             font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+			button {margin-top: 2vw;}
         }
     </style>
 </head>
@@ -57,7 +99,7 @@
                     <th>Tên Truyện</th>
                     <th>Tag</th>
                     <th>Tác Giả</th>
-                    <th>Editor</th>
+                    <th>Edit / Beta</th>
                     <th>Tình Trạng</th>
                     <th>Link</th>
                     <th>Review</th>
@@ -89,33 +131,31 @@
                 console.error("Database error:", event.target.error);
             };
         }
+		
+		function deleteStory(id) {
+			if (!id) {
+				console.error("Invalid ID:", id);
+				return;
+			}
+			console.log("Deleting story with ID:", id);
+			let transaction = db.transaction(["stories"], "readwrite");
+			let store = transaction.objectStore("stories");
+			let request = store.delete(id);
 
-        function deleteStory(id) {
-            if (!id || typeof id !== "string") {
-                console.error("Invalid ID:", id);
-                return;
-            }
+			request.onsuccess = function() {
+				console.log("Deleted successfully!");
+				loadStories(); // Gọi ngay loadStories() để cập nhật lại bảng
+			};
 
-            console.log("Deleting story with ID:", id);
-            let transaction = db.transaction(["stories"], "readwrite");
-            let store = transaction.objectStore("stories");
-            let request = store.delete(id);
-
-            request.onsuccess = function() {
-                console.log("Deleted successfully!");
-                setTimeout(() => loadStories(), 100);
-            };
-
-            request.onerror = function(event) {
-                console.error("Error deleting story:", event.target.error);
-            };
-        }
+			request.onerror = function(event) {
+				console.error("Error deleting story:", event.target.error);
+			};
+		}
 
         function cleanupInvalidStories() {
             let transaction = db.transaction(["stories"], "readwrite");
             let store = transaction.objectStore("stories");
             let request = store.openCursor();
-
             request.onsuccess = function(event) {
                 let cursor = event.target.result;
                 if (cursor) {
@@ -128,8 +168,12 @@
             };
         }
 
+			
 		async function fetchStory() {
-			let url = document.getElementById("storyLink").value;
+			let inputField = document.getElementById("storyLink");
+			let url = inputField.value.trim().replace(/^https:\/\//, "http://"); // Chỉnh sửa URL
+			inputField.value = url; // Cập nhật lại giá trị hiển thị
+
 			if (!url) {
 				alert("Vui lòng nhập link truyện!");
 				return;
@@ -150,16 +194,25 @@
 				let tag = titleMatch && titleMatch[2] ? titleMatch[2].replace(/\[|\]/g, '') : (titleMatch ? titleMatch[1] : "Không rõ");
 
 				// ✅ Lấy tác giả (chỉ lấy sau "Tác giả:" và trước xuống dòng)
-				let author = "Không rõ";
-				let editor = "Không rõ";
+                let author = "Không rõ";
+                let editor = "Không rõ";
+
 				doc.querySelectorAll("article.message-body.js-selectToQuote div").forEach(div => {
-					if (div.innerText.includes("Tác giả:")) {
-						author = div.innerText.split("Tác giả:")[1].split("\n")[0].trim();
+					let text = div.innerText.trim();
+
+					// Tìm Tác giả
+					let authorMatch = text.match(/Tác giả:\s*(.+)|Author:\s*(.+)/i);
+					if (authorMatch) {
+						author = authorMatch[1] || authorMatch[2]; // Lấy phần nào có giá trị
 					}
-					if (div.innerText.includes("Edit:")) {
-						editor = div.innerText.split("Edit:")[1].split("\n")[0].trim();
+
+					// Tìm Editor với nhiều định dạng khác nhau
+					let editorMatch = text.match(/Editor:\s*(.+)|Edit:\s*(.+)|Edit \+ beta:\s*(.+)|edit \+ beta:\s*(.+)/i);
+					if (editorMatch) {
+						editor = editorMatch[1] || editorMatch[2] || editorMatch[3] || editorMatch[4];
 					}
 				});
+
 
 				let review = "";
 
@@ -172,33 +225,39 @@
 
 
 
-        function loadStories() {
-            let transaction = db.transaction(["stories"], "readonly");
-            let store = transaction.objectStore("stories");
-            let request = store.openCursor();
-            let storyTable = document.getElementById("storyTable");
-            storyTable.innerHTML = "";
-            let index = 1;
-            request.onsuccess = function(event) {
-                let cursor = event.target.result;
-                if (cursor) {
-                    console.log(cursor.value);
-                    let row = `<tr>
-                        <td>${index++}</td>
-                        <td>${cursor.value.title}</td>
-                        <td>${cursor.value.tag}</td>
-                        <td>${cursor.value.author}</td>
-                        <td>${cursor.value.editor}</td>
-                        <td>${cursor.value.status}</td>
-                        <td><a href="${cursor.value.url}" target="_blank">4rum</a> | <a href="${cursor.value.originalLink}" target="_blank">Gốc</a></td>
-                        <td contenteditable="true" onblur="updateReview('${cursor.value.id}', this.innerText)">${cursor.value.review}</td>
-                        <td class="delete-btn" onclick="deleteStory('${cursor.value.id}')">🗑</td>
-                    </tr>`;
-                    storyTable.innerHTML += row;
-                    cursor.continue();
-                }
-            };
-        }
+		function loadStories() {
+			let transaction = db.transaction(["stories"], "readwrite");
+			let store = transaction.objectStore("stories");
+			let request = store.openCursor();
+			let storyTable = document.getElementById("storyTable");
+			storyTable.innerHTML = "";
+			let index = 1;
+
+			request.onsuccess = function(event) {
+				let cursor = event.target.result;
+				if (cursor) {
+					console.log(cursor.value); // Debug xem dữ liệu còn hay không
+					let row = `<tr>
+						<td>${index++}</td>
+						<td>${cursor.value.title}</td>
+						<td>${cursor.value.tag}</td>
+						<td>${cursor.value.author}</td>
+						<td>${cursor.value.editor}</td>
+						<td>${cursor.value.status}</td>
+						<td><a href="${cursor.value.url}" target="_blank">4rum</a><!--  | <a href="${cursor.value.originalLink}" target="_blank">Gốc</a> --></td>
+						<td contenteditable="true" onblur="updateReview('${cursor.key}', this.innerText)">${cursor.value.review}</td>
+						<td class="delete-btn" onclick="deleteStory('${cursor.key}')">🗑</td>
+					</tr>`;
+					storyTable.innerHTML += row;
+					cursor.continue();
+				}
+			};
+
+			request.onerror = function(event) {
+				console.error("Error loading stories:", event.target.error);
+			};
+		}
+
 
         function saveStory(story) {
             let transaction = db.transaction(["stories"], "readwrite");
