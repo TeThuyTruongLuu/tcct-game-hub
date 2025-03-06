@@ -37,8 +37,6 @@ if (!firebase.apps.length) {
 
 // Lấy Firestore
 const db = firebase.firestore();
-window.db = db;
-export { db };
 
 //Kiểm tra điều kiện log-in, log-out
 
@@ -755,3 +753,6 @@ async function downloadCharacterData() {
         alert("❌ Không thể tải dữ liệu, kiểm tra kết nối mạng.");
     }
 }
+
+window.db = db;
+export { db };
