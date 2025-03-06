@@ -766,16 +766,13 @@
 
 		// Gọi hàm tải tag khi load trang
 		fetchTagsFromDatabase();
-
+		
 		async function saveNewTag(tag) {
 			try {
-				let tagRef = collection(db, "tags");
-				let tagSnapshot = await getDocs(query(tagRef, where("name", "==", tag)));
-
-				if (tagSnapshot.empty) {
-					await addDoc(tagRef, { name: tag });
-					console.log(`✅ Đã lưu tag mới: ${tag}`);
-				}
+				let tagId = tag.trim(); // ID sẽ chính là tên tag
+				let tagRef = doc(db, "tags", tagId); // Định nghĩa doc với ID là tag
+				await setDoc(tagRef, { name: tag }, { merge: true });
+				console.log(`✅ Đã lưu tag mới: ${tag} với ID ${tagId}`);
 			} catch (error) {
 				console.error("❌ Lỗi khi lưu tag mới:", error);
 			}
