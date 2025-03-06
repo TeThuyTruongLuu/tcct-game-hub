@@ -4,29 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lưu trữ truyện</title>
-<!-- 	<script type="module">
-		import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-		import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-		const firebaseConfig = {
-			apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
-			authDomain: "tcct-minigames.firebaseapp.com",
-			projectId: "tcct-minigames",
-			storageBucket: "tcct-minigames.firebasestorage.app",
-			messagingSenderId: "604780847536",
-			appId: "1:604780847536:web:f8015bde5ef469b04c7675",
-			measurementId: "G-1GGDZR6VY5"
-		};
-
-		const app = initializeApp(firebaseConfig);
-		const db = getFirestore(app);
-		window.db = db;
-
-		console.log("🔥 Firebase 9+ đã khởi tạo!");
-	</script> -->
-
-
-
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -44,23 +21,97 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-		.input-container {
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            background: #f7f1e3;
+            border-radius: 50px;
+            padding: 5px;
+            width: fit-content;
+            margin: 0 auto 15px;
+        }
+        .toggle-btn {
+            border: none;
+            background: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #6c5ce7;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+        .toggle-btn.active {
+            background: #6c5ce7;
+            color: white;
+            border-radius: 50px;
+            transition: 0.3s ease;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .input-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+			padding-left: 10px;
+			padding-right: 10px;
+        }
+        .input-container label {
+            flex: 1 1 45%;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .input-container input, .input-container select {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+		.flex-row {
 			display: flex;
-			flex-direction: column;
+			flex-wrap: wrap;
+			gap: 15px;
 			align-items: center;
-			gap: 10px;
-			margin-bottom: 15px;
-			width: 100%;
+			justify-content: space-between;
+			padding-bottom: 10px;
 		}
 
-		input {
-			width: 90%;
-			max-width: 400px; /* Giới hạn độ rộng tối đa để tránh quá to */
-			padding: 10px;
+		.flex-row label {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.flex-row input, .flex-row select {
+			flex: 1;
+			padding: 8px;
 			border: 1px solid #ccc;
 			border-radius: 5px;
+			margin-left: 10px;
+		}
+		.flex-row .tag-input {
+			flex: 4;
 		}
 
+		.flex-row .rating-input {
+			flex: 1;
+			display: flex;
+			align-items: center;
+		}
+
+		.rating-input input {
+			margin-right: 10px;
+		}
+		.wide-input {
+			width: 100%;
+		}
 		button {
 			padding: 10px 20px;
 			background-color: #6c5ce7;
@@ -70,13 +121,13 @@
 			cursor: pointer;
 			font-size: 16px;
 			font-weight: bold;
-			white-space: nowrap;
 		}
-
-		button:hover {
-			background-color: #5a4ae0;
+		.button-container {
+			display: flex;
+			justify-content: center;
+			gap: 10px;
+			margin-top: 10px;
 		}
-
         table {
             width: 100%;
             border-collapse: collapse;
@@ -104,7 +155,6 @@
 			margin-top: 15px;
 			gap: 5px;
 		}
-
 		.pagination button {
 			padding: 8px 12px;
 			border: 1px solid #6c5ce7;
@@ -114,24 +164,39 @@
 			border-radius: 5px;
 			font-size: 14px;
 		}
-
 		.pagination button.active {
 			background-color: #6c5ce7;
 			color: white;
 		}
-
 		.pagination button:hover {
 			background-color: #5a4ae0;
 			color: white;
 		}
 
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
         @media (max-width: 600px) {
             table {
                 display: block;
                 overflow-x: auto;
                 white-space: nowrap;
             }
-			button {margin-top: 2vw;}
+			button {width: 50%;}
 			td, th {
 				word-wrap: break-word;
 				white-space: normal;
@@ -149,28 +214,73 @@
 				overflow-x: auto;
 				display: block;
 			}
+			.toggle-container {
+				display: flex;
+				justify-content: center;
+				width: 100%;
+			}
+			.toggle-btn {
+				flex: 1;
+				font-size: 14px;
+				padding: 8px;
+			}
+
+			.flex-row {
+				flex-direction: column;
+			}
+
+			.flex-row label {
+				width: 100%;
+			}
+
+			.button-container {
+				flex-direction: column;
+				align-items: center;
+			}
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Lưu trữ truyện</h2>
-        <input type="text" id="storyLink" placeholder="Nhập link truyện (bỏ 's' trong 'https')">
-        <button onclick="fetchStory()">Lưu Truyện</button>
-		<br><br>
-		<button onclick="randomStory()">Random Truyện</button>
-		<div>
-			<input type="text" id="searchInput" placeholder="Tìm kiếm truyện..." onkeyup="filterStories()">
-			<select id="statusFilter" onchange="filterStories()">
-				<option value="">Tất cả trạng thái</option>
-				<option value="Hoàn">Hoàn</option>
-				<option value="Đang cập nhật">Đang cập nhật</option>
-			</select>
-			<select id="tagFilter" onchange="filterStories()">
-				<option value="">Tất cả tag</option>
-			</select>
+   <div class="container">
+        <h2>Quản lý Truyện</h2>
+        <div class="toggle-container">
+            <button id="btn-upload" class="toggle-btn active" onclick="toggleSection('upload')">Tải truyện mới</button>
+            <button id="btn-search" class="toggle-btn" onclick="toggleSection('search')">Tìm truyện</button>
+        </div>
+        
+		<div id="upload" class="section active">
+			<div class="flex-row">
+				<label>Nhập link truyện: <input type="text" id="storyLink"></label>
+				<button onclick="fetchStory()">Lưu Truyện</button>
+			</div>
+		<div class="flex-row">
+			<label>Tag bổ sung: <input type="text" id="additionalTags" class="tag-input"></label>
+			<label class="rating-input">Đánh giá: <input type="number" id="rating" min="0" max="10" step="0.5"> / 10</label>
+		</div>
+			<div class="flex-row">
+				<label class="wide-input">Review: <input type="text" id="reviewText"></label>
+			</div>
 		</div>
 
+		<div id="search" class="section">
+			<div class="flex-row">
+				<label>Chọn tag muốn: <input type="text" id="desiredTags"></label>
+				<label>Chọn tag không muốn: <input type="text" id="excludedTags"></label>
+			</div>
+			<div class="flex-row">
+				<label>Tác giả: <select id="authorSelect"></select></label>
+				<label>Editor: <select id="editorSelect"></select></label>
+				<label>Trạng thái: <select id="statusSelect">
+					<option value="">Tất cả</option>
+					<option value="Hoàn">Hoàn</option>
+					<option value="Đang cập nhật">Đang cập nhật</option>
+				</select></label>
+			</div>
+			<div class="button-container">
+				<button onclick="randomStory()">Random Truyện</button>
+				<button onclick="filterStories()">Lọc Truyện</button>
+			</div>
+		</div>
         <h3>Danh sách truyện đã lưu</h3>
         <table>
             <thead>
@@ -190,6 +300,14 @@
         </table>
 		<div class="pagination" id="pagination"></div>
     </div>
+	<script>
+	window.toggleSection = function(section) {
+		document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+		document.getElementById(section).classList.add('active');
+		document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+		document.getElementById('btn-' + section).classList.add('active');
+	};
+	</script>
 
     <script type="module">
 		// 🔥 Import Firebase 9+
@@ -232,12 +350,6 @@
 				console.error("Database error:", event.target.error);
 			};
 		}
-
-		function toggleEditForm(storyId) {
-			let formRow = document.getElementById(`editForm-${storyId}`);
-			formRow.style.display = formRow.style.display === "none" ? "table-row" : "none";
-		}
-		window.toggleEditForm = toggleEditForm;
 
 		async function addUserTag(storyId) {
 			let tagInput = document.getElementById(`tagInput-${storyId}`);
@@ -335,7 +447,7 @@
 
 
 		// 🔥 Lưu truyện vào Firestore
-		import { setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+		import { setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 
 
@@ -590,9 +702,6 @@
 
 		// ✅ Đảm bảo có thể gọi từ loadStories()
 		window.renderStories = renderStories;
-
-
-
 
     </script>
 </body>
