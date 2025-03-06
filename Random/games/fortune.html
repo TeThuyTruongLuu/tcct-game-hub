@@ -244,18 +244,36 @@
 				return;
 			}
 
+			// 🔥 Dùng CORS proxy để tránh lỗi
+			const proxyUrl = "https://api.allorigins.win/raw?url="; // CORS proxy miễn phí
+			let fetchUrl = proxyUrl + encodeURIComponent(url);
+
 			try {
-				let response = await fetch(url);
+				let response = await fetch(fetchUrl);
 				let text = await response.text();
 				let parser = new DOMParser();
 				let doc = parser.parseFromString(text, "text/html");
 
-				let title = doc.querySelector("h1")?.innerText || "Không rõ";
-				let defaultTag = title.match(/\[(.*?)\]/) ? title.match(/\[(.*?)\]/)[1] : "Không rõ";
+				let title = doc.querySelector("h1")?.innerText.trim() || "Không rõ";
+
+				// 🔥 Cách lấy tag mới (từ thẻ span hoặc trong title)
+				let tagMatches = title.match(/\[(.*?)\]/g); // Tìm tất cả các cụm []
+				let defaultTag = "Không rõ";
+
+				if (tagMatches) {
+					if (tagMatches.length === 1) {
+						defaultTag = tagMatches[0].replace(/\[|\]/g, ""); // Nếu có 1 cụm, lấy luôn
+					} else if (tagMatches.length >= 2) {
+						defaultTag = tagMatches[1].replace(/\[|\]/g, ""); // Nếu có >=2 cụm, lấy cụm thứ 2
+					}
+				}
+
+
 				let status = doc.querySelector("h1.p-title-value span")?.textContent.trim() || "Không rõ";
 				let author = "Không rõ";
 				let editor = "Không rõ";
 
+				// 🔥 Lấy tên tác giả và editor từ phần nội dung
 				doc.querySelectorAll("article.message-body.js-selectToQuote div").forEach(div => {
 					let text = div.innerText.trim();
 					let authorMatch = text.match(/Tác giả:\s*(.+)|Author:\s*(.+)/i);
@@ -266,12 +284,6 @@
 				});
 
 				editor = editor.replace(/^@/, "").trim();
-
-				if (!url) {
-					console.error("🚨 Lỗi: Truyện không có URL hợp lệ!");
-					alert("Không thể lưu truyện vì thiếu URL.");
-					return;
-				}
 
 				let story = {
 					title,
@@ -284,12 +296,14 @@
 					review: []
 				};
 
+				console.log("📌 Truyện đã fetch:", story);
 				await saveStory(story);
 			} catch (error) {
 				console.error("❌ Lỗi khi fetch truyện:", error);
 				alert("Không thể lấy dữ liệu từ link này!");
 			}
 		}
+
 
 		// 🔥 Lưu truyện vào Firestore
 		async function saveStoryToFirestore(story) {
@@ -324,14 +338,35 @@
 			let transaction = idb.transaction(["stories"], "readwrite");
 			let store = transaction.objectStore("stories");
 
-			let request = store.put(story);
-			request.onsuccess = function () {
-				console.log("✅ Đã lưu truyện vào IndexedDB:", story.url);
+			// Kiểm tra nếu đã tồn tại → Xóa trước khi lưu mới
+			let getRequest = store.get(story.url);
+			getRequest.onsuccess = function () {
+				store.put(story); // Ghi đè lên dữ liệu cũ
+				console.log("✅ Truyện đã được lưu (hoặc cập nhật) trong IndexedDB:", story.url);
 			};
-			request.onerror = function (event) {
-				console.error("❌ Lỗi khi lưu vào IndexedDB:", event.target.error);
+			getRequest.onerror = function (event) {
+				console.error("❌ Lỗi khi truy vấn IndexedDB:", event.target.error);
 			};
 		}
+
+
+		async function saveStory(story) {
+			try {
+				// 🔥 Lưu vào Firestore
+				await saveStoryToFirestore(story);
+
+				// 🔥 Lưu vào IndexedDB
+				saveStoryToIndexedDB(story);
+
+				// 🔥 Cập nhật UI
+				loadStories();
+			} catch (error) {
+				console.error("❌ Lỗi khi lưu truyện:", error);
+			}
+		}
+
+		// Đảm bảo có thể gọi từ HTML
+		window.saveStory = saveStory;
 
 
 		// 🚀 Load truyện từ Firestore và IndexedDB
@@ -391,6 +426,23 @@
 			let store = transaction.objectStore("stories");
 			store.delete(storyUrl);
 		}
+
+		function deleteStory(storyUrl, storyId) {
+			// Xóa khỏi IndexedDB
+			deleteStoryFromIndexedDB(storyUrl);
+
+			// Nếu có ID từ Firestore, xóa khỏi Firestore
+			if (storyId) {
+				deleteStoryFromFirestore(storyId);
+			}
+
+			// Cập nhật lại UI
+			setTimeout(() => loadStories(), 500);
+		}
+
+		// Đảm bảo hàm có thể gọi từ HTML
+		window.deleteStory = deleteStory;
+
 
 		// ✅ Chạy
 		openDatabase();
