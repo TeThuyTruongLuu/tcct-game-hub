@@ -36,7 +36,9 @@ if (!firebase.apps.length) {
 }
 
 // Lấy Firestore
+
 const db = firebase.firestore();
+const storiesCollection = collection(db, "stories");
 
 //Kiểm tra điều kiện log-in, log-out
 
