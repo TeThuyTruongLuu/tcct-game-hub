@@ -698,19 +698,18 @@
 
 		async function fetchTagsFromDatabase() {
 			try {
-				let querySnapshot = await getDocs(collection(db, "tags")); // Lấy từ Firestore
+				let querySnapshot = await getDocs(collection(db, "tags"));
 				allTags = [];
-				
+
 				querySnapshot.forEach(doc => {
-					allTags.push(doc.data().name);
+					allTags.push(doc.id); // ID chính là tag name
 				});
 
 				console.log("📌 Tất cả tag đã tải:", allTags);
 			} catch (error) {
 				console.error("❌ Lỗi khi tải tag:", error);
 			}
-		}
-		
+		}		
 		
 		// Khi user nhập, hiển thị gợi ý tag
 		function suggestTags(event) {
