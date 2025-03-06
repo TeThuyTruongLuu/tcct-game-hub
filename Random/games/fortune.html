@@ -178,7 +178,16 @@
 		let idb;
 		const channel = new BroadcastChannel("story_sync");
 		const proxyUrl = "https://phong.tethuytruongluu1947.workers.dev/?url=";
-		const storiesCollection = db.collection("stories"); // ✅ Lấy từ `index.js`
+		let storiesCollection;
+
+		document.addEventListener("DOMContentLoaded", function () {
+			if (window.db) {
+				storiesCollection = window.db.collection("stories");
+			} else {
+				console.error("Firestore chưa được khởi tạo!");
+			}
+		});
+
 
 		// Khởi tạo IndexedDB
 		function openDatabase() {
