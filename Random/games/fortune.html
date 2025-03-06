@@ -233,6 +233,34 @@
 			};
 		}
 
+		function toggleEditForm(storyId) {
+			let formRow = document.getElementById(`editForm-${storyId}`);
+			formRow.style.display = formRow.style.display === "none" ? "table-row" : "none";
+		}
+		window.toggleEditForm = toggleEditForm;
+
+		async function addUserTag(storyId) {
+			let tagInput = document.getElementById(`tagInput-${storyId}`);
+			let newTag = tagInput.value.trim();
+			if (!newTag) return;
+
+			// 🔥 Lấy username từ biến toàn game
+			let username = window.username || "Guest"; // Nếu không có, dùng "Guest"
+
+			try {
+				let storyRef = doc(storiesCollection, storyId);
+				await setDoc(storyRef, { userTags: { [username]: newTag } }, { merge: true });
+
+				console.log(`✅ Tag "${newTag}" đã thêm bởi ${username}`);
+				tagInput.value = ""; // Xóa input sau khi thêm
+				loadStories(); // Refresh lại danh sách
+			} catch (error) {
+				console.error("❌ Lỗi khi thêm tag:", error);
+			}
+		}
+		window.addUserTag = addUserTag;
+
+
 		// 🚀 Lấy dữ liệu truyện từ link web
 		async function fetchStory() {
 			let inputField = document.getElementById("storyLink");
@@ -307,22 +335,56 @@
 
 
 		// 🔥 Lưu truyện vào Firestore
+		import { setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+
+
+		// 🔥 Hàm bỏ dấu tiếng Việt
+		function removeVietnameseTones(str) {
+			return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Bỏ dấu
+				.replace(/đ/g, "d").replace(/Đ/g, "D"); // Chuyển đ -> d, Đ -> D
+		}
+
 		async function saveStoryToFirestore(story) {
 			try {
-				let q = query(storiesCollection, where("url", "==", story.url));
-				let querySnapshot = await getDocs(q);
+				let storyId = removeVietnameseTones(story.title) // Bỏ dấu
+					.replace(/[^\w\s]/gi, "") // Loại bỏ ký tự đặc biệt
+					.replace(/\s+/g, "_") // Thay dấu cách bằng "_"
+					.trim();
 
-				if (!querySnapshot.empty) {
-					console.log("⚠ Truyện đã tồn tại trong Firestore:", story.url);
-					return;
+				let storyRef = doc(storiesCollection, storyId);
+
+				// 🔥 Đọc dữ liệu cũ để giữ lại User Tags đúng dạng object
+				let existingDoc = await getDoc(storyRef);
+				let existingData = existingDoc.exists() ? existingDoc.data() : {};
+
+				let updatedStory = {
+					...existingData,
+					...story,
+					userTags: {
+						...(existingData.userTags || {}),
+						...(story.userTags || {})
+					}
+				};
+
+				// 🔥 Kiểm tra userTags có đúng là object không (nếu không, ép về object)
+				if (Array.isArray(updatedStory.userTags)) {
+					let fixedTags = {};
+					updatedStory.userTags.forEach(tag => {
+						if (typeof tag === "object") {
+							Object.assign(fixedTags, tag);
+						}
+					});
+					updatedStory.userTags = fixedTags;
 				}
 
-				let docRef = await addDoc(storiesCollection, story);
-				console.log("🔥 Đã lưu truyện vào Firestore với ID:", docRef.id);
+				await setDoc(storyRef, updatedStory, { merge: true }); // 🔥 Đảm bảo giữ nguyên `userTags` là object
+				console.log("🔥 Truyện đã được cập nhật trong Firestore với ID:", storyId);
 			} catch (error) {
 				console.error("❌ Lỗi khi lưu vào Firestore:", error);
 			}
 		}
+
 
 		// 🛠️ Lưu truyện vào IndexedDB
 		function saveStoryToIndexedDB(story) {
@@ -339,24 +401,29 @@
 			let transaction = idb.transaction(["stories"], "readwrite");
 			let store = transaction.objectStore("stories");
 
-			// Thay đổi cách kiểm tra và lưu dữ liệu để đảm bảo ghi đè
+			// 🔥 Kiểm tra nếu đã có trong IndexedDB
 			let getRequest = store.get(story.url);
 			getRequest.onsuccess = function (event) {
-				let existingStory = event.target.result;
-				if (existingStory) {
-					console.log("🔄 Truyện đã tồn tại, đang cập nhật...");
-				} else {
-					console.log("🆕 Truyện mới, đang lưu...");
-				}
-				store.put(story); // Ghi đè dữ liệu
-				console.log("✅ Truyện đã được lưu/cập nhật trong IndexedDB:", story.url);
+				let existingStory = event.target.result || {};
+
+				// ✅ Merge dữ liệu để giữ lại User Tags
+				let updatedStory = {
+					...existingStory, // Giữ thông tin cũ
+					...story, // Cập nhật thông tin mới
+					userTags: {
+						...(existingStory.userTags || {}), // Giữ User Tags cũ
+						...(story.userTags || {}) // Thêm User Tags mới
+					}
+				};
+
+				store.put(updatedStory); // Ghi đè dữ liệu
+				console.log("✅ Truyện đã được lưu/cập nhật trong IndexedDB:", updatedStory.url);
 			};
 
 			getRequest.onerror = function (event) {
 				console.error("❌ Lỗi khi truy vấn IndexedDB:", event.target.error);
 			};
 		}
-
 
 
 		async function saveStory(story) {
@@ -380,26 +447,48 @@
 
 		// 🚀 Load truyện từ Firestore và IndexedDB
 		async function loadStories() {
-			let firestoreStories = await getDocs(storiesCollection);
-			let stories = [];
+			console.log("📥 Đang tải truyện...");
 
-			firestoreStories.forEach((doc) => {
-				let story = doc.data();
-				story.id = doc.id;
-				stories.push(story);
-			});
-
+			// 🔥 1. Load từ IndexedDB trước (Nhanh hơn, hỗ trợ offline)
 			let indexedDBStories = await loadStoriesFromIndexedDB();
-			let mergedStories = [...stories];
+			let storyMap = {}; // Tạo một object map để giữ dữ liệu IndexedDB
 
-			indexedDBStories.forEach((story) => {
-				if (!stories.some(fStory => fStory.url === story.url)) {
-					mergedStories.push(story);
-				}
+			indexedDBStories.forEach(story => {
+				storyMap[story.url] = story;
 			});
 
-			renderStories(mergedStories);
+			renderStories(indexedDBStories);
+			console.log("✅ Truyện tải từ IndexedDB:", indexedDBStories);
+
+			// 🔥 2. Sau đó, tải từ Firestore (nếu có kết nối)
+			try {
+				let firestoreStories = await getDocs(storiesCollection);
+				let stories = [];
+
+				firestoreStories.forEach((doc) => {
+					let story = doc.data();
+					story.id = doc.id;
+
+					if (storyMap[story.url]) {
+						story.userTags = {
+							...(storyMap[story.url].userTags || {}),
+							...(story.userTags || {})
+						};
+					}
+
+					stories.push(story);
+
+					saveStoryToIndexedDB(story);
+				});
+
+				console.log("🔥 Truyện tải từ Firestore:", stories);
+				renderStories(stories);
+			} catch (error) {
+				console.error("❌ Lỗi khi tải truyện từ Firestore:", error);
+			}
 		}
+
+
 
 		// 🛠️ Load truyện từ IndexedDB
 		function loadStoriesFromIndexedDB() {
@@ -462,11 +551,25 @@
 			storyTable.innerHTML = "";
 
 			stories.forEach((story, index) => {
+				// 🔥 Gộp Default Tag và User Tags
+				let allTags = story.defaultTag || "Không có tag";
+
+				// 🔥 Lấy User Tags đúng cách
+				if (story.userTags && typeof story.userTags === "object") {
+					let userTagList = Object.entries(story.userTags) // Lấy từng cặp [username, tag]
+						.map(([_, tag]) => tag) // Chỉ lấy giá trị tag
+						.join(", "); // Nối thành chuỗi
+
+					if (userTagList) {
+						allTags += `, ${userTagList}`;
+					}
+				}
+
 				let row = `
 					<tr>
 						<td>${index + 1}</td>
 						<td>${story.title}</td>
-						<td>${story.defaultTag}</td>
+						<td>${allTags}</td> <!-- ✅ Hiển thị đúng tag -->
 						<td>${story.author}</td>
 						<td>${story.editor}</td>
 						<td>${story.status}</td>
@@ -481,7 +584,15 @@
 			});
 		}
 
-		window.renderStories = renderStories; // Đảm bảo có thể gọi từ loadStories()
+		// ✅ Đảm bảo có thể gọi từ loadStories()
+		window.renderStories = renderStories;
+
+
+		// ✅ Đảm bảo có thể gọi từ loadStories()
+		window.renderStories = renderStories;
+
+
+
 
     </script>
 </body>
