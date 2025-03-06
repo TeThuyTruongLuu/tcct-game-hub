@@ -244,8 +244,7 @@
 				return;
 			}
 
-			// 🔥 Dùng CORS proxy để tránh lỗi
-			const proxyUrl = "https://api.allorigins.win/raw?url="; // CORS proxy miễn phí
+			const proxyUrl = "https://api.allorigins.win/raw?url=";
 			let fetchUrl = proxyUrl + encodeURIComponent(url);
 
 			try {
@@ -254,26 +253,28 @@
 				let parser = new DOMParser();
 				let doc = parser.parseFromString(text, "text/html");
 
-				let title = doc.querySelector("h1")?.innerText.trim() || "Không rõ";
+				let fullTitle = doc.querySelector("h1")?.innerText.trim() || "Không rõ";
 
-				// 🔥 Cách lấy tag mới (từ thẻ span hoặc trong title)
-				let tagMatches = title.match(/\[(.*?)\]/g); // Tìm tất cả các cụm []
+				// 🔥 Cách lấy tag mới (nếu có 1 [] thì là tag, nếu có 2 [] thì tag là cụm thứ 2)
+				let tagMatches = fullTitle.match(/\[(.*?)\]/g);
 				let defaultTag = "Không rõ";
+				let title = fullTitle;
 
 				if (tagMatches) {
 					if (tagMatches.length === 1) {
-						defaultTag = tagMatches[0].replace(/\[|\]/g, ""); // Nếu có 1 cụm, lấy luôn
+						defaultTag = tagMatches[0].replace(/\[|\]/g, ""); // Nếu có 1 tag
 					} else if (tagMatches.length >= 2) {
-						defaultTag = tagMatches[1].replace(/\[|\]/g, ""); // Nếu có >=2 cụm, lấy cụm thứ 2
+						defaultTag = tagMatches[1].replace(/\[|\]/g, ""); // Nếu có >=2 tag
 					}
+					// Loại bỏ tất cả các tag khỏi tiêu đề
+					title = fullTitle.replace(/\[.*?\]/g, "").trim();
 				}
-
 
 				let status = doc.querySelector("h1.p-title-value span")?.textContent.trim() || "Không rõ";
 				let author = "Không rõ";
 				let editor = "Không rõ";
 
-				// 🔥 Lấy tên tác giả và editor từ phần nội dung
+				// 🔥 Lấy tên tác giả và editor
 				doc.querySelectorAll("article.message-body.js-selectToQuote div").forEach(div => {
 					let text = div.innerText.trim();
 					let authorMatch = text.match(/Tác giả:\s*(.+)|Author:\s*(.+)/i);
@@ -286,8 +287,8 @@
 				editor = editor.replace(/^@/, "").trim();
 
 				let story = {
-					title,
-					defaultTag,
+					title,  // ✅ Tiêu đề không dính tag
+					defaultTag,  // ✅ Tag chính xác
 					userTags: [],
 					author,
 					editor,
@@ -303,6 +304,7 @@
 				alert("Không thể lấy dữ liệu từ link này!");
 			}
 		}
+
 
 
 		// 🔥 Lưu truyện vào Firestore
@@ -338,16 +340,24 @@
 			let transaction = idb.transaction(["stories"], "readwrite");
 			let store = transaction.objectStore("stories");
 
-			// Kiểm tra nếu đã tồn tại → Xóa trước khi lưu mới
+			// Thay đổi cách kiểm tra và lưu dữ liệu để đảm bảo ghi đè
 			let getRequest = store.get(story.url);
-			getRequest.onsuccess = function () {
-				store.put(story); // Ghi đè lên dữ liệu cũ
-				console.log("✅ Truyện đã được lưu (hoặc cập nhật) trong IndexedDB:", story.url);
+			getRequest.onsuccess = function (event) {
+				let existingStory = event.target.result;
+				if (existingStory) {
+					console.log("🔄 Truyện đã tồn tại, đang cập nhật...");
+				} else {
+					console.log("🆕 Truyện mới, đang lưu...");
+				}
+				store.put(story); // Ghi đè dữ liệu
+				console.log("✅ Truyện đã được lưu/cập nhật trong IndexedDB:", story.url);
 			};
+
 			getRequest.onerror = function (event) {
 				console.error("❌ Lỗi khi truy vấn IndexedDB:", event.target.error);
 			};
 		}
+
 
 
 		async function saveStory(story) {
