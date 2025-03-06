@@ -5,9 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lưu trữ truyện</title>
 	<script type="module">
-		import { db } from "../../js/index.js"; // Lấy Firestore từ index.js
-		window.db = db; // Gán db vào window để gọi từ HTML
+		import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+		import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+		const firebaseConfig = {
+			apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
+			authDomain: "tcct-minigames.firebaseapp.com",
+			projectId: "tcct-minigames",
+			storageBucket: "tcct-minigames.firebasestorage.app",
+			messagingSenderId: "604780847536",
+			appId: "1:604780847536:web:f8015bde5ef469b04c7675",
+			measurementId: "G-1GGDZR6VY5"
+		};
+
+		const app = initializeApp(firebaseConfig);
+		const db = getFirestore(app);
+		window.db = db;
+
+		console.log("🔥 Firebase 9+ đã khởi tạo!");
 	</script>
+
+
 
     <style>
         body {
@@ -258,12 +276,18 @@
 			}
 		}
 
-
 		function saveStoryOffline(story) {
-			let transaction = idb.transaction(["stories"], "readwrite"); // ✅ Sửa lại thành idb
+			let transaction = idb.transaction(["stories"], "readwrite"); 
 			let store = transaction.objectStore("stories");
+
+			if (!story.url) {
+				console.error("🚨 Lỗi: story.url bị thiếu, không thể lưu vào IndexedDB!");
+				return;
+			}
+			
 			store.put(story);
 		}
+
 
 		async function loadStoriesFromFirestore() {
 			try {

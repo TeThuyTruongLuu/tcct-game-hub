@@ -753,6 +753,3 @@ async function downloadCharacterData() {
         alert("❌ Không thể tải dữ liệu, kiểm tra kết nối mạng.");
     }
 }
-
-window.db = db;
-export { db };
