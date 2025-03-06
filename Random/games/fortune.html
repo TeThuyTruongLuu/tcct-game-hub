@@ -99,6 +99,25 @@
 		.flex-row .tag-input {
 			flex: 4;
 		}
+		.suggestions-box {
+			position: absolute;
+			background: white;
+			border: 1px solid #ccc;
+			max-height: 150px;
+			overflow-y: auto;
+			width: calc(100% - 20px);
+			display: none;
+			z-index: 10;
+		}
+
+		.suggestions-box div {
+			padding: 8px;
+			cursor: pointer;
+		}
+
+		.suggestions-box div:hover {
+			background: #eee;
+		}
 
 		.flex-row .rating-input {
 			flex: 1;
@@ -254,7 +273,10 @@
 				<button onclick="fetchStory()">Lưu Truyện</button>
 			</div>
 		<div class="flex-row">
-			<label>Tag bổ sung: <input type="text" id="additionalTags" class="tag-input"></label>
+			<label>Tag bổ sung:
+				<input type="text" id="additionalTags" class="tag-input" oninput="suggestTags(event)" autocomplete="off">
+				<div id="tagSuggestions" class="suggestions-box"></div>
+			</label>
 			<label class="rating-input">Đánh giá: <input type="number" id="rating" min="0" max="10" step="0.5"> / 10</label>
 		</div>
 			<div class="flex-row">
@@ -546,12 +568,22 @@
 				// 🔥 Lưu vào IndexedDB
 				saveStoryToIndexedDB(story);
 
+				// 🔥 Cập nhật danh sách tag mới lên Firestore
+				let tags = story.userTags ? Object.values(story.userTags) : [];
+				tags.forEach(tag => {
+					if (!allTags.includes(tag)) {
+						saveNewTag(tag);
+						allTags.push(tag);
+					}
+				});
+
 				// 🔥 Cập nhật UI
 				loadStories();
 			} catch (error) {
 				console.error("❌ Lỗi khi lưu truyện:", error);
 			}
 		}
+
 
 		// Đảm bảo có thể gọi từ HTML
 		window.saveStory = saveStory;
@@ -657,7 +689,106 @@
 		// ✅ Chạy
 		openDatabase();
 		window.fetchStory = fetchStory;
+
+		// Lấy danh sách tag từ Firestore khi tải trang
+		let allTags = [];
+
+		async function fetchTagsFromDatabase() {
+			try {
+				let querySnapshot = await getDocs(collection(db, "tags")); // Lấy từ Firestore
+				allTags = [];
+				
+				querySnapshot.forEach(doc => {
+					allTags.push(doc.data().name);
+				});
+
+				console.log("📌 Tất cả tag đã tải:", allTags);
+			} catch (error) {
+				console.error("❌ Lỗi khi tải tag:", error);
+			}
+		}
 		
+		
+		// Khi user nhập, hiển thị gợi ý tag
+		function suggestTags(event) {
+			let input = event.target;
+			let inputValue = input.value.trim().toLowerCase();
+			let suggestionsBox = document.getElementById("tagSuggestions");
+
+			if (!inputValue) {
+				suggestionsBox.style.display = "none";
+				return;
+			}
+
+			let filteredTags = allTags.filter(tag =>
+				tag.toLowerCase().startsWith(inputValue)
+			);
+
+			if (filteredTags.length === 0) {
+				suggestionsBox.style.display = "none";
+				return;
+			}
+
+			suggestionsBox.innerHTML = "";
+			filteredTags.forEach(tag => {
+				let suggestion = document.createElement("div");
+				suggestion.textContent = tag;
+				suggestion.onclick = () => selectTag(tag);
+				suggestionsBox.appendChild(suggestion);
+			});
+
+			suggestionsBox.style.display = "block";
+		}
+		window.suggestTags = suggestTags;
+
+		// Chọn tag từ gợi ý
+		function selectTag(tag) {
+			let inputField = document.getElementById("additionalTags");
+			let existingTags = inputField.value.split(",").map(t => t.trim());
+			
+			if (!existingTags.includes(tag)) {
+				existingTags.push(tag);
+			}
+
+			inputField.value = existingTags.join(", ");
+			document.getElementById("tagSuggestions").style.display = "none";
+		}
+
+		// Khi mất focus, ẩn gợi ý
+		document.addEventListener("click", function(event) {
+			if (!event.target.closest("#additionalTags") && !event.target.closest("#tagSuggestions")) {
+				document.getElementById("tagSuggestions").style.display = "none";
+			}
+		});
+
+		// Gọi hàm tải tag khi load trang
+		fetchTagsFromDatabase();
+
+		async function saveNewTag(tag) {
+			try {
+				let tagRef = collection(db, "tags");
+				let tagSnapshot = await getDocs(query(tagRef, where("name", "==", tag)));
+
+				if (tagSnapshot.empty) {
+					await addDoc(tagRef, { name: tag });
+					console.log(`✅ Đã lưu tag mới: ${tag}`);
+				}
+			} catch (error) {
+				console.error("❌ Lỗi khi lưu tag mới:", error);
+			}
+		}
+
+		// Khi user nhập tag xong (nhấn Enter hoặc rời khỏi input), kiểm tra và lưu tag mới
+		document.getElementById("additionalTags").addEventListener("change", function() {
+			let tags = this.value.split(",").map(t => t.trim());
+			tags.forEach(tag => {
+				if (!allTags.includes(tag)) {
+					saveNewTag(tag);
+					allTags.push(tag);
+				}
+			});
+		});
+
 		function renderStories(stories) {
 			let storyTable = document.getElementById("storyTable");
 			storyTable.innerHTML = "";
