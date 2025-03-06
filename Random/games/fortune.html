@@ -253,12 +253,13 @@
 				let parser = new DOMParser();
 				let doc = parser.parseFromString(text, "text/html");
 
+				let titleMatch = doc.querySelector("h1")?.innerText.match(/\[(.*?)\]\s*(\[.*?\])?(.*)/);
+				let title = titleMatch ? titleMatch[3].trim() : "Không rõ";
 				let fullTitle = doc.querySelector("h1")?.innerText.trim() || "Không rõ";
-
 				// 🔥 Cách lấy tag mới (nếu có 1 [] thì là tag, nếu có 2 [] thì tag là cụm thứ 2)
 				let tagMatches = fullTitle.match(/\[(.*?)\]/g);
 				let defaultTag = "Không rõ";
-				let title = fullTitle;
+
 
 				if (tagMatches) {
 					if (tagMatches.length === 1) {
@@ -266,8 +267,6 @@
 					} else if (tagMatches.length >= 2) {
 						defaultTag = tagMatches[1].replace(/\[|\]/g, ""); // Nếu có >=2 tag
 					}
-					// Loại bỏ tất cả các tag khỏi tiêu đề
-					title = fullTitle.replace(/\[.*?\]/g, "").trim();
 				}
 
 				let status = doc.querySelector("h1.p-title-value span")?.textContent.trim() || "Không rõ";
