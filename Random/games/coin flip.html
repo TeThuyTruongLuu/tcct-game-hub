@@ -115,9 +115,14 @@
     <script>
 		function flipCoin() {
 			let coin = document.getElementById("coin");
-			let spins = Math.floor(Math.random() * 4 + 3) * 360; // Quay nhiều vòng hơn
-			coin.style.transform = `rotateX(${spins}deg)`; // Chỉ xoay trục X
+			let isHeads = Math.random() < 0.5;
+			let spins = Math.floor(Math.random() * 4 + 5) * 360;
+			let extra = isHeads ? 0 : 180;
+
+			coin.style.transition = "transform 1.8s cubic-bezier(0.25, 1, 0.5, 1)";
+			coin.style.transform = `rotateX(${spins + extra}deg)`;
 		}
+
 
         function updateImage(side, event) {
             let file = event.target.files[0];
