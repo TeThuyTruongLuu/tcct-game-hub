@@ -444,14 +444,15 @@
 					let authorMatch = text.match(/Tác giả:\s*(.+)|Author:\s*(.+)/i);
 					if (authorMatch) author = authorMatch[1] || authorMatch[2];
 
-					let editorMatch = text.match(/Editor:\s*(.+)|Edit:\s*(.+)/i);
-					if (editorMatch) editor = editorMatch[1] || editorMatch[2];
+					let editorMatch = text.match(/Editor:\s*(.+)|Edit:\s*(.+)|Edit\s*\+\s*beta:\s*(.+)/i);
+					if (editorMatch) editor = editorMatch[1] || editorMatch[2] || editorMatch[3];
+
 				});
 
 				editor = editor.replace(/^@/, "").trim();
 
 				let story = {
-					title,  // ✅ Tiêu đề không dính tag
+					title,
 					defaultTag,  // ✅ Tag chính xác
 					userTags: [],
 					author,
@@ -481,17 +482,16 @@
 			return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Bỏ dấu
 				.replace(/đ/g, "d").replace(/Đ/g, "D"); // Chuyển đ -> d, Đ -> D
 		}
-
+		
 		async function saveStoryToFirestore(story) {
 			try {
-				let storyId = removeVietnameseTones(story.title) // Bỏ dấu
-					.replace(/[^\w\s]/gi, "") // Loại bỏ ký tự đặc biệt
-					.replace(/\s+/g, "_") // Thay dấu cách bằng "_"
+				let storyId = removeVietnameseTones(story.title)
+					.replace(/[^\w\s]/gi, "")
+					.replace(/\s+/g, "_")
 					.trim();
 
 				let storyRef = doc(storiesCollection, storyId);
 
-				// 🔥 Đọc dữ liệu cũ để giữ lại User Tags đúng dạng object
 				let existingDoc = await getDoc(storyRef);
 				let existingData = existingDoc.exists() ? existingDoc.data() : {};
 
@@ -504,23 +504,13 @@
 					}
 				};
 
-				// 🔥 Kiểm tra userTags có đúng là object không (nếu không, ép về object)
-				if (Array.isArray(updatedStory.userTags)) {
-					let fixedTags = {};
-					updatedStory.userTags.forEach(tag => {
-						if (typeof tag === "object") {
-							Object.assign(fixedTags, tag);
-						}
-					});
-					updatedStory.userTags = fixedTags;
-				}
-
-				await setDoc(storyRef, updatedStory, { merge: true }); // 🔥 Đảm bảo giữ nguyên `userTags` là object
+				await setDoc(storyRef, updatedStory, { merge: true });
 				console.log("🔥 Truyện đã được cập nhật trong Firestore với ID:", storyId);
 			} catch (error) {
 				console.error("❌ Lỗi khi lưu vào Firestore:", error);
 			}
 		}
+
 
 
 		// 🛠️ Lưu truyện vào IndexedDB
@@ -562,30 +552,20 @@
 			};
 		}
 
-
 		async function saveStory(story) {
 			try {
-				// 🔥 Lưu vào Firestore
 				await saveStoryToFirestore(story);
-
-				// 🔥 Lưu vào IndexedDB
 				saveStoryToIndexedDB(story);
+				
+				// Cập nhật danh sách tag từ Firestore
+				await fetchTagsFromDatabase();
 
-				// 🔥 Cập nhật danh sách tag mới lên Firestore
-				let tags = story.userTags ? Object.values(story.userTags) : [];
-				tags.forEach(tag => {
-					if (!allTags.includes(tag)) {
-						saveNewTag(tag);
-						allTags.push(tag);
-					}
-				});
-
-				// 🔥 Cập nhật UI
-				loadStories();
+				loadStories(); // Reload UI
 			} catch (error) {
 				console.error("❌ Lỗi khi lưu truyện:", error);
 			}
 		}
+
 
 
 		// Đảm bảo có thể gọi từ HTML
@@ -698,18 +678,24 @@
 
 		async function fetchTagsFromDatabase() {
 			try {
-				let querySnapshot = await getDocs(collection(db, "tags"));
-				allTags = [];
+				let querySnapshot = await getDocs(collection(db, "stories"));
+				allTags = new Set(); // Dùng Set để tránh trùng tag
 
 				querySnapshot.forEach(doc => {
-					allTags.push(doc.id); // ID chính là tag name
+					let storyData = doc.data();
+					if (storyData.defaultTag) allTags.add(storyData.defaultTag); // Thêm defaultTag
+					if (storyData.userTags && typeof storyData.userTags === "object") {
+						Object.values(storyData.userTags).forEach(tag => allTags.add(tag)); // Thêm userTags
+					}
 				});
 
+				allTags = [...allTags]; // Chuyển Set thành Array
 				console.log("📌 Tất cả tag đã tải:", allTags);
 			} catch (error) {
 				console.error("❌ Lỗi khi tải tag:", error);
 			}
-		}		
+		}
+		
 		
 		// Khi user nhập, hiển thị gợi ý tag
 		function suggestTags(event) {
@@ -722,9 +708,7 @@
 				return;
 			}
 
-			let filteredTags = allTags.filter(tag =>
-				tag.toLowerCase().startsWith(inputValue)
-			);
+			let filteredTags = allTags.filter(tag => tag.toLowerCase().startsWith(inputValue));
 
 			if (filteredTags.length === 0) {
 				suggestionsBox.style.display = "none";
@@ -741,6 +725,7 @@
 
 			suggestionsBox.style.display = "block";
 		}
+
 		window.suggestTags = suggestTags;
 
 		// Chọn tag từ gợi ý
@@ -766,27 +751,79 @@
 		// Gọi hàm tải tag khi load trang
 		fetchTagsFromDatabase();
 		
-		async function saveNewTag(tag) {
+		async function saveNewTag(storyId, tag) {
 			try {
-				let tagId = tag.trim(); // ID sẽ chính là tên tag
-				let tagRef = doc(db, "tags", tagId); // Định nghĩa doc với ID là tag
-				await setDoc(tagRef, { name: tag }, { merge: true });
-				console.log(`✅ Đã lưu tag mới: ${tag} với ID ${tagId}`);
+				let storyRef = doc(db, "stories", storyId);
+				let storySnap = await getDoc(storyRef);
+
+				if (!storySnap.exists()) {
+					console.error("❌ Story không tồn tại, không thể thêm tag.");
+					return;
+				}
+
+				let existingTags = storySnap.data().userTags || {}; // Lấy userTags hiện có
+				let username = window.username || "Guest"; // Lấy username
+
+				existingTags[username] = tag; // Thêm tag mới theo user
+
+				await setDoc(storyRef, { userTags: existingTags }, { merge: true });
+
+				console.log(`✅ Đã lưu tag mới: ${tag} cho story ${storyId}`);
 			} catch (error) {
 				console.error("❌ Lỗi khi lưu tag mới:", error);
 			}
 		}
 
-		// Khi user nhập tag xong (nhấn Enter hoặc rời khỏi input), kiểm tra và lưu tag mới
-		document.getElementById("additionalTags").addEventListener("change", function() {
-			let tags = this.value.split(",").map(t => t.trim());
-			tags.forEach(tag => {
-				if (!allTags.includes(tag)) {
-					saveNewTag(tag);
-					allTags.push(tag);
+
+		document.getElementById("additionalTags").addEventListener("input", async function(event) {
+			let input = event.target;
+			let value = input.value.trim();
+
+			// Nếu user nhập dấu ",", kiểm tra và lưu tag
+			if (value.endsWith(",")) {
+				let tag = value.slice(0, -1).trim(); // Bỏ dấu ","
+
+				if (!tag) return; // Nếu tag rỗng thì bỏ qua
+
+				let storyURL = document.getElementById("storyLink").value.trim();
+				if (!storyURL) {
+					console.error("❌ Không thể thêm tag: Chưa nhập link truyện!");
+					alert("Bạn cần nhập link truyện trước khi thêm tag.");
+					return;
 				}
-			});
+
+				// Tìm story trong Firestore
+				let querySnapshot = await getDocs(query(collection(db, "stories"), where("url", "==", storyURL)));
+
+				if (querySnapshot.empty) {
+					console.error("❌ Không tìm thấy truyện để cập nhật tag!");
+					alert("Truyện này chưa được lưu, không thể thêm tag.");
+					return;
+				}
+
+				// Lấy ID của truyện
+				let storyDoc = querySnapshot.docs[0];
+				let storyId = storyDoc.id;
+
+				console.log(`🔍 Đang thêm tag "${tag}" vào truyện: ${storyId}`);
+
+				// Cập nhật userTags vào Firestore
+				let username = window.username || "Guest"; // Lấy username từ session hoặc để mặc định
+				let storyRef = doc(db, "stories", storyId);
+				let storyData = storyDoc.data();
+
+				let existingTags = storyData.userTags || {};
+				existingTags[username] = existingTags[username] ? [...existingTags[username], tag] : [tag];
+
+				await setDoc(storyRef, { userTags: existingTags }, { merge: true });
+
+				console.log(`✅ Đã lưu tag mới: "${tag}" cho truyện ${storyId}`);
+
+				// Xóa tag khỏi ô nhập sau khi thêm
+				input.value = "";
+			}
 		});
+
 
 		function renderStories(stories) {
 			let storyTable = document.getElementById("storyTable");
