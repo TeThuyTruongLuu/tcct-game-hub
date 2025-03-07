@@ -325,21 +325,20 @@
         </table>
 		<div class="pagination" id="pagination"></div>
     </div>
-	<script>
-	window.toggleSection = function(section) {
-		document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-		document.getElementById(section).classList.add('active');
-		document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-		document.getElementById('btn-' + section).classList.add('active');
-	};
+
+	<script> //Kéo script của toggle ra riêng
+		window.toggleSection = function(section) {
+			document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+			document.getElementById(section).classList.add('active');
+			document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+			document.getElementById('btn-' + section).classList.add('active');
+		};
 	</script>
 
     <script type="module">
-		// 🔥 Import Firebase 9+
 		import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 		import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-		// 🛠️ Cấu hình Firebase
 		const firebaseConfig = {
 			apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
 			authDomain: "tcct-minigames.firebaseapp.com",
@@ -350,12 +349,10 @@
 			measurementId: "G-1GGDZR6VY5"
 		};
 
-		// 🔥 Khởi tạo Firebase
 		const app = initializeApp(firebaseConfig);
 		const db = getFirestore(app);
 		const storiesCollection = collection(db, "stories");
 
-		// 🛠️ IndexedDB setup
 		const dbName = "StoryDB";
 		let idb;
 
@@ -375,27 +372,6 @@
 				console.error("Database error:", event.target.error);
 			};
 		}
-
-		async function addUserTag(storyId) {
-			let tagInput = document.getElementById(`tagInput-${storyId}`);
-			let newTag = tagInput.value.trim();
-			if (!newTag) return;
-
-			// 🔥 Lấy username từ biến toàn game
-			let username = window.username || "Guest"; // Nếu không có, dùng "Guest"
-
-			try {
-				let storyRef = doc(storiesCollection, storyId);
-				await setDoc(storyRef, { userTags: { [username]: newTag } }, { merge: true });
-
-				console.log(`✅ Tag "${newTag}" đã thêm bởi ${username}`);
-				tagInput.value = ""; // Xóa input sau khi thêm
-				loadStories(); // Refresh lại danh sách
-			} catch (error) {
-				console.error("❌ Lỗi khi thêm tag:", error);
-			}
-		}
-		window.addUserTag = addUserTag;
 
 
 		// 🚀 Lấy dữ liệu truyện từ link web
@@ -421,24 +397,14 @@
 				let titleMatch = doc.querySelector("h1")?.innerText.match(/\[(.*?)\]\s*(\[.*?\])?(.*)/);
 				let title = titleMatch ? titleMatch[3].trim() : "Không rõ";
 				let fullTitle = doc.querySelector("h1")?.innerText.trim() || "Không rõ";
-				// 🔥 Cách lấy tag mới (nếu có 1 [] thì là tag, nếu có 2 [] thì tag là cụm thứ 2)
+				
 				let tagMatches = fullTitle.match(/\[(.*?)\]/g);
-				let defaultTag = "Không rõ";
-
-
-				if (tagMatches) {
-					if (tagMatches.length === 1) {
-						defaultTag = tagMatches[0].replace(/\[|\]/g, ""); // Nếu có 1 tag
-					} else if (tagMatches.length >= 2) {
-						defaultTag = tagMatches[1].replace(/\[|\]/g, ""); // Nếu có >=2 tag
-					}
-				}
+				let defaultTag = tagMatches ? tagMatches[tagMatches.length - 1].replace(/\[|\]/g, "") : "Không rõ";
 
 				let status = doc.querySelector("h1.p-title-value span")?.textContent.trim() || "Không rõ";
 				let author = "Không rõ";
 				let editor = "Không rõ";
 
-				// 🔥 Lấy tên tác giả và editor
 				doc.querySelectorAll("article.message-body.js-selectToQuote div").forEach(div => {
 					let text = div.innerText.trim();
 					let authorMatch = text.match(/Tác giả:\s*(.+)|Author:\s*(.+)/i);
@@ -446,23 +412,35 @@
 
 					let editorMatch = text.match(/Editor:\s*(.+)|Edit:\s*(.+)|Edit\s*\+\s*beta:\s*(.+)/i);
 					if (editorMatch) editor = editorMatch[1] || editorMatch[2] || editorMatch[3];
-
 				});
 
 				editor = editor.replace(/^@/, "").trim();
 
 				let story = {
 					title,
-					defaultTag,  // ✅ Tag chính xác
+					defaultTag,
 					userTags: [],
 					author,
 					editor,
 					status,
 					url,
-					review: []
+					review: {}
 				};
 
 				console.log("📌 Truyện đã fetch:", story);
+
+				// 🚀 Kiểm tra xem truyện đã tồn tại trong Firestore chưa
+				let existingStory = await fetchStoryFromFirestore(url);
+
+				if (existingStory) {
+					story.userTags = existingStory.userTags || {};
+					story.review = existingStory.review || {};
+					console.log("📌 Truyện đã tồn tại, cập nhật tags & review từ Firestore!");
+				}
+
+				// 🚀 Hiển thị tag & review lên UI
+				displayStoryDetails(story);
+
 				await saveStory(story);
 			} catch (error) {
 				console.error("❌ Lỗi khi fetch truyện:", error);
@@ -470,19 +448,16 @@
 			}
 		}
 
-
-
-		// 🔥 Lưu truyện vào Firestore
 		import { setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 
-
-		// 🔥 Hàm bỏ dấu tiếng Việt
+		// 🔥 Lưu truyện vào Firestore + IndexedDB
 		function removeVietnameseTones(str) {
 			return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Bỏ dấu
 				.replace(/đ/g, "d").replace(/Đ/g, "D"); // Chuyển đ -> d, Đ -> D
 		}
-		
+	
+	
 		async function saveStoryToFirestore(story) {
 			try {
 				let storyId = removeVietnameseTones(story.title)
@@ -512,8 +487,6 @@
 		}
 
 
-
-		// 🛠️ Lưu truyện vào IndexedDB
 		function saveStoryToIndexedDB(story) {
 			if (!idb) {
 				console.warn("⚠ IndexedDB chưa sẵn sàng.");
@@ -552,27 +525,58 @@
 			};
 		}
 
+
 		async function saveStory(story) {
 			try {
 				await saveStoryToFirestore(story);
 				saveStoryToIndexedDB(story);
 				
-				// Cập nhật danh sách tag từ Firestore
 				await fetchTagsFromDatabase();
 
-				loadStories(); // Reload UI
+				loadStories();
 			} catch (error) {
 				console.error("❌ Lỗi khi lưu truyện:", error);
 			}
 		}
-
-
-
-		// Đảm bảo có thể gọi từ HTML
 		window.saveStory = saveStory;
 
 
-		// 🚀 Load truyện từ Firestore và IndexedDB
+		//Hiển thị thông tin truyện trong bảng nhập sau khi nhấn lưu
+		async function fetchStoryFromFirestore(url) {
+			let querySnapshot = await getDocs(query(collection(db, "stories"), where("url", "==", url)));
+
+			if (!querySnapshot.empty) {
+				return querySnapshot.docs[0].data();
+			}
+			return null;
+		}
+
+		function displayStoryDetails(story) {
+			let allTags = [story.defaultTag];
+			
+			if (story.userTags && typeof story.userTags === "object") {
+				Object.values(story.userTags).forEach(tagList => {
+					tagList.forEach(tag => allTags.push(tag));
+				});
+			}
+
+			document.getElementById("additionalTags").value = allTags.join(", ");
+
+			// 🚀 Hiển thị tất cả review
+			let allReviews = [];
+
+			if (story.review && typeof story.review === "object") {
+				Object.entries(story.review).forEach(([username, reviews]) => {
+					allReviews.push(`${username}: ${reviews.join(", ")}`);
+				});
+			}
+
+			document.getElementById("reviewText").value = allReviews.join(" | ");
+		}
+		
+		
+		
+		// 🚀 Load truyện
 		async function loadStories() {
 			console.log("📥 Đang tải truyện...");
 
@@ -616,8 +620,6 @@
 		}
 
 
-
-		// 🛠️ Load truyện từ IndexedDB
 		function loadStoriesFromIndexedDB() {
 			return new Promise((resolve, reject) => {
 				if (!idb) {
@@ -640,17 +642,19 @@
 			});
 		}
 
-		// 🚀 Xóa truyện khỏi Firestore
+
+		// 🚀 Xóa truyện
 		async function deleteStoryFromFirestore(storyId) {
 			await deleteDoc(doc(db, "stories", storyId));
 		}
 
-		// 🚀 Xóa truyện khỏi IndexedDB
+
 		function deleteStoryFromIndexedDB(storyUrl) {
 			let transaction = idb.transaction(["stories"], "readwrite");
 			let store = transaction.objectStore("stories");
 			store.delete(storyUrl);
 		}
+
 
 		function deleteStory(storyUrl, storyId) {
 			// Xóa khỏi IndexedDB
@@ -665,15 +669,13 @@
 			setTimeout(() => loadStories(), 500);
 		}
 
-		// Đảm bảo hàm có thể gọi từ HTML
 		window.deleteStory = deleteStory;
-
-
-		// ✅ Chạy
+		
 		openDatabase();
 		window.fetchStory = fetchStory;
 
-		// Lấy danh sách tag từ Firestore khi tải trang
+
+		//Gắn tag cho truyện (Lấy tag từ database, gợi ý, chọn tag)
 		let allTags = [];
 
 		async function fetchTagsFromDatabase() {
@@ -723,7 +725,7 @@
 			console.log("📌 Tất cả tags đã tải:", window.allTags);
 		}
 
-		// Gọi hàm khi trang tải
+		fetchTagsFromDatabase();
 		loadAllTags();
 						
 		function suggestTags(event) {
@@ -763,8 +765,13 @@
 		// Gắn sự kiện vào ô nhập tag
 		document.getElementById("additionalTags").addEventListener("input", suggestTags);
 		window.suggestTags = suggestTags;
+		document.addEventListener("click", function(event) {
+			if (!event.target.closest("#additionalTags") && !event.target.closest("#tagSuggestions")) {
+				document.getElementById("tagSuggestions").style.display = "none";
+			}
+		});
 
-		// Chọn tag từ gợi ý
+
 		function selectTag(tag) {
 			let inputField = document.getElementById("additionalTags");
 			let existingTags = inputField.value.split(",").map(t => t.trim());
@@ -777,15 +784,6 @@
 			document.getElementById("tagSuggestions").style.display = "none";
 		}
 
-		// Khi mất focus, ẩn gợi ý
-		document.addEventListener("click", function(event) {
-			if (!event.target.closest("#additionalTags") && !event.target.closest("#tagSuggestions")) {
-				document.getElementById("tagSuggestions").style.display = "none";
-			}
-		});
-
-		// Gọi hàm tải tag khi load trang
-		fetchTagsFromDatabase();
 		
 		async function saveNewTag(storyId, tag) {
 			try {
@@ -797,10 +795,10 @@
 					return;
 				}
 
-				let existingTags = storySnap.data().userTags || {}; // Lấy userTags hiện có
-				let username = window.username || "Guest"; // Lấy username
+				let existingTags = storySnap.data().userTags || {};
+				let username = window.username || "Guest";
 
-				existingTags[username] = tag; // Thêm tag mới theo user
+				existingTags[username] = tag;
 
 				await setDoc(storyRef, { userTags: existingTags }, { merge: true });
 
@@ -817,9 +815,9 @@
 
 			// Nếu user nhập dấu ",", kiểm tra và lưu tag
 			if (value.endsWith(",")) {
-				let tag = value.slice(0, -1).trim(); // Bỏ dấu ","
+				let tag = value.slice(0, -1).trim();
 
-				if (!tag) return; // Nếu tag rỗng thì bỏ qua
+				if (!tag) return;
 
 				let storyURL = document.getElementById("storyLink").value.trim();
 				if (!storyURL) {
@@ -854,11 +852,58 @@
 				await setDoc(storyRef, { userTags: existingTags }, { merge: true });
 
 				console.log(`✅ Đã lưu tag mới: "${tag}" cho truyện ${storyId}`);
-
-				// Xóa tag khỏi ô nhập sau khi thêm
-				input.value = "";
 			}
 		});
+
+
+
+		//Gắn review cho truyện
+		document.getElementById("reviewText").addEventListener("input", async function(event) {
+			let input = event.target;
+			let value = input.value.trim();
+
+			// Nếu user nhập dấu ".", kiểm tra và lưu review
+			if (value.endsWith(".")) {
+				let review = value.slice(0, -1).trim();
+
+				if (!review) return;
+
+				let storyURL = document.getElementById("storyLink").value.trim();
+				if (!storyURL) {
+					console.error("❌ Không thể thêm tag: Chưa nhập link truyện!");
+					alert("Bạn cần nhập link truyện trước khi thêm tag.");
+					return;
+				}
+
+				// Tìm story trong Firestore
+				let querySnapshot = await getDocs(query(collection(db, "stories"), where("url", "==", storyURL)));
+
+				if (querySnapshot.empty) {
+					console.error("❌ Không tìm thấy truyện để cập nhật review!");
+					alert("Truyện này chưa được lưu, không thể thêm review.");
+					return;
+				}
+
+				// Lấy ID của truyện
+				let storyDoc = querySnapshot.docs[0];
+				let storyId = storyDoc.id;
+
+				console.log(`🔍 Đang thêm review "${review}" vào truyện: ${storyId}`);
+
+				// Cập nhật review vào Firestore
+				let username = localStorage.getItem("username") || "Guest";
+				let storyRef = doc(db, "stories", storyId);
+				let storyData = storyDoc.data();
+
+				let existingReviews = storyData.review || {};
+				existingReviews[username] = existingReviews[username] ? [...existingReviews[username], review] : [review];
+
+				await setDoc(storyRef, { review: existingReviews }, { merge: true });
+
+				console.log(`✅ Đã lưu review mới: "${review}" cho truyện ${storyId}`);
+			}
+		});
+
 
 
 		function renderStories(stories) {
@@ -890,7 +935,7 @@
 						<td>${story.status}</td>
 						<td><a href="${story.url}" target="_blank">Xem</a></td>
 						<td contenteditable="true" onblur="updateReview('${story.url}', this.innerText)">
-							${story.review ? story.review.join(", ") : ""}
+							${story.review ? Object.values(story.review || {}).join(", ") : ""}
 						</td>
 						<td class="delete-btn" onclick="deleteStory('${story.url}', '${story.id || ""}')">🗑</td>
 					</tr>
@@ -899,11 +944,6 @@
 			});
 		}
 
-		// ✅ Đảm bảo có thể gọi từ loadStories()
-		window.renderStories = renderStories;
-
-
-		// ✅ Đảm bảo có thể gọi từ loadStories()
 		window.renderStories = renderStories;
 
     </script>
