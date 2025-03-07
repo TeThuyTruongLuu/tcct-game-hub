@@ -695,9 +695,37 @@
 				console.error("❌ Lỗi khi tải tag:", error);
 			}
 		}
-		
-		
-		// Khi user nhập, hiển thị gợi ý tag
+
+		async function loadAllTags() {
+			let allTagsSet = new Set();
+
+			// Lấy tất cả truyện từ Firestore
+			let querySnapshot = await getDocs(collection(db, "stories"));
+
+			querySnapshot.forEach(doc => {
+				let story = doc.data();
+
+				// Lưu defaultTag
+				if (story.defaultTag) {
+					allTagsSet.add(story.defaultTag);
+				}
+
+				// Lưu tất cả userTags từ từng user
+				if (story.userTags && typeof story.userTags === "object") {
+					Object.values(story.userTags).forEach(userTagList => {
+						userTagList.forEach(tag => allTagsSet.add(tag));
+					});
+				}
+			});
+
+			// Chuyển Set thành Array để sử dụng
+			window.allTags = Array.from(allTagsSet);
+			console.log("📌 Tất cả tags đã tải:", window.allTags);
+		}
+
+		// Gọi hàm khi trang tải
+		loadAllTags();
+						
 		function suggestTags(event) {
 			let input = event.target;
 			let inputValue = input.value.trim().toLowerCase();
@@ -708,17 +736,23 @@
 				return;
 			}
 
-			let filteredTags = allTags.filter(tag => tag.toLowerCase().startsWith(inputValue));
+			// Lọc theo từng từ trong tag
+			let filteredTags = window.allTags.filter(tag => {
+				let words = tag.toLowerCase().split(" "); // Tách tag thành từng từ
+				return words.some(word => word.startsWith(inputValue)); // Kiểm tra từng từ
+			});
 
 			if (filteredTags.length === 0) {
 				suggestionsBox.style.display = "none";
 				return;
 			}
 
+			// Hiển thị gợi ý
 			suggestionsBox.innerHTML = "";
 			filteredTags.forEach(tag => {
 				let suggestion = document.createElement("div");
 				suggestion.textContent = tag;
+				suggestion.classList.add("suggestion-item");
 				suggestion.onclick = () => selectTag(tag);
 				suggestionsBox.appendChild(suggestion);
 			});
@@ -726,6 +760,8 @@
 			suggestionsBox.style.display = "block";
 		}
 
+		// Gắn sự kiện vào ô nhập tag
+		document.getElementById("additionalTags").addEventListener("input", suggestTags);
 		window.suggestTags = suggestTags;
 
 		// Chọn tag từ gợi ý
@@ -808,7 +844,7 @@
 				console.log(`🔍 Đang thêm tag "${tag}" vào truyện: ${storyId}`);
 
 				// Cập nhật userTags vào Firestore
-				let username = window.username || "Guest"; // Lấy username từ session hoặc để mặc định
+				let username = localStorage.getItem("username") || "Guest"; // Lấy username từ session hoặc để mặc định
 				let storyRef = doc(db, "stories", storyId);
 				let storyData = storyDoc.data();
 
