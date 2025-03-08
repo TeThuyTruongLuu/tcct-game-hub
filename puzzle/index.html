@@ -7,7 +7,30 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="puzzle-container" id="puzzle-container"></div>
+    <div class="game-wrapper">
+        <!-- Bảng trên chứa mảnh ghép -->
+        <div class="pieces-container top-container" id="top-container"></div>
+    </div>
+    
+    <div class="game-wrapper">
+        <!-- Bảng chứa mảnh ghép trái -->
+        <div class="pieces-container left-container" id="left-container"></div>
+
+        <!-- Bảng xếp hình -->
+        <div class="puzzle-board" id="puzzle-board"></div>
+
+        <!-- Bảng chứa mảnh ghép phải -->
+        <div class="pieces-container right-container" id="right-container"></div>
+    </div>
+
+    <!-- Khu vực câu hỏi -->
+    <div class="question-container" id="question-container">
+	<div id="timer-container"><span id="timer">Thời gian chơi: 0 giây</span></div>
+        <h2>Câu hỏi:</h2>
+        <p id="question-text">Chọn một mảnh ghép để bắt đầu giải câu hỏi!</p>
+        <div id="options"></div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

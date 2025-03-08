@@ -1,121 +1,347 @@
-// Kích thước puzzle (có thể tùy chỉnh)
-const puzzleWidth = 2100;  // Chiều rộng
-const puzzleHeight = 1480; // Chiều cao
-const rows = 4; // Số hàng
-const cols = 4; // Số cột
-const pieceWidth = puzzleWidth / cols;   // 525px
-const pieceHeight = puzzleHeight / rows; // 370px
+const rows = 8;
+const cols = 9;
+const totalPieces = rows * cols;
+const hiddenPieces = 21; //21 câu hỏi
 
-// Hình ảnh để làm puzzle
-const imageUrl = "Puzzle1.jpeg"; // Đường dẫn mới // Thay bằng URL hình ảnh của bạn
-const container = document.getElementById("puzzle-container");
+const puzzleBoard = document.getElementById("puzzle-board");
+const topContainer = document.getElementById("top-container");
+const leftContainer = document.getElementById("left-container");
+const rightContainer = document.getElementById("right-container");
+
 let draggedPiece = null;
-let dropZone = null;
+let originalParent = null;
+let placedPieces = 0;
 
-// Tạo các mảnh ghép
-function createPuzzle() {
-    const pieces = [];
-    for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-            const piece = document.createElement("div");
-            piece.classList.add("puzzle-piece");
-            piece.style.width = `${pieceWidth}px`;
-            piece.style.height = `${pieceHeight}px`;
-            piece.style.backgroundImage = `url(${imageUrl})`;
-            piece.style.backgroundPosition = `${-col * pieceWidth}px ${-row * pieceHeight}px`;
-            piece.style.left = `${Math.random() * (puzzleWidth - pieceWidth)}px`; // Vị trí ngẫu nhiên
-            piece.style.top = `${Math.random() * (puzzleHeight - pieceHeight)}px`;
-            piece.dataset.row = row;
-            piece.dataset.col = col;
+const questions = [
+    {
+        question: "Ai dưới đây chưa từng chuyển nhượng?",
+        options: ["Giang Ba Đào", "Hứa Bân", "Lý Tấn", "Cổ Thế Minh", "Đặng Phục Thăng"],
+        correct: [2]
+    },
+    {
+        question: "Lý Nghệ Bác là tuyển thủ ra mắt mùa mấy, thuộc chiến đội nào?",
+        options: ["Mùa 1 - Bá Đồ", "Mùa 2 - Gia Thế", "Mùa 3 - Bá Đồ", "Mùa 2 - Hoàng Phong", "Mùa 3 - Hô Khiếu"],
+        correct: [0]
+    },
+	{
+		question: "Ai không có trong phòng khách sạn khi Diệp Tu giải thích tên giả - tên thật?",
+		options: ["Phùng Hiến Quân", "Tào Quảng Thành", "Thường Tiên", "Ngụy Sâm"],
+		correct: [1]
+	},
+	{
+		question: "Lý Dịch Ninh từng là thành viên của chiến đội nào?",
+		options: ["Yên Vũ", "Hạ Võ", "Lôi Đình", "Bách Hoa"],
+		correct: [0]
+	},
+	{
+		question: "Ai ba lần Liều Mình Một Hit đều thành công?",
+		options: ["Lý Tấn", "Diệp Tu", "Dương Thông"],
+		correct: [2]
+	},
+	{
+		question: "Trương Ích Vỹ là cựu đội trưởng của chiến đội nào?",
+		options: ["Tru Tiên", "Luân Hồi", "Vi Thảo", "Hoàng Phong"],
+		correct: [1]
+	},
+	{
+		question: "Ai không phải là phóng viên?",
+		options: ["Thường Tiên", "Trình Tư Yên", "Thân Kiến", "Tào Quảng Thành"],
+		correct: [2]
+	},
+	{
+		question: "Điều nào sau đây không đúng?",
+		options: [
+			"Quý Lãnh giải nghệ ngay sau khi đạt MVP mùa 4",
+			"Chu Quang Nghĩa không cầm theo acc Quý Lãnh khi chuyển nhượng sang Bách Hoa",
+			"Quý Lãnh là thành viên Bá Đồ",
+			"Quý Lãnh từng Liều Mình Một Hit giết Nhất Diệp Chi Thu thành công",
+			"Acc Quý Lãnh trùng tên với người thật"
+		],
+		correct: [1]
+	},
+	{
+		question: "Kỹ năng nào không phải của Pháp Sư Nguyên Tố?",
+		options: ["Liệt Diễm Xung Kích", "Bình Thủy Tinh Dung Nham", "Thiên Lôi Địa Hỏa"],
+		correct: [1]
+	},
+	{
+		question: "Acc nào là Ma Kiếm Sĩ?",
+		options: ["Thiều Quang Hoán", "Vô Lãng", "Quỷ Khắc"],
+		correct: [1]
+	},
+	{
+		question: "Bạch Thứ hiện cầm acc tên gì tại 301?",
+		options: ["Bough", "Bàn Sơn", "Triều Tịch"],
+		correct: [2]
+	},
+	{
+		question: "Ai không thuộc Thế hệ mới?",
+		options: ["Mạnh Vĩnh Minh", "Phương Học Tài", "Tằng Thăng Hà", "Giả Hưng", "Vương Trạch"],
+		correct: [1]
+	},
+	{
+		question: "Ai không thuộc Thế hệ Hoàng kim?",
+		options: ["Chu Trạch Khải", "Điền Sâm", "Hoàng Thiếu Thiên", "Sở Vân Tú", "Lý Diệc Huy"],
+		correct: [0]
+	},
+	{
+		question: "Thông tin nào sau đây sai về Triệu Dương?",
+		options: [
+			"Thuộc chiến đội Lâm Hải, có lên sân mùa 10",
+			"Trúng cử đội hình ngôi sao 7 năm liên tục",
+			"Chưa từng góp mặt ở vòng chung kết"
+		],
+		correct: [0]
+	},
+	{
+		question: "Mũi Tên Thiêu Đốt có lửa màu gì?",
+		options: ["Đỏ", "Đen", "Tím", "Nâu", "Xanh"],
+		correct: [1]
+	},
+	{
+		question: "Lẩu 9 ngăn là đặc trưng của vùng nào?",
+		options: ["Tô Châu", "Trùng Khánh", "Tây An"],
+		correct: [1]
+	},
+	{
+		question: "Chiến đội có biểu tượng ngọn lửa trong logo?",
+		options: ["Hưng Hân", "Hô Khiếu", "Lôi Đình"],
+		correct: [0]
+	},
+	{
+		question: "Hạ Trọng Thiên là ai?",
+		options: [
+			"Bán trà dạo trên đường",
+			"Thành viên Nghĩa Trảm",
+			"Ông chủ Gia Thế",
+			"Thành viên chiến đội Gia Thế"
+		],
+		correct: [2]
+	},
+	{
+		question: "Tác giả Toàn Chức Cao Thủ là?",
+		options: ["Hồ Diệp Lam", "Hồ Điệp Lam", "Hu Di Lam"],
+		correct: [1]
+	},
+    {
+        question: "Ai là đội trưởng chiến đội Lam Vũ?",
+        options: ["Dụ Văn Châu", "Chu Trạch Khải", "Tôn Triết Bình", "Diệp Tu"],
+        correct: [0]
+    }
+];
 
-            // Thêm kéo thả
-            piece.setAttribute("draggable", true);
-            piece.addEventListener("dragstart", dragStart);
-            piece.addEventListener("dragover", dragOver);
-            piece.addEventListener("drop", drop);
-            piece.addEventListener("dragend", dragEnd);
 
-            container.appendChild(piece);
-            pieces.push(piece);
-        }
+
+// Xáo trộn mảng bằng thuật toán Fisher-Yates
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
     }
 }
+
+function createPuzzle() {
+    let indices = Array.from({ length: totalPieces }, (_, i) => i);
+    shuffleArray(indices);
+
+    const hiddenIndexes = generateHiddenPieces();
+
+    indices.forEach((i, index) => {
+        const piece = document.createElement("div");
+        piece.classList.add("puzzle-piece");
+        piece.dataset.index = i;
+        piece.style.backgroundImage = "url('Puzzle1.jpeg')";
+        piece.style.backgroundSize = "540px 480px";
+        piece.style.backgroundPosition = `${-(i % cols) * 60}px ${-Math.floor(i / cols) * 60}px`;
+
+        if (hiddenIndexes.includes(i)) {
+            piece.classList.add("hidden-piece");
+            piece.addEventListener("click", () => showQuestion(i, piece));
+        } else {
+            piece.draggable = true;
+            piece.addEventListener("dragstart", dragStart);
+        }
+
+        if (index < 24) {
+            topContainer.appendChild(piece);
+        } else if (index < 48) {
+            leftContainer.appendChild(piece);
+        } else {
+            rightContainer.appendChild(piece);
+        }
+    });
+    for (let i = 0; i < totalPieces; i++) {
+        const slot = document.createElement("div");
+        slot.classList.add("puzzle-slot");
+        slot.dataset.index = i;
+        slot.addEventListener("dragover", dragOver);
+        slot.addEventListener("drop", drop);
+        puzzleBoard.appendChild(slot);
+    }
+}
+
 
 // Xử lý kéo thả
 function dragStart(e) {
     draggedPiece = e.target;
-    draggedPiece.style.opacity = "0.5";
-    // Lưu vị trí ban đầu để quay lại nếu cần
-    draggedPiece.dataset.initialLeft = draggedPiece.style.left;
-    draggedPiece.dataset.initialTop = draggedPiece.style.top;
+    originalParent = draggedPiece.parentNode;
 }
 
 function dragOver(e) {
     e.preventDefault();
-    // Xác định vùng thả (nếu có)
-    const target = e.target.closest(".puzzle-piece");
-    if (target && target !== draggedPiece) {
-        dropZone = target;
-        target.style.border = "2px dashed #00f"; // Đánh dấu vùng thả
-    }
 }
+
 
 function drop(e) {
     e.preventDefault();
-    if (dropZone && draggedPiece) {
-        // Lấy vị trí của vùng thả
-        const dropLeft = parseFloat(dropZone.style.left);
-        const dropTop = parseFloat(dropZone.style.top);
 
-        // Cập nhật vị trí của mảnh ghép bị kéo
-        draggedPiece.style.left = `${dropLeft}px`;
-        draggedPiece.style.top = `${dropTop}px`;
+    if (!draggedPiece) return;
 
-        // Đặt lại vị trí của mảnh ở vùng thả (nếu cần hoán đổi)
-        dropZone.style.left = draggedPiece.dataset.initialLeft || "0px";
-        dropZone.style.top = draggedPiece.dataset.initialTop || "0px";
+    let target = e.target;
 
-        // Xóa đánh dấu vùng thả
-        dropZone.style.border = "1px solid rgba(0, 0, 0, 0.1)";
-        dropZone = null;
+    if (target.classList.contains("puzzle-slot")) {
+        let correctIndex = parseInt(target.dataset.index);
+        let pieceIndex = parseInt(draggedPiece.dataset.index);
+
+        // Chỉ cho phép snap khi đúng vị trí
+        if (correctIndex === pieceIndex) {
+            target.appendChild(draggedPiece);
+			
+			//draggedPiece.classList.add("correct");
+
+            draggedPiece.draggable = false;
+            draggedPiece.style.cursor = "default";
+			draggedPiece.removeEventListener("dragstart", dragStart);
+            placedPieces++;
+
+            if (placedPieces === totalPieces) {
+                setTimeout(() => alert("🎉 Chúc mừng! Bạn đã hoàn thành bức tranh! 🎉"), 500);
+            }
+        } else {
+            //alert("❌ Sai vị trí! Hãy thử lại!");
+            originalParent.appendChild(draggedPiece);
+        }
+    } else {
+        originalParent.appendChild(draggedPiece);
     }
-    draggedPiece.style.opacity = "1";
-    checkWin();
+
+    draggedPiece = null;
 }
 
-function dragEnd(e) {
-    if (draggedPiece) {
-        draggedPiece.style.opacity = "1";
-        // Nếu không thả vào vùng hợp lệ, quay về vị trí ban đầu
-        if (!dropZone) {
-            draggedPiece.style.left = draggedPiece.dataset.initialLeft || "0px";
-            draggedPiece.style.top = draggedPiece.dataset.initialTop || "0px";
-        }
-        draggedPiece = null;
-        dropZone = null;
+
+// Chọn mảnh bị ẩn ngẫu nhiên
+function generateHiddenPieces() {
+    const indexes = [];
+    while (indexes.length < hiddenPieces) {
+        let rand = Math.floor(Math.random() * totalPieces);
+        if (!indexes.includes(rand)) indexes.push(rand);
     }
+    return indexes;
 }
 
-// Kiểm tra xem puzzle đã hoàn thành chưa (giữ nguyên)
-function checkWin() {
-    const pieces = document.querySelectorAll(".puzzle-piece");
-    let correct = true;
-    pieces.forEach(piece => {
-        const row = parseInt(piece.dataset.row);
-        const col = parseInt(piece.dataset.col);
-        const left = parseFloat(piece.style.left);
-        const top = parseFloat(piece.style.top);
-        const correctLeft = col * pieceWidth;
-        const correctTop = row * pieceHeight;
+function showQuestion(index, piece) {
+    const questionContainer = document.getElementById("question-container");
+    const questionText = document.getElementById("question-text");
+    const optionsContainer = document.getElementById("options");
 
-        if (Math.abs(left - correctLeft) > 5 || Math.abs(top - correctTop) > 5) {
-            correct = false;
-        }
+    const question = questions[index % questions.length];
+    questionText.textContent = question.question;
+    optionsContainer.innerHTML = "";
+
+    // Xáo trộn câu trả lời và lưu vị trí gốc
+    let shuffledOptions = question.options.map((option, i) => ({ option, originalIndex: i }));
+    shuffleArray(shuffledOptions);
+
+    // Lưu lại danh sách chỉ số gốc sau khi xáo trộn
+    questionContainer.dataset.correctIndexes = JSON.stringify(question.correct);
+
+    shuffledOptions.forEach(({ option, originalIndex }, btnIndex) => {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.dataset.originalIndex = originalIndex; // Lưu chỉ số gốc của câu trả lời
+        button.onclick = () => checkAnswer(index, originalIndex, piece);
+        optionsContainer.appendChild(button);
     });
-    if (correct) {
-        alert("Chúc mừng! Bạn đã hoàn thành puzzle!");
+
+    questionContainer.style.display = "block";
+}
+
+function checkAnswer(index, selectedOriginalIndex, piece) {
+    const question = questions[index % questions.length];
+    const correctAnswers = question.correct;
+
+    const buttons = document.querySelectorAll(".question-container button");
+
+    if (correctAnswers.includes(selectedOriginalIndex)) {
+        buttons.forEach(button => {
+            if (parseInt(button.dataset.originalIndex) === selectedOriginalIndex) {
+                button.classList.add("correct");
+            }
+        });
+
+        setTimeout(() => {
+            piece.classList.remove("hidden-piece");
+            piece.draggable = true;
+            piece.addEventListener("dragstart", dragStart);
+
+            document.getElementById("question-text").textContent = "🎉 Chúc mừng! Bạn đã mở khóa mảnh ghép này!";
+            document.getElementById("options").innerHTML = "";
+        }, 1000);
+    } else {
+        buttons.forEach(button => {
+            if (parseInt(button.dataset.originalIndex) === selectedOriginalIndex) {
+                button.classList.add("wrong");
+            }
+        });
+
+        setTimeout(() => {
+            buttons.forEach(button => button.classList.remove("wrong"));
+        }, 1000);
     }
 }
 
-// Khởi chạy game
+
+
+// Khởi chạy
 createPuzzle();
+
+let timer;
+let timeElapsed = 0;
+let timerRunning = false;
+let timerInterval;
+
+function startTimer() {
+    if (!timerRunning) {
+        timerRunning = true; // Đánh dấu bộ đếm đã chạy
+        timer = setInterval(() => {
+            timeElapsed++;
+            document.getElementById("timer").textContent = `Thời gian chơi: ${timeElapsed} giây`;
+        }, 1000);
+    }
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+}
+
+function calculateScore() {
+    let score = Math.max(1800 - timeElapsed, 0);
+    return score;
+}
+
+// Gọi `startTimer()` khi game bắt đầu
+document.querySelectorAll(".puzzle-piece").forEach(piece => {
+    piece.addEventListener("mousedown", () => {
+        startTimer();
+    }, { once: true });
+});
+
+function checkWinCondition() {
+    let allPlacedCorrectly = document.querySelectorAll(".puzzle-slot.correct").length === totalPieces;
+    if (allPlacedCorrectly) {
+        stopTimer();
+        let finalScore = calculateScore();
+        alert(`🎉 Chúc mừng! Bạn đã hoàn thành trò chơi với số điểm: ${finalScore}`);
+    }
+}
+
