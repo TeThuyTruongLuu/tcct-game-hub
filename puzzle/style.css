@@ -157,45 +157,61 @@ body {
         align-items: center;
     }
 
-    /* Bảng chứa mảnh ghép chuyển xuống dưới */
-    .top-container, .left-container, .right-container {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);
-        gap: 2px;
-        width: 90%;
-        height: auto;
-        margin-bottom: 10px;
+    #top-pieces-container {
+        display: none;
     }
 
-    .left-container, .right-container {
-        grid-template-columns: repeat(3, 1fr);
+    #left-pieces-container, #right-pieces-container {
+        width: 30%; /* Chia đôi 2 bên */
+        height: 100%;
+        position: absolute;
+        top: 0;
+        overflow: visible; /* Cho phép mảnh ghép tràn ra ngoài */
     }
 
-    /* Điều chỉnh kích thước bảng xếp hình */
-    .puzzle-board {
-        width: 300px;
-        height: 270px;
-        grid-template-columns: repeat(9, 33px);
-        grid-template-rows: repeat(8, 33px);
+    #left-pieces-container {
+        left: 0;
     }
 
-    /* Điều chỉnh kích thước mảnh ghép */
+    #right-pieces-container {
+        right: 0;
+    }
+
+    /* Mảnh ghép không bị bó buộc vào vị trí cố định */
     .puzzle-piece {
-        width: 33px;
-        height: 33px;
-        background-size: 300px 270px;
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background-size: 180px 160px; /* Đúng theo kích thước bảng */
+        background-repeat: no-repeat;
+        cursor: grab;
     }
+
+    /* Khi kéo mảnh ghép */
+    .puzzle-piece:active {
+        cursor: grabbing;
+    }
+
+	.puzzle-board {
+		width: 180px; /* 9 cột x 20px */
+		height: 160px; /* 8 hàng x 20px */
+		background-color: #f0f0f0;
+		display: grid;
+		grid-template-columns: repeat(9, 20px);
+		grid-template-rows: repeat(8, 20px);
+		position: relative;
+	}
 
     /* Ô trống trên bảng chơi */
     .puzzle-slot {
-        width: 33px;
-        height: 33px;
+        width: 20px;
+        height: 20px;
     }
 
     /* Điều chỉnh bảng câu hỏi */
     .question-container {
         width: 90%;
-        padding: 15px;
+        padding: 5px;
     }
 
     .question-container h2 {
