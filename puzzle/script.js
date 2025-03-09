@@ -363,7 +363,7 @@ function checkWinCondition() {
     if (allPlacedCorrectly) {
         stopTimer();
         let finalScore = calculateScore();
+		saveScoreToDB("Puzzle", finalScore);
         alert(`🎉 Chúc mừng! Bạn đã hoàn thành trò chơi với số điểm: ${finalScore}`);
     }
 }
-
