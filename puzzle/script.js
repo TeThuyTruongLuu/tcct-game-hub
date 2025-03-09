@@ -172,6 +172,8 @@ function createPuzzle() {
             piece.style.position = "absolute";
             piece.style.left = `${Math.random() * 80}%`;
             piece.style.top = `${Math.random() * 50}%`;
+			
+			enableMobileDragging(piece);
         } else {
 			if (index < 32) {
 				topContainer.appendChild(piece);
@@ -191,6 +193,31 @@ function createPuzzle() {
         slot.addEventListener("drop", drop);
         puzzleBoard.appendChild(slot);
     }
+}
+
+function enableMobileDragging(piece) {
+    if (piece.classList.contains("hidden-piece")) return; // Không kích hoạt kéo nếu mảnh bị khóa
+
+    piece.addEventListener("touchstart", function (e) {
+        let touch = e.touches[0];
+        piece.dataset.offsetX = touch.clientX - piece.getBoundingClientRect().left;
+        piece.dataset.offsetY = touch.clientY - piece.getBoundingClientRect().top;
+    });
+
+    piece.addEventListener("touchmove", function (e) {
+        e.preventDefault();
+        let touch = e.touches[0];
+
+        let offsetX = parseFloat(piece.dataset.offsetX);
+        let offsetY = parseFloat(piece.dataset.offsetY);
+
+        piece.style.left = `${touch.clientX - offsetX}px`;
+        piece.style.top = `${touch.clientY - offsetY}px`;
+    });
+
+    piece.addEventListener("touchend", function () {
+        piece.style.cursor = "grab";
+    });
 }
 
 

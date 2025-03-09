@@ -172,6 +172,7 @@ body {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
+		overflow: visible;
         justify-content: center;
     }
 
@@ -193,6 +194,7 @@ body {
         background-size: 95vw calc(95vw * 37 / 42); /* Scale lại theo bảng chơi */
         position: absolute;
         cursor: grab;
+        touch-action: none;
     }
 
     /* Khi kéo, hiển thị trên cùng */
@@ -233,5 +235,8 @@ body {
 	}
 	.timer-container {
 		font-size: 3vw;
+	}
+	.hidden-piece {
+		pointer-events: none; /* Ngăn mảnh bị khóa nhận sự kiện */
 	}
 }
