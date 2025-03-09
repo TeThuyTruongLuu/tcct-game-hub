@@ -231,7 +231,7 @@ function drop(e) {
             placedPieces++;
 
             if (placedPieces === totalPieces) {
-                setTimeout(() => alert("🎉 Chúc mừng! Bạn đã hoàn thành bức tranh! 🎉"), 500);
+                setTimeout(() => alert("Hooray, xong tranh rồi :>  Bồ chờ tí để lưu điểm nhé."), 500);
             }
         } else {
             //alert("❌ Sai vị trí! Hãy thử lại!");
@@ -306,7 +306,7 @@ function checkAnswer(index, selectedOriginalIndex, piece) {
             piece.draggable = true;
             piece.addEventListener("dragstart", dragStart);
 
-            document.getElementById("question-text").textContent = "🎉 Chúc mừng! Bạn đã mở khóa mảnh ghép này!";
+            document.getElementById("question-text").textContent = "🎉 Chính xác! Bạn đã mở khóa mảnh ghép này!";
             document.getElementById("options").innerHTML = "";
         }, 1000);
     } else {
