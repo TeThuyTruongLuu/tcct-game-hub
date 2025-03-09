@@ -176,10 +176,10 @@ body {
     /* Điều chỉnh bảng chơi theo tỉ lệ */
     .game-board {
         width: 95vw;  /* Tự co theo màn hình */
-        height: calc(95vw * 37 / 42); /* Đảm bảo tỉ lệ đúng */
+        height: calc(95vw * 74 / 105); /* Đảm bảo tỉ lệ đúng */
         display: grid;
 		grid-template-columns: repeat(10, 9.5vw);
-		grid-template-rows: repeat(8, calc(95vw * 37 / 336));
+		grid-template-rows: repeat(7, calc(95vw * 74 / 735));
         gap: 0;
         margin: auto;
     }
@@ -188,8 +188,8 @@ body {
     .puzzle-piece {
 		position: absolute;
         width: 9.5vw;
-        height: calc(95vw * 37 / 336);
-        background-size: 95vw calc(95vw * 37 / 42);
+        height: calc(95vw * 74 / 735);
+        background-size: 95vw calc(95vw * 74 / 105);
         cursor: grab;
         touch-action: none;
 		z-index: 10;
@@ -202,16 +202,16 @@ body {
 	
 	.puzzle-board {
 		width: 95vw;
-		height: calc(95vw * 37 / 42);
+		height: calc(95vw * 74 / 105);
 		background-color: #f0f0f0;
 		display: grid;
 		grid-template-columns: repeat(10, 9.5vw);
-		grid-template-rows: repeat(8, calc(95vw * 37 / 336));
+		grid-template-rows: repeat(7, calc(95vw * 74 / 735));
 		position: relative;
 	}
 	.puzzle-slot {
 		width: 9.5vw;
-		height: calc(95vw * 37 / 336);
+		height: calc(95vw * 74 / 735);
 		border: 1px solid #ddd;
 		background-color: #ffffff;
 	}
