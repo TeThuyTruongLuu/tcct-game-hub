@@ -20,44 +20,44 @@ body {
 
 /* Bảng xếp hình */
 .puzzle-board {
-    width: 525px; /* 10 cột x 52.5px */
-    height: 370px; /* 8 hàng x 46.25px */
+    width: 525px; /* 10 x 52.5px */
+    height: 370px; /* 7 x 52.8px */
     background-color: #f0f0f0;
     display: grid;
     grid-template-columns: repeat(10, 52.5px);
-    grid-template-rows: repeat(8, 46.25px);
+    grid-template-rows: repeat(7, calc(370px / 7));
     position: relative;
 }
 
 /* Bảng chứa mảnh ghép */
 .pieces-container {
-    background: #ffffff;
+    background: #f5e1da;
     padding: 5px;
     border: 2px solid #888;
     display: grid;
     overflow: hidden;
 }
 
-/* Bảng trên */
+/* Bảng trên 24 mảnh*/
 .top-container {
-    grid-template-columns: repeat(16, 52.5px);
-    grid-template-rows: repeat(2, 46.25px);
-    width: 840px;
-    height: 92.5px;
+    grid-template-columns: repeat(12, 52.5px);
+    grid-template-rows: repeat(2, calc(370px / 7));
+    width: 630px;
+    height: calc(370px / 7*2);
 }
 
 /* Bảng trái & phải (dọc) */
 .left-container, .right-container {
     grid-template-columns: repeat(3, 52.5px);
-    grid-template-rows: repeat(8, 46.25px);
+    grid-template-rows: repeat(8, calc(370px / 7));
     width: 157.5px;
-    height: 370px;
+    height: calc(370px / 7*8);
 }
 
 /* Mảnh ghép */
 .puzzle-piece {
     width: 52.5px;
-    height: 46.25px;
+    height: calc(370px / 7);
     background-size: 525px 370px; /* Đúng theo kích thước bảng */
     background-repeat: no-repeat;
 }
@@ -66,7 +66,7 @@ body {
 /* Ô trống trên bảng chơi */
 .puzzle-slot {
     width: 52.5px;
-    height: 46.25px;
+    height: calc(370px / 7);
     border: 1px solid #ddd;
     background-color: #ffffff;
 }

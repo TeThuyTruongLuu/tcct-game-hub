@@ -1,4 +1,4 @@
-const rows = 8;
+const rows = 7;
 const cols = 10;
 const totalPieces = rows * cols;
 const hiddenPieces = 21; //21 câu hỏi
@@ -154,8 +154,8 @@ function createPuzzle() {
         piece.classList.add("puzzle-piece");
         piece.dataset.index = i;
         piece.style.backgroundImage = "url('Puzzle1.jpeg')";
-        piece.style.backgroundSize = "540px 480px";
-        piece.style.backgroundPosition = `${-(i % cols) * 52.5}px ${-Math.floor(i / cols) * 46.25}px`;
+        piece.style.backgroundSize = "525px 370px";
+        piece.style.backgroundPosition = `${-(i % cols) * 52.5}px ${-Math.floor(i / cols) * 52.8}px`;
 
         if (hiddenIndexes.includes(i)) {
             piece.classList.add("hidden-piece");
@@ -175,11 +175,11 @@ function createPuzzle() {
 			
 			enableMobileDragging(piece);
         } else {
-			if (index < 32) {
+			if (index < 24) {
 				topContainer.appendChild(piece);
-			} else if (index < 56) {  // 32 -> 56 (24 mảnh)
+			} else if (index < 47) {  // 24 -> 47 (23 mảnh)
 				leftContainer.appendChild(piece);
-			} else {  // 56 -> 80 (24 mảnh)
+			} else {  // (23 mảnh còn lại)
 				rightContainer.appendChild(piece);
 			}
         }
@@ -274,6 +274,10 @@ function drop(e) {
 
             if (placedPieces === totalPieces) {
                 setTimeout(() => alert("Hooray, xong tranh rồi :>  Bồ chờ tí để lưu điểm nhé."), 500);
+				stopTimer();
+				let finalScore = calculateScore();
+				saveScoreToDB("Puzzle", finalScore.score);
+				alert(`🎉 Chúc mừng! Ní đã hoàn thành trò chơi với số điểm: ${finalScore.score} trong ${finalScore.time}`);
             }
         } else {
             originalParent.appendChild(draggedPiece);
@@ -364,7 +368,6 @@ function checkAnswer(index, selectedOriginalIndex, piece) {
 }
 
 
-
 // Khởi chạy
 createPuzzle();
 
@@ -389,7 +392,7 @@ function stopTimer() {
 
 function calculateScore() {
     let score = Math.max(1800 - timeElapsed, 0);
-    return score;
+	return { score: score, time: timeElapsed };
 }
 
 // Gọi `startTimer()` khi game bắt đầu
@@ -398,13 +401,3 @@ document.querySelectorAll(".puzzle-piece").forEach(piece => {
         startTimer();
     }, { once: true });
 });
-
-function checkWinCondition() {
-    let allPlacedCorrectly = document.querySelectorAll(".puzzle-slot.correct").length === totalPieces;
-    if (allPlacedCorrectly) {
-        stopTimer();
-        let finalScore = calculateScore();
-		saveScoreToDB("Puzzle", finalScore);
-        alert(`🎉 Chúc mừng! Bạn đã hoàn thành trò chơi với số điểm: ${finalScore}`);
-    }
-}
