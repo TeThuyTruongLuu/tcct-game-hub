@@ -196,18 +196,19 @@ function createPuzzle() {
 }
 
 function enableMobileDragging(piece) {
-    if (piece.classList.contains("hidden-piece")) return; // Không kích hoạt kéo nếu mảnh bị khóa
+    if (piece.classList.contains("hidden-piece")) return;
 
     piece.addEventListener("touchstart", function (e) {
-		if (piece.parentElement.classList.contains("puzzle-slot")) return;
+        if (piece.parentElement.classList.contains("puzzle-slot")) return;
         let touch = e.touches[0];
         piece.dataset.offsetX = touch.clientX - piece.getBoundingClientRect().left;
         piece.dataset.offsetY = touch.clientY - piece.getBoundingClientRect().top;
-		piece.style.position = "fixed";
+        piece.style.position = "fixed";
+        piece.style.zIndex = "1000"; // Đưa lên trên cùng
     });
 
     piece.addEventListener("touchmove", function (e) {
-		if (piece.parentElement.classList.contains("puzzle-slot")) return; 
+        if (piece.parentElement.classList.contains("puzzle-slot")) return;
         e.preventDefault();
         let touch = e.touches[0];
 
@@ -218,8 +219,19 @@ function enableMobileDragging(piece) {
         piece.style.top = `${touch.clientY - offsetY}px`;
     });
 
-    piece.addEventListener("touchend", function () {
-        piece.style.cursor = "grab";
+    piece.addEventListener("touchend", function (e) {
+        setTimeout(() => {
+            let touch = e.changedTouches[0];
+            let target = document.elementFromPoint(touch.clientX, touch.clientY);
+
+            if (target && target.classList.contains("puzzle-slot")) {
+                drop({ preventDefault: () => {}, target });
+            } else {
+                piece.style.position = "absolute";
+                piece.style.left = `${Math.random() * 80}%`;
+                piece.style.top = `${Math.random() * 50}%`;
+            }
+        }, 50);
     });
 }
 
@@ -239,7 +251,8 @@ function drop(e) {
 
     if (!draggedPiece) return;
 
-    let target = e.target;
+    let touch = e.changedTouches ? e.changedTouches[0] : null;
+    let target = touch ? document.elementFromPoint(touch.clientX, touch.clientY) : e.target;
 
     if (target.classList.contains("puzzle-slot")) {
         let correctIndex = parseInt(target.dataset.index);
@@ -248,23 +261,21 @@ function drop(e) {
         // Chỉ cho phép snap khi đúng vị trí
         if (correctIndex === pieceIndex) {
             target.appendChild(draggedPiece);
-			
-			//draggedPiece.classList.add("correct");
 
             draggedPiece.draggable = false;
             draggedPiece.style.cursor = "default";
 			draggedPiece.removeEventListener("dragstart", dragStart);
-			
-			draggedPiece.removeEventListener("touchstart", enableMobileDragging);
+			draggedPiece.style.position = "static";
+		
+            draggedPiece.removeEventListener("touchstart", enableMobileDragging);
             draggedPiece.removeEventListener("touchmove", enableMobileDragging);
-			
+            draggedPiece.removeEventListener("touchend", enableMobileDragging);
             placedPieces++;
 
             if (placedPieces === totalPieces) {
                 setTimeout(() => alert("Hooray, xong tranh rồi :>  Bồ chờ tí để lưu điểm nhé."), 500);
             }
         } else {
-            //alert("❌ Sai vị trí! Hãy thử lại!");
             originalParent.appendChild(draggedPiece);
         }
     } else {

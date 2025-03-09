@@ -199,6 +199,7 @@ body {
     .puzzle-piece:active {
         z-index: 1000;
     }
+	
 	.puzzle-board {
 		width: 95vw;
 		height: calc(95vw * 37 / 42);
