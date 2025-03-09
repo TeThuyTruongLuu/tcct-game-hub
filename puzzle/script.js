@@ -207,6 +207,7 @@ function enableMobileDragging(piece) {
     });
 
     piece.addEventListener("touchmove", function (e) {
+		if (piece.parentElement.classList.contains("puzzle-slot")) return; 
         e.preventDefault();
         let touch = e.touches[0];
 
@@ -253,7 +254,10 @@ function drop(e) {
             draggedPiece.draggable = false;
             draggedPiece.style.cursor = "default";
 			draggedPiece.removeEventListener("dragstart", dragStart);
+			
 			draggedPiece.removeEventListener("touchstart", enableMobileDragging);
+            draggedPiece.removeEventListener("touchmove", enableMobileDragging);
+			
             placedPieces++;
 
             if (placedPieces === totalPieces) {
