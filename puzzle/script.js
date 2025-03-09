@@ -181,8 +181,6 @@ function createPuzzle() {
 				rightContainer.appendChild(piece);
 			}
         }
-        piece.draggable = true;
-        piece.addEventListener("dragstart", dragStart);
 	});
 	
     for (let i = 0; i < totalPieces; i++) {
