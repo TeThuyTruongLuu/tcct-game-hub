@@ -199,9 +199,11 @@ function enableMobileDragging(piece) {
     if (piece.classList.contains("hidden-piece")) return; // Không kích hoạt kéo nếu mảnh bị khóa
 
     piece.addEventListener("touchstart", function (e) {
+		if (piece.parentElement.classList.contains("puzzle-slot")) return;
         let touch = e.touches[0];
         piece.dataset.offsetX = touch.clientX - piece.getBoundingClientRect().left;
         piece.dataset.offsetY = touch.clientY - piece.getBoundingClientRect().top;
+		piece.style.position = "fixed";
     });
 
     piece.addEventListener("touchmove", function (e) {
@@ -219,8 +221,6 @@ function enableMobileDragging(piece) {
         piece.style.cursor = "grab";
     });
 }
-
-
 
 // Xử lý kéo thả
 function dragStart(e) {
@@ -253,6 +253,7 @@ function drop(e) {
             draggedPiece.draggable = false;
             draggedPiece.style.cursor = "default";
 			draggedPiece.removeEventListener("dragstart", dragStart);
+			draggedPiece.removeEventListener("touchstart", enableMobileDragging);
             placedPieces++;
 
             if (placedPieces === totalPieces) {

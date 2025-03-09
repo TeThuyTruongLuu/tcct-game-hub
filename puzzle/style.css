@@ -2,7 +2,7 @@
 body {
     margin: 0 auto;
     font-family: Arial, sans-serif;
-    background: linear-gradient(to bottom, #fbe7c6, #d4a5a5);
+    background: #fbe7c6;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -93,7 +93,6 @@ body {
     margin-bottom: 15px;
 }
 
-/* Nút lựa chọn */
 .question-container button {
     background: #f0f0f0;
     border: 2px solid #666;
@@ -111,7 +110,6 @@ body {
     transform: scale(1.1);
 }
 
-/* Nút lựa chọn đúng */
 .question-container button.correct {
     background: #06d6a0;
     border-color: #04a777;
@@ -167,12 +165,11 @@ body {
     }
     .top-container {
         width: 90vw;
-        height: 10vw;
+        height: 10vh;
         position: relative;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-		overflow: visible;
         justify-content: center;
     }
 
@@ -189,12 +186,13 @@ body {
 
     /* Mảnh ghép tự co theo tỷ lệ */
     .puzzle-piece {
+		position: absolute;
         width: 9.5vw;
-        height: calc((95vw * 37 / 42)/8));
-        background-size: 95vw calc(95vw * 37 / 42); /* Scale lại theo bảng chơi */
-        position: absolute;
+        height: calc(95vw * 37 / 336);
+        background-size: 95vw calc(95vw * 37 / 42);
         cursor: grab;
         touch-action: none;
+		z-index: 10;
     }
 
     /* Khi kéo, hiển thị trên cùng */
@@ -237,6 +235,6 @@ body {
 		font-size: 3vw;
 	}
 	.hidden-piece {
-		pointer-events: none; /* Ngăn mảnh bị khóa nhận sự kiện */
+		pointer-events: auto;
 	}
 }
