@@ -1,5 +1,5 @@
 const rows = 8;
-const cols = 9;
+const cols = 10;
 const totalPieces = rows * cols;
 const hiddenPieces = 21; //21 câu hỏi
 
@@ -11,6 +11,8 @@ const rightContainer = document.getElementById("right-container");
 let draggedPiece = null;
 let originalParent = null;
 let placedPieces = 0;
+let usedQuestions = new Set();
+
 
 const questions = [
     {
@@ -145,14 +147,15 @@ function createPuzzle() {
     shuffleArray(indices);
 
     const hiddenIndexes = generateHiddenPieces();
-
+	const isMobile = window.innerWidth <= 768;
+	
     indices.forEach((i, index) => {
         const piece = document.createElement("div");
         piece.classList.add("puzzle-piece");
         piece.dataset.index = i;
         piece.style.backgroundImage = "url('Puzzle1.jpeg')";
         piece.style.backgroundSize = "540px 480px";
-        piece.style.backgroundPosition = `${-(i % cols) * 60}px ${-Math.floor(i / cols) * 60}px`;
+        piece.style.backgroundPosition = `${-(i % cols) * 52.5}px ${-Math.floor(i / cols) * 46.25}px`;
 
         if (hiddenIndexes.includes(i)) {
             piece.classList.add("hidden-piece");
@@ -162,14 +165,26 @@ function createPuzzle() {
             piece.addEventListener("dragstart", dragStart);
         }
 
-        if (index < 24) {
+        if (isMobile) {
             topContainer.appendChild(piece);
-        } else if (index < 48) {
-            leftContainer.appendChild(piece);
+
+            // Đặt vị trí ngẫu nhiên để mảnh không bị đè lên nhau quá nhiều
+            piece.style.position = "absolute";
+            piece.style.left = `${Math.random() * 80}%`;
+            piece.style.top = `${Math.random() * 50}%`;
         } else {
-            rightContainer.appendChild(piece);
+			if (index < 32) {
+				topContainer.appendChild(piece);
+			} else if (index < 56) {  // 32 -> 56 (24 mảnh)
+				leftContainer.appendChild(piece);
+			} else {  // 56 -> 80 (24 mảnh)
+				rightContainer.appendChild(piece);
+			}
         }
-    });
+        piece.draggable = true;
+        piece.addEventListener("dragstart", dragStart);
+	});
+	
     for (let i = 0; i < totalPieces; i++) {
         const slot = document.createElement("div");
         slot.classList.add("puzzle-slot");
@@ -179,6 +194,7 @@ function createPuzzle() {
         puzzleBoard.appendChild(slot);
     }
 }
+
 
 
 // Xử lý kéo thả
@@ -244,27 +260,33 @@ function showQuestion(index, piece) {
     const questionText = document.getElementById("question-text");
     const optionsContainer = document.getElementById("options");
 
-    const question = questions[index % questions.length];
+    let questionIndex;
+    do {
+        questionIndex = Math.floor(Math.random() * questions.length);
+    } while (usedQuestions.has(questionIndex) && usedQuestions.size < questions.length); 
+
+    usedQuestions.add(questionIndex); // Đánh dấu câu đã dùng
+
+    const question = questions[questionIndex];
     questionText.textContent = question.question;
     optionsContainer.innerHTML = "";
 
-    // Xáo trộn câu trả lời và lưu vị trí gốc
     let shuffledOptions = question.options.map((option, i) => ({ option, originalIndex: i }));
     shuffleArray(shuffledOptions);
 
-    // Lưu lại danh sách chỉ số gốc sau khi xáo trộn
     questionContainer.dataset.correctIndexes = JSON.stringify(question.correct);
 
     shuffledOptions.forEach(({ option, originalIndex }, btnIndex) => {
         const button = document.createElement("button");
         button.textContent = option;
-        button.dataset.originalIndex = originalIndex; // Lưu chỉ số gốc của câu trả lời
-        button.onclick = () => checkAnswer(index, originalIndex, piece);
+        button.dataset.originalIndex = originalIndex;
+        button.onclick = () => checkAnswer(questionIndex, originalIndex, piece);
         optionsContainer.appendChild(button);
     });
 
     questionContainer.style.display = "block";
 }
+
 
 function checkAnswer(index, selectedOriginalIndex, piece) {
     const question = questions[index % questions.length];

@@ -20,12 +20,12 @@ body {
 
 /* Bảng xếp hình */
 .puzzle-board {
-    width: 540px; /* 9 cột x 60px */
-    height: 480px; /* 8 hàng x 60px */
+    width: 525px; /* 10 cột x 52.5px */
+    height: 370px; /* 8 hàng x 46.25px */
     background-color: #f0f0f0;
     display: grid;
-    grid-template-columns: repeat(9, 60px);
-    grid-template-rows: repeat(8, 60px);
+    grid-template-columns: repeat(10, 52.5px);
+    grid-template-rows: repeat(8, 46.25px);
     position: relative;
 }
 
@@ -40,33 +40,33 @@ body {
 
 /* Bảng trên */
 .top-container {
-    grid-template-columns: repeat(12, 60px);
-    grid-template-rows: repeat(2, 60px);
-    width: 720px;
-    height: 120px;
+    grid-template-columns: repeat(16, 52.5px);
+    grid-template-rows: repeat(2, 46.25px);
+    width: 840px;
+    height: 92.5px;
 }
 
 /* Bảng trái & phải (dọc) */
 .left-container, .right-container {
-    grid-template-columns: repeat(3, 60px);
-    grid-template-rows: repeat(8, 60px);
-    width: 180px;
-    height: 480px;
+    grid-template-columns: repeat(3, 52.5px);
+    grid-template-rows: repeat(8, 46.25px);
+    width: 157.5px;
+    height: 370px;
 }
 
 /* Mảnh ghép */
 .puzzle-piece {
-    width: 60px;
-    height: 60px;
-    background-size: 540px 480px; /* Đúng theo kích thước bảng */
+    width: 52.5px;
+    height: 46.25px;
+    background-size: 525px 370px; /* Đúng theo kích thước bảng */
     background-repeat: no-repeat;
 }
 
 
 /* Ô trống trên bảng chơi */
 .puzzle-slot {
-    width: 60px;
-    height: 60px;
+    width: 52.5px;
+    height: 46.25px;
     border: 1px solid #ddd;
     background-color: #ffffff;
 }
@@ -148,78 +148,90 @@ body {
     color: #333;
 }
 
-
-/* Responsive cho màn hình nhỏ */
-@media (max-width: 768px) {
-    /* Căn chỉnh lại bố cục để phù hợp với điện thoại */
-    .game-wrapper {
+@media screen and (max-width: 768px) {
+    body {
+        display: flex;
         flex-direction: column;
+        justify-content: center;
         align-items: center;
+		height: max-content;
     }
-
-    #top-pieces-container {
+	.game-wrapper {
+		padding-top: 1vw;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+    .left-container, .right-container {
         display: none;
     }
-
-    #left-pieces-container, #right-pieces-container {
-        width: 30%; /* Chia đôi 2 bên */
-        height: 100%;
-        position: absolute;
-        top: 0;
-        overflow: visible; /* Cho phép mảnh ghép tràn ra ngoài */
+    .top-container {
+        width: 90vw;
+        height: 10vw;
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
     }
 
-    #left-pieces-container {
-        left: 0;
+    /* Điều chỉnh bảng chơi theo tỉ lệ */
+    .game-board {
+        width: 95vw;  /* Tự co theo màn hình */
+        height: calc(95vw * 37 / 42); /* Đảm bảo tỉ lệ đúng */
+        display: grid;
+		grid-template-columns: repeat(10, 9.5vw);
+		grid-template-rows: repeat(8, calc(95vw * 37 / 336));
+        gap: 0;
+        margin: auto;
     }
 
-    #right-pieces-container {
-        right: 0;
-    }
-
-    /* Mảnh ghép không bị bó buộc vào vị trí cố định */
+    /* Mảnh ghép tự co theo tỷ lệ */
     .puzzle-piece {
+        width: 9.5vw;
+        height: calc((95vw * 37 / 42)/8));
+        background-size: 95vw calc(95vw * 37 / 42); /* Scale lại theo bảng chơi */
         position: absolute;
-        width: 20px;
-        height: 20px;
-        background-size: 180px 160px; /* Đúng theo kích thước bảng */
-        background-repeat: no-repeat;
         cursor: grab;
     }
 
-    /* Khi kéo mảnh ghép */
+    /* Khi kéo, hiển thị trên cùng */
     .puzzle-piece:active {
-        cursor: grabbing;
+        z-index: 1000;
     }
-
 	.puzzle-board {
-		width: 180px; /* 9 cột x 20px */
-		height: 160px; /* 8 hàng x 20px */
+		width: 95vw;
+		height: calc(95vw * 37 / 42);
 		background-color: #f0f0f0;
 		display: grid;
-		grid-template-columns: repeat(9, 20px);
-		grid-template-rows: repeat(8, 20px);
+		grid-template-columns: repeat(10, 9.5vw);
+		grid-template-rows: repeat(8, calc(95vw * 37 / 336));
 		position: relative;
 	}
-
-    /* Ô trống trên bảng chơi */
-    .puzzle-slot {
-        width: 20px;
-        height: 20px;
-    }
-
-    /* Điều chỉnh bảng câu hỏi */
-    .question-container {
-        width: 90%;
-        padding: 5px;
-    }
-
-    .question-container h2 {
-        font-size: 18px;
-    }
-
-    .question-container button {
-        font-size: 14px;
-        padding: 8px 15px;
-    }
+	.puzzle-slot {
+		width: 9.5vw;
+		height: calc(95vw * 37 / 336);
+		border: 1px solid #ddd;
+		background-color: #ffffff;
+	}
+	.question-container {
+		max-width: 85vw;
+		border-radius: 10px;
+	}
+	.question-container h2 {
+		font-size: 5vw;
+	}
+	.question-container button {
+		background: #f0f0f0;
+		border: 2px solid #666;
+		padding: 10px 20px;
+		margin: 5px;
+		border-radius: 10px;
+		font-size: 16px;
+		cursor: pointer;
+		transition: all 0.3s ease-in-out;
+	}
+	.timer-container {
+		font-size: 3vw;
+	}
 }
