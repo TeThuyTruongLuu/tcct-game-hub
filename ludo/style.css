@@ -1,0 +1,39 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(15, 40px);
+    grid-template-rows: repeat(15, 40px);
+    gap: 1px;
+    margin: 20px auto;
+    border: 5px solid black;
+    background-color: white;
+    width: fit-content;
+}
+
+.cell {
+    width: 40px;
+    height: 40px;
+    border: 1px solid black;
+}
+
+/* Vùng nhà (6x6) */
+.home-red { background-image: url('img/Vương 2.png'); background-size: cover; }
+.home-blue { background-image: url('img/Dụ 2.png'); background-size: cover; }
+.home-green { background-image: url('img/Cao.png'); background-size: cover; }
+.home-yellow { background-image: url('img/Chu.png'); background-size: cover; }
+
+/* Đường đi vào đích */
+.path-red { background-color: lightcoral; }
+.path-blue { background-color: lightblue; }
+.path-green { background-color: lightgreen; }
+.path-yellow { background-color: lightyellow; }
+
+/* Vùng đích (3x3 trung tâm) */
+.center {
+    background-image: url('center-goal.png');
+    background-size: cover;
+}

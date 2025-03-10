@@ -1,6 +1,50 @@
-<div id="game-board">
-    <div id="dice">🎲</div>
-</div>
-<button id="roll-btn">Roll Dice</button>
-<script src="/socket.io/socket.io.js"></script>
-<script src="game.js"></script>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Cờ Cá Ngựa Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Game Cờ Cá Ngựa</h1>
+
+    <div id="board"></div>
+
+    <button id="roll-btn">Roll Dice</button>
+    <p id="dice-result">🎲 Kết quả: -</p>
+
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="game.js"></script>
+    <script>
+        // Khởi tạo bàn cờ 15x15
+        const board = document.getElementById("board");
+
+        for (let row = 0; row < 15; row++) {
+            for (let col = 0; col < 15; col++) {
+                let cell = document.createElement("div");
+                cell.classList.add("cell");
+
+                // Vùng nhà (6x6 ở 4 góc)
+                if ((row < 6 && col < 6)) cell.classList.add("home-red");
+                if ((row < 6 && col > 8)) cell.classList.add("home-blue");
+                if ((row > 8 && col < 6)) cell.classList.add("home-green");
+                if ((row > 8 && col > 8)) cell.classList.add("home-yellow");
+
+                // Vùng đích (3x3 ở trung tâm)
+                if (row >= 6 && row <= 8 && col >= 6 && col <= 8) {
+                    cell.classList.add("center");
+                }
+
+                // Đường đi vào đích
+                if (col === 7 && row >= 1 && row <= 5) cell.classList.add("path-red");
+                if (col === 7 && row >= 9 && row <= 13) cell.classList.add("path-green");
+                if (row === 7 && col >= 1 && col <= 5) cell.classList.add("path-blue");
+                if (row === 7 && col >= 9 && col <= 13) cell.classList.add("path-yellow");
+
+                board.appendChild(cell);
+            }
+        }
+    </script>
+</body>
+</html>
