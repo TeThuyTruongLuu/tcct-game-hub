@@ -218,21 +218,22 @@ function enableMobileDragging(piece) {
         piece.style.left = `${touch.clientX - offsetX}px`;
         piece.style.top = `${touch.clientY - offsetY}px`;
     });
+	
+	piece.addEventListener("touchend", function (e) {
+		setTimeout(() => {
+			let touch = e.changedTouches[0];
+			let target = document.elementFromPoint(touch.clientX, touch.clientY);
 
-    piece.addEventListener("touchend", function (e) {
-        setTimeout(() => {
-            let touch = e.changedTouches[0];
-            let target = document.elementFromPoint(touch.clientX, touch.clientY);
-
-            if (target && target.classList.contains("puzzle-slot")) {
-                drop({ preventDefault: () => {}, target });
-            } else {
-                piece.style.position = "absolute";
-                piece.style.left = `${Math.random() * 80}%`;
-                piece.style.top = `${Math.random() * 50}%`;
-            }
-        }, 50);
-    });
+			if (target && target.classList.contains("puzzle-slot")) {
+				drop({ preventDefault: () => {}, target });
+			} else {
+				// ✅ Giữ nguyên vị trí thả, không reset về bảng
+				piece.style.position = "absolute";
+				piece.style.left = `${touch.clientX - piece.dataset.offsetX}px`;
+				piece.style.top = `${touch.clientY - piece.dataset.offsetY}px`;
+			}
+		}, 50);
+	});
 }
 
 // Xử lý kéo thả
@@ -251,8 +252,9 @@ function drop(e) {
 
     if (!draggedPiece) return;
 
-    let touch = e.changedTouches ? e.changedTouches[0] : null;
-    let target = touch ? document.elementFromPoint(touch.clientX, touch.clientY) : e.target;
+	let touch = e.changedTouches ? e.changedTouches[0] : null;
+	let target = touch ? document.elementFromPoint(touch.pageX, touch.pageY) : e.target;
+
 
     if (target.classList.contains("puzzle-slot")) {
         let correctIndex = parseInt(target.dataset.index);
