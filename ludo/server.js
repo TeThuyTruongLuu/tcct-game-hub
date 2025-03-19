@@ -23,10 +23,12 @@ io.on("connection", (socket) => {
         io.to(roomId).emit("updatePlayers", games[roomId].players);
     });
 
-    socket.on("rollDice", (roomId) => {
-        let dice = Math.floor(Math.random() * 6) + 1;
-        io.to(roomId).emit("diceRolled", dice);
-    });
+	socket.on("rollDice", (roomId) => {
+		let dice1 = Math.floor(Math.random() * 6) + 1;
+		let dice2 = Math.floor(Math.random() * 6) + 1;
+		io.to(roomId).emit("diceRolled", dice1, dice2);
+	});
+
 
     socket.on("disconnect", () => {
         console.log("Người chơi rời đi:", socket.id);
