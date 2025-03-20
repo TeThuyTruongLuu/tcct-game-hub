@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     let username = localStorage.getItem("username");
     let selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
+	let totalScore = localStorage.getItem("totalScore");
 
     // 🛠 Kiểm tra nếu user đã đăng nhập trước đó
     if (username) {
@@ -187,7 +188,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 
 function logout() {
-    localStorage.removeItem("username");
+	localStorage.clear();
     location.reload();
 }
 
@@ -371,22 +372,25 @@ async function updateTotalScore() {
 
         if (querySnapshot.empty) {
             console.log(`⚠️ Người chơi ${username} chưa có điểm trong game nào.`);
-            document.getElementById("user-points").innerText = "0"; // Tránh hiển thị "N/A"
+            document.getElementById("user-points").innerText = "0";
             return;
         }
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             console.log(`🔹 Game: ${data.game}, Điểm: ${data.score}`);
-            totalScore += data.score; // Cộng tổng điểm tất cả các game
+            totalScore += data.score;
         });
 
         console.log(`🔥 Tổng điểm mới của ${username}: ${totalScore}`);
-        document.getElementById("user-points").innerText = totalScore; // Hiển thị trên UI
+        document.getElementById("user-points").innerText = totalScore;
 
         // 🔥 Cập nhật tổng điểm vào Firestore
         const userRef = firebase.firestore().collection("users").doc(username);
-        await userRef.update({ totalScore: totalScore }); // Dùng `update()` thay vì `set()`
+        await userRef.update({ totalScore: totalScore });
+		
+		localStorage.setItem("totalScore", totalScore);
+
 
         console.log(`✅ Đã cập nhật tổng điểm vào Firestore.`);
     } catch (error) {
