@@ -200,8 +200,8 @@ document.querySelectorAll(".tile-slot").forEach((slot) => {
         const tileValue = slot.dataset.value;
 
         // Gán ảnh
-        slot.innerHTML = `<img src="images/${charId} (${tileIndex}).png" alt="Tile">`;
-        characterImages[tileValue] = `images/${charId} (${tileIndex}).png`;
+        slot.innerHTML = `<img src="images/${charId} (${tileIndex}).jpg" alt="Tile">`;
+        characterImages[tileValue] = `images/${charId} (${tileIndex}).jpg`;
     });
     slot.addEventListener("touchend", (e) => {
         if (draggedImage) {
