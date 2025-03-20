@@ -162,7 +162,7 @@ function loadCharacterTiles(charId) {
 	const totalImages = 8;
     for (let i = 1; i <= totalImages; i++) {
         const img = document.createElement("img");
-        img.src = `images/${charId} (${i}).jpeg`;
+        img.src = `images/${charId} (${i}).jpg`;
         img.draggable = true;
         img.dataset.charId = charId;
         img.dataset.tileIndex = i;
