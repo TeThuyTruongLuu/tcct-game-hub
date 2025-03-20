@@ -378,9 +378,11 @@ async function updateTotalScore() {
             return;
         }
 
-        querySnapshot.forEach((doc) => {
-            totalScore += doc.data().score; // Cộng tổng điểm của tất cả game
-        });
+		querySnapshot.forEach((doc) => {
+			console.log(`🔹 Game: ${doc.data().game}, Điểm: ${doc.data().score}`);
+			totalScore += doc.data().score; 
+		});
+
 
         console.log(`🔥 Tổng điểm mới của ${username}: ${totalScore}`);
         document.getElementById("user-points").innerText = totalScore;
