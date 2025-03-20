@@ -18,10 +18,10 @@ let shuffleCount = currentLevel === 0 ? 3 : 10;
 //Khai báo các hằng (Ảnh, bảng, setting, nhạc, levels)
 const imageFolderPath = "../matching_game/images/";
 const imageNames = [
-    "Cá Dụ 1.png", "Cáo Diệp 1.png", "Cáo tuyết Lam 1.png", "Cao.png", "Chu.png", "Chung.png",
+    "Cá Dụ 1.png", "Cáo Diệp 1.png", "Cáo tuyết Lam 1.png", "Cao.jpg", "Chu.jpg", "Chung.jpg",
     "Chuột Duệ 1.png", "Corgi Lư 1.png", "Cú An 1.png", "Cún bự Bao 1.png", "Cún La 1.png", 
-    "Cụt Chu 1.png", "Diệp.png", "Đới.png", "Dụ 2.png", "Duệ.png", "Giang.png", "Hạ.png", 
-    "Hải ly Quan 1.png", "Hamster Tranh 1.png", "Hàn.png", "Hổ con Tống 1.png", "Hổ Hàn 1.png", 
+    "Cụt Chu 1.png", "Diệp.jpg", "Đới.jpg", "Dụ 2.jpg", "Duệ.jpg", "Giang.jpg", "Hạ.jpg", 
+    "Hải ly Quan 1.png", "Hamster Tranh 1.png", "Hàn.jpg", "Hổ con Tống 1.png", "Hổ Hàn 1.png", 
     "Hổ trắng Lâu 1.png", "Hoàng.png", "Khưu.png", "Kiều.png", "Lạc.png", "Lam.png", "Lâm.png",
     "Lão cẩu Ngụy 1.png", "Lâu.png", "Linh miêu bự Phương 1.png", "Lư.png", "Lý.png", "Mèo Nhu 1.png"
 ];
