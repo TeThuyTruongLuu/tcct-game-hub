@@ -22,8 +22,8 @@ const imageNames = [
     "Chuột Duệ 1.png", "Corgi Lư 1.png", "Cú An 1.png", "Cún bự Bao 1.png", "Cún La 1.png", 
     "Cụt Chu 1.png", "Diệp.jpg", "Đới.jpg", "Dụ 2.jpg", "Duệ.jpg", "Giang.jpg", "Hạ.jpg", 
     "Hải ly Quan 1.png", "Hamster Tranh 1.png", "Hàn.jpg", "Hổ con Tống 1.png", "Hổ Hàn 1.png", 
-    "Hổ trắng Lâu 1.png", "Hoàng.png", "Khưu.png", "Kiều.png", "Lạc.png", "Lam.png", "Lâm.png",
-    "Lão cẩu Ngụy 1.png", "Lâu.png", "Linh miêu bự Phương 1.png", "Lư.png", "Lý.png", "Mèo Nhu 1.png"
+    "Hổ trắng Lâu 1.png", "Hoàng.jpg", "Khưu.jpg", "Kiều.jpg", "Lạc.jpg", "Lam.jpg", "Lâm.jpg",
+    "Lão cẩu Ngụy 1.png", "Lâu.jpg", "Linh miêu bự Phương 1.png", "Lư.jpg", "Lý.jpg", "Mèo Nhu 1.png"
 ];
 
 const gameBoard = document.getElementById("game-board");
