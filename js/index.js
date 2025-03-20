@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (userDoc.exists) {
             selectedCharacter = userDoc.data().bias || selectedCharacter;
-            totalScore = userDoc.data().totalScore || totalScore;
+            await updateTotalScore();
 
             // ✅ Cập nhật vào localStorage để load nhanh hơn lần sau
             localStorage.setItem("selectedCharacter", selectedCharacter);
@@ -371,7 +371,7 @@ async function updateTotalScore() {
 
         if (querySnapshot.empty) {
             console.log(`⚠️ Người chơi ${username} chưa có điểm trong game nào.`);
-            document.getElementById("user-points").innerText = "0"; // Fix: Tránh hiển thị "N/A"
+            document.getElementById("user-points").innerText = "0"; // Tránh hiển thị "N/A"
             return;
         }
 
@@ -386,7 +386,7 @@ async function updateTotalScore() {
 
         // 🔥 Cập nhật tổng điểm vào Firestore
         const userRef = firebase.firestore().collection("users").doc(username);
-        await userRef.update({ totalScore: totalScore }); // Fix: Dùng `update()` thay vì `set()`
+        await userRef.update({ totalScore: totalScore }); // Dùng `update()` thay vì `set()`
 
         console.log(`✅ Đã cập nhật tổng điểm vào Firestore.`);
     } catch (error) {
