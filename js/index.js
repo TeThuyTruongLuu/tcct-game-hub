@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     let username = localStorage.getItem("username");
     let selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
-	let totalScore = localStorage.getItem("totalScore");
+	let storedScore = localStorage.getItem("totalScore");
 
     // 🛠 Kiểm tra nếu user đã đăng nhập trước đó
     if (username) {
