@@ -388,8 +388,8 @@ async function updateTotalScore() {
         const userRef = firebase.firestore().collection("users").doc(username);
         await userRef.update({ totalScore: totalScore });
 		
-		localStorage.setItem("totalScore", totalScore);
-
+        document.getElementById("user-points").innerText = totalScore;
+        localStorage.setItem("totalScore", totalScore);
 
         console.log(`✅ Đã cập nhật tổng điểm vào Firestore.`);
     } catch (error) {
