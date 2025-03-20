@@ -357,7 +357,6 @@ async function showLeaderboard() {
     }
 }
 
-
 async function updateTotalScore() {
     const username = localStorage.getItem("username");
     if (!username) {
@@ -374,29 +373,28 @@ async function updateTotalScore() {
 
         if (querySnapshot.empty) {
             console.log(`⚠️ Người chơi ${username} chưa có điểm trong game nào.`);
-            document.getElementById("user-points").innerText = "N/A";
+            document.getElementById("user-points").innerText = "0"; // Fix: Tránh hiển thị "N/A"
             return;
         }
 
-		querySnapshot.forEach((doc) => {
-			console.log(`🔹 Game: ${doc.data().game}, Điểm: ${doc.data().score}`);
-			totalScore += doc.data().score; 
-		});
-
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            console.log(`🔹 Game: ${data.game}, Điểm: ${data.score}`);
+            totalScore += data.score; // Cộng tổng điểm tất cả các game
+        });
 
         console.log(`🔥 Tổng điểm mới của ${username}: ${totalScore}`);
-        document.getElementById("user-points").innerText = totalScore;
+        document.getElementById("user-points").innerText = totalScore; // Hiển thị trên UI
 
         // 🔥 Cập nhật tổng điểm vào Firestore
         const userRef = firebase.firestore().collection("users").doc(username);
-        await userRef.set({ totalScore: totalScore }, { merge: true });
+        await userRef.update({ totalScore: totalScore }); // Fix: Dùng `update()` thay vì `set()`
 
         console.log(`✅ Đã cập nhật tổng điểm vào Firestore.`);
     } catch (error) {
         console.error("❌ Lỗi khi cập nhật tổng điểm:", error);
     }
 }
-
 
 
 async function updateOldLeaderboardData() {
