@@ -1,14 +1,15 @@
 const gameBoard = document.getElementById("gameBoard");
-const itemsList = ["chips", "icecream", "chocolate", "candy", "soda", "juice", "cake", "cookie", "popcorn", "donut", "coffee", "tea", "bread"];
-let shelves = [];
-let allItems = [];
 
-// 🛒 Khởi tạo items (mỗi món 3 cái)
+// 📝 Danh sách nhân vật
+const characterList = ["Du", "Khuu", "Lac", "Vuong"];
+let shelves = [];
+
+// 🛒 Khởi tạo danh sách items
 function createItems() {
     let items = [];
-    itemsList.forEach(type => {
-        for (let i = 0; i < 3; i++) {
-            items.push(type);
+    characterList.forEach(type => {
+        for (let i = 1; i <= 3; i++) {
+            items.push(`${type} (${i})`);
         }
     });
 
@@ -17,10 +18,10 @@ function createItems() {
     return items;
 }
 
-// 🏗️ Tạo các kệ hàng (15 kệ)
+// 🏗️ Tạo 15 kệ hàng
 function createShelves() {
     gameBoard.innerHTML = "";
-    shelves = [];
+    shelves = Array(15).fill().map(() => []);
 
     let items = createItems();
     let index = 0;
@@ -29,16 +30,16 @@ function createShelves() {
         let shelf = document.createElement("div");
         shelf.classList.add("shelf");
         shelf.dataset.index = i;
+        shelf.addEventListener("dragover", dragOver);
+        shelf.addEventListener("drop", dropItem);
 
-        let shelfItems = [];
         for (let j = 0; j < 3 && index < items.length; j++, index++) {
             let itemType = items[index];
+            shelves[i].push(itemType);
             let item = createItemElement(itemType, i);
             shelf.appendChild(item);
-            shelfItems.push(itemType);
         }
 
-        shelves.push(shelfItems);
         gameBoard.appendChild(shelf);
     }
 }
@@ -47,24 +48,23 @@ function createShelves() {
 function createItemElement(type, shelfIndex) {
     let item = document.createElement("div");
     item.classList.add("item");
-    item.style.backgroundImage = `url('images/${type}.png')`;
+    item.style.backgroundImage = `url('../2048/images/${type}.jpg')`;
     item.dataset.type = type;
+    item.dataset.shelf = shelfIndex;
     item.draggable = true;
 
     // Xử lý kéo & thả
     item.addEventListener("dragstart", dragStart);
-    item.addEventListener("dragover", dragOver);
-    item.addEventListener("drop", dropItem);
-    item.dataset.shelf = shelfIndex;
-    
     return item;
 }
 
 // 🛠️ Xử lý kéo & thả items
 let draggedItem = null;
+let sourceShelfIndex = null;
 
 function dragStart(event) {
     draggedItem = event.target;
+    sourceShelfIndex = parseInt(draggedItem.dataset.shelf);
     setTimeout(() => draggedItem.style.opacity = "0.5", 0);
 }
 
@@ -77,18 +77,27 @@ function dropItem(event) {
     let targetShelf = event.target.closest(".shelf");
 
     if (targetShelf && draggedItem) {
-        let targetIndex = targetShelf.dataset.index;
-        let currentShelfIndex = draggedItem.dataset.shelf;
+        let targetIndex = parseInt(targetShelf.dataset.index);
 
-        // Kiểm tra nếu kệ chưa đầy
+        // Không cho phép thả vào kệ đầy
         if (shelves[targetIndex].length < 3) {
-            // Cập nhật data
-            shelves[currentShelfIndex] = shelves[currentShelfIndex].filter(item => item !== draggedItem.dataset.type);
-            shelves[targetIndex].push(draggedItem.dataset.type);
+            let itemType = draggedItem.dataset.type;
 
-            // Di chuyển item
-            draggedItem.dataset.shelf = targetIndex;
-            targetShelf.appendChild(draggedItem);
+            // Xóa item khỏi kệ cũ
+            shelves[sourceShelfIndex] = shelves[sourceShelfIndex].filter(item => item !== itemType);
+
+            // Chèn vào vị trí trống trong kệ mới
+            let newShelf = shelves[targetIndex];
+            let emptyIndex = newShelf.findIndex(item => item === undefined || item === null);
+
+            if (emptyIndex !== -1) {
+                newShelf[emptyIndex] = itemType;
+            } else {
+                newShelf.push(itemType);
+            }
+
+            // Cập nhật lại giao diện
+            updateShelvesUI();
 
             // Kiểm tra match
             checkMatch(targetIndex);
@@ -99,11 +108,33 @@ function dropItem(event) {
     draggedItem = null;
 }
 
+// 🔄 Cập nhật lại giao diện kệ hàng sau khi di chuyển item
+function updateShelvesUI() {
+    gameBoard.innerHTML = "";
+
+    for (let i = 0; i < 15; i++) {
+        let shelf = document.createElement("div");
+        shelf.classList.add("shelf");
+        shelf.dataset.index = i;
+        shelf.addEventListener("dragover", dragOver);
+        shelf.addEventListener("drop", dropItem);
+
+        shelves[i].forEach(itemType => {
+            if (itemType) {
+                let item = createItemElement(itemType, i);
+                shelf.appendChild(item);
+            }
+        });
+
+        gameBoard.appendChild(shelf);
+    }
+}
+
 // ✅ Kiểm tra nếu 3 món giống nhau trong cùng 1 kệ
 function checkMatch(shelfIndex) {
     if (shelves[shelfIndex].length === 3) {
         let [a, b, c] = shelves[shelfIndex];
-        if (a === b && b === c) {
+        if (a && b && c && a.split(" ")[0] === b.split(" ")[0] && b.split(" ")[0] === c.split(" ")[0]) {
             removeItems(shelfIndex);
         }
     }
@@ -111,18 +142,14 @@ function checkMatch(shelfIndex) {
 
 // 🗑️ Xóa items nếu match
 function removeItems(shelfIndex) {
-    let shelf = document.querySelectorAll(".shelf")[shelfIndex];
-    
-    setTimeout(() => {
-        shelf.innerHTML = "";
-        shelves[shelfIndex] = [];
-        checkWin();
-    }, 300);
+    shelves[shelfIndex] = [null, null, null];
+    updateShelvesUI();
+    checkWin();
 }
 
 // 🎉 Kiểm tra chiến thắng
 function checkWin() {
-    let remainingItems = shelves.flat().length;
+    let remainingItems = shelves.flat().filter(item => item !== null).length;
     if (remainingItems === 0) {
         setTimeout(() => alert("🎉 Bạn đã thắng! 🎉"), 500);
     }

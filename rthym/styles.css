@@ -11,31 +11,33 @@ h1 {
 }
 
 .game-board {
-    display: grid;
-    grid-template-columns: repeat(5, 100px);
-    gap: 15px;
-    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;  /* Cho phép các kệ xuống dòng khi cần */
+    justify-content: center;
+    gap: 15px; /* Thêm khoảng cách giữa các kệ */
+    width: 800px; /* Cố định chiều rộng */
+    padding: 20px;
     background: #d2b48c;
     border-radius: 10px;
 }
 
 .shelf {
-    width: 100px;
-    height: 150px;
+    width: 220px; /* Điều chỉnh chiều rộng hợp lý hơn */
+    height: 100px;
     background: #fff8dc;
     border-radius: 10px;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-direction: row;
+    justify-content: space-evenly; /* Dàn đều item trong kệ */
     align-items: center;
     border: 2px dashed #8b5a2b;
     padding: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Thêm hiệu ứng bóng cho kệ */
 }
-
 .item {
-    width: 60px;
+    width: 60px; /* Giảm kích thước hình */
     height: 60px;
     background-size: cover;
     cursor: pointer;
-    margin: 2px;
+    transition: transform 0.2s;
 }
