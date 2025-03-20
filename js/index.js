@@ -46,7 +46,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     let username = localStorage.getItem("username");
     let selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
-    let totalScore = localStorage.getItem("totalScore") || 0;
 
     // 🛠 Kiểm tra nếu user đã đăng nhập trước đó
     if (username) {
@@ -75,7 +74,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             // ✅ Cập nhật vào localStorage để load nhanh hơn lần sau
             localStorage.setItem("selectedCharacter", selectedCharacter);
-            localStorage.setItem("totalScore", totalScore);
         }
     } else {
         console.warn("⚠️ Chế độ chơi ẩn danh. Điểm số không được lưu.");
