@@ -71,9 +71,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (userDoc.exists) {
             selectedCharacter = userDoc.data().bias || selectedCharacter;
-            await updateTotalScore();
-			document.getElementById("user-points").innerText = totalScore;
-			
+            await updateTotalScore();			
             localStorage.setItem("selectedCharacter", selectedCharacter);
         }
     } else {
@@ -85,7 +83,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // ✅ Cập nhật UI với dữ liệu vừa lấy được
     document.getElementById("character-select").value = selectedCharacter;
-
+	document.getElementById("user-points").innerText = totalScore;
+	
     // ✅ Hiển thị thông tin nhân vật
     showRandomCharacterImage();
     showRandomCharacterQuote();
