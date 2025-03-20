@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     let username = localStorage.getItem("username");
     let selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
-	let storedScore = localStorage.getItem("totalScore");
+	let totalScore = localStorage.getItem("totalScore") ? parseInt(localStorage.getItem("totalScore")) : 0;
 
     // 🛠 Kiểm tra nếu user đã đăng nhập trước đó
     if (username) {
@@ -72,8 +72,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (userDoc.exists) {
             selectedCharacter = userDoc.data().bias || selectedCharacter;
             await updateTotalScore();
-
-            // ✅ Cập nhật vào localStorage để load nhanh hơn lần sau
+			document.getElementById("user-points").innerText = totalScore;
+			
             localStorage.setItem("selectedCharacter", selectedCharacter);
         }
     } else {
@@ -85,7 +85,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // ✅ Cập nhật UI với dữ liệu vừa lấy được
     document.getElementById("character-select").value = selectedCharacter;
-    document.getElementById("user-points").innerText = totalScore;
 
     // ✅ Hiển thị thông tin nhân vật
     showRandomCharacterImage();
