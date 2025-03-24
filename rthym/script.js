@@ -8,7 +8,7 @@ let shelves = [];
 function createItems() {
     let items = [];
     characterList.forEach(type => {
-        for (let i = 1; i <= 3; i++) {
+        for (let i = 1; i <= 8; i++) {  // Mỗi nhân vật có 8 hình
             items.push(`${type} (${i})`);
         }
     });
@@ -26,23 +26,46 @@ function createShelves() {
     let items = createItems();
     let index = 0;
 
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 14; i++) {  // Tạo 14 kệ đầy 3 item
         let shelf = document.createElement("div");
         shelf.classList.add("shelf");
         shelf.dataset.index = i;
         shelf.addEventListener("dragover", dragOver);
         shelf.addEventListener("drop", dropItem);
 
+        // Chỉ cho phép thêm item hợp lệ vào kệ
         for (let j = 0; j < 3 && index < items.length; j++, index++) {
             let itemType = items[index];
-            shelves[i].push(itemType);
-            let item = createItemElement(itemType, i);
-            shelf.appendChild(item);
+            if (itemType != null) {
+                shelves[i].push(itemType);
+                let item = createItemElement(itemType, i);
+                shelf.appendChild(item);
+            }
         }
 
         gameBoard.appendChild(shelf);
     }
+
+    // Kệ cuối cùng chỉ chừa lại 1 vị trí trống
+    let lastShelf = document.createElement("div");
+    lastShelf.classList.add("shelf");
+    lastShelf.dataset.index = 14;
+    lastShelf.addEventListener("dragover", dragOver);
+    lastShelf.addEventListener("drop", dropItem);
+
+    // Kệ cuối cùng có 2 item hợp lệ
+    for (let j = 0; j < 2 && index < items.length; j++, index++) {
+        let itemType = items[index];
+        if (itemType != null) {
+            shelves[14].push(itemType);
+            let item = createItemElement(itemType, 14);
+            lastShelf.appendChild(item);
+        }
+    }
+
+    gameBoard.appendChild(lastShelf);
 }
+
 
 // 🎨 Tạo item DOM element
 function createItemElement(type, shelfIndex) {
@@ -79,21 +102,24 @@ function dropItem(event) {
     if (targetShelf && draggedItem) {
         let targetIndex = parseInt(targetShelf.dataset.index);
 
-        // Không cho phép thả vào kệ đầy
-        if (shelves[targetIndex].length < 3) {
-            let itemType = draggedItem.dataset.type;
+        // Lọc bỏ giá trị null/undefined và kiểm tra chiều dài thực tế
+        const validItems = shelves[targetIndex].filter(item => item != null);
+
+        // Kiểm tra nếu kệ có ít hơn 3 item hợp lệ
+        if (validItems.length < 3) {
+            const shelf = shelves[targetIndex];
+
+            // Tìm vị trí để chèn item
+            let targetItemIndex = getTargetItemIndex(event, targetShelf);
 
             // Xóa item khỏi kệ cũ
-            shelves[sourceShelfIndex] = shelves[sourceShelfIndex].filter(item => item !== itemType);
+            shelves[sourceShelfIndex] = shelves[sourceShelfIndex].filter(item => item !== draggedItem.dataset.type);
 
-            // Chèn vào vị trí trống trong kệ mới
-            let newShelf = shelves[targetIndex];
-            let emptyIndex = newShelf.findIndex(item => item === undefined || item === null);
-
-            if (emptyIndex !== -1) {
-                newShelf[emptyIndex] = itemType;
+            // Chèn vào đúng vị trí trong kệ mới
+            if (targetItemIndex !== -1) {
+                shelves[targetIndex].splice(targetItemIndex, 0, draggedItem.dataset.type);
             } else {
-                newShelf.push(itemType);
+                shelves[targetIndex].push(draggedItem.dataset.type);
             }
 
             // Cập nhật lại giao diện
@@ -101,11 +127,35 @@ function dropItem(event) {
 
             // Kiểm tra match
             checkMatch(targetIndex);
+        } else {
+            alert("Kệ này đã đầy!");
         }
     }
 
     draggedItem.style.opacity = "1";
     draggedItem = null;
+}
+
+
+// Tìm vị trí item trong kệ (trước hoặc sau các item hiện có)
+function getTargetItemIndex(event, shelf) {
+    const rect = shelf.getBoundingClientRect();
+    const shelfItems = shelf.querySelectorAll(".item");
+    const offsetX = event.clientX - rect.left;
+
+    // Nếu không có item nào hoặc click vào bên trái kệ, chèn vào đầu
+    if (shelfItems.length === 0 || offsetX < shelfItems[0].offsetWidth / 2) {
+        return 0;
+    }
+
+    // Nếu có item, tìm vị trí chèn vào giữa
+    for (let i = 0; i < shelfItems.length; i++) {
+        if (offsetX > shelfItems[i].offsetLeft + shelfItems[i].offsetWidth / 2) {
+            return i + 1; // Chèn sau item i
+        }
+    }
+
+    return -1; // Chèn vào cuối kệ
 }
 
 // 🔄 Cập nhật lại giao diện kệ hàng sau khi di chuyển item
@@ -132,13 +182,16 @@ function updateShelvesUI() {
 
 // ✅ Kiểm tra nếu 3 món giống nhau trong cùng 1 kệ
 function checkMatch(shelfIndex) {
-    if (shelves[shelfIndex].length === 3) {
-        let [a, b, c] = shelves[shelfIndex];
-        if (a && b && c && a.split(" ")[0] === b.split(" ")[0] && b.split(" ")[0] === c.split(" ")[0]) {
+    const validItems = shelves[shelfIndex].filter(item => item != null);
+
+    if (validItems.length === 3) {
+        let [a, b, c] = validItems;
+        if (a.split(" ")[0] === b.split(" ")[0] && b.split(" ")[0] === c.split(" ")[0]) {
             removeItems(shelfIndex);
         }
     }
 }
+
 
 // 🗑️ Xóa items nếu match
 function removeItems(shelfIndex) {
@@ -155,5 +208,22 @@ function checkWin() {
     }
 }
 
-// 🔥 Khởi động game
+let timeLeft = 60;  // Đặt thời gian cho bộ đếm (60 giây)
+let timer;
+
+// Thêm bộ đếm thời gian vào màn hình
+function startTimer() {
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = `Thời gian: ${timeLeft}s`;
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            alert("Hết thời gian! Bạn thua cuộc!");
+        }
+    }, 1000);
+}
+
+// Khởi động game và bắt đầu bộ đếm thời gian
 createShelves();
+startTimer();
