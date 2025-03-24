@@ -50,6 +50,7 @@ h1 {
     transform: scale(1.1);  /* Phóng to item khi hover */
 }
 
+/* Đặt bộ đếm nằm trong cùng khu vực với game */
 #timer {
     font-size: 24px;
     font-weight: bold;
@@ -57,19 +58,20 @@ h1 {
     background-color: #ff6347; /* Màu nền bắt mắt */
     padding: 10px 20px;
     border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Thêm bóng đổ cho bộ đếm */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Thêm bóng đổ cho bộ đếm */
     text-align: center;
-    position: absolute;
-	z-index: 10;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    transition: background-color 0.5s ease-in-out;  /* Thêm hiệu ứng chuyển màu nền khi thời gian gần hết */
+    margin-bottom: 20px;  /* Khoảng cách giữa bộ đếm và game board */
+    display: inline-block;
+    width: 200px;  /* Đặt độ rộng của bộ đếm */
+    margin-left: auto;
+    margin-right: auto;  /* Căn giữa bộ đếm */
+    transition: background-color 0.5s ease-in-out;
 }
 
-/* Thay đổi màu sắc khi còn ít thời gian */
+/* Thêm hiệu ứng thay đổi màu nền khi thời gian gần hết */
 #timer.warning {
     background-color: #ff4500;
 }
+
 
 

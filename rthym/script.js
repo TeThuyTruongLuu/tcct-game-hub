@@ -208,14 +208,20 @@ function checkWin() {
     }
 }
 
-let timeLeft = 60;  // Đặt thời gian cho bộ đếm (60 giây)
+let timeLeft = 480;  // Đặt thời gian cho bộ đếm (60 giây)
 let timer;
 
 // Thêm bộ đếm thời gian vào màn hình
 function startTimer() {
     timer = setInterval(() => {
         timeLeft--;
-        document.getElementById('timer').innerText = `Thời gian: ${timeLeft}s`;
+        const timerElement = document.getElementById('timer');
+        timerElement.innerText = `Thời gian: ${timeLeft}s`;
+
+        // Đổi màu khi thời gian còn lại ít hơn 10 giây
+        if (timeLeft <= 10) {
+            timerElement.classList.add('warning');
+        }
 
         if (timeLeft <= 0) {
             clearInterval(timer);
@@ -227,3 +233,4 @@ function startTimer() {
 // Khởi động game và bắt đầu bộ đếm thời gian
 createShelves();
 startTimer();
+
