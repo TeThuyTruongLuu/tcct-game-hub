@@ -1,9 +1,14 @@
+@font-face {
+    font-family: 'AmpleSoft'; /* Tên bạn muốn đặt cho font */
+    src: url('../css/fonts/AmpleSoft.ttf') format('truetype'); /* Đường dẫn đến file font */
+}
+
 body {
     display: flex;
     flex-direction: column;
     align-items: center;
     background: #f5deb3;
-    font-family: Arial, sans-serif;
+    font-family: AmpleSoft;
 }
 
 h1 {
