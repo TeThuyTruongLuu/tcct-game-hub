@@ -154,12 +154,29 @@ function createPuzzle() {
         piece.classList.add("puzzle-piece");
         piece.dataset.index = i;
         piece.style.backgroundImage = "url('Puzzle1.jpeg')";
-        piece.style.backgroundSize = "525px 370px";
-        piece.style.backgroundPosition = `${-(i % cols) * 52.5}px ${-Math.floor(i / cols) * 52.8}px`;
+				
+		if (isMobile) {
+			piece.style.backgroundSize = "95vw calc(95vw * 1480 / 2100)";
+			
+			const col = i % cols;
+			const row = Math.floor(i / cols);
+
+			const x = -(col * 9.5); // mỗi mảnh rộng 9.5vw
+			const y = -(row * (1480 / 14700 * 95)); // mỗi mảnh cao ~9.56vw
+
+			piece.style.backgroundPosition = `${x}vw ${y}vw`;
+		} else {
+			piece.style.backgroundSize = "525px 370px";
+			piece.style.backgroundPosition = `${-(i % cols) * 52.5}px ${-Math.floor(i / cols) * 52.8}px`;
+		}
+
 
         if (hiddenIndexes.includes(i)) {
             piece.classList.add("hidden-piece");
-            piece.addEventListener("click", () => showQuestion(i, piece));
+            const clickHandler = () => showQuestion(i, piece);
+			piece._clickToShowQuestion = clickHandler;
+			piece.addEventListener("click", clickHandler);
+
         } else {
             piece.draggable = true;
             piece.addEventListener("dragstart", dragStart);
@@ -195,6 +212,16 @@ function createPuzzle() {
     }
 }
 
+// Xử lý kéo thả
+function dragStart(e) {
+    draggedPiece = e.target;
+    originalParent = draggedPiece.parentNode;
+}
+
+function dragOver(e) {
+    e.preventDefault();
+}
+
 function enableMobileDragging(piece) {
     if (piece.classList.contains("hidden-piece")) return;
 
@@ -203,8 +230,14 @@ function enableMobileDragging(piece) {
         let touch = e.touches[0];
         piece.dataset.offsetX = touch.clientX - piece.getBoundingClientRect().left;
         piece.dataset.offsetY = touch.clientY - piece.getBoundingClientRect().top;
+
+        // Chuyển mảnh ra body
+        document.body.appendChild(piece);
         piece.style.position = "fixed";
-        piece.style.zIndex = "1000"; // Đưa lên trên cùng
+        piece.style.zIndex = "1000";
+
+        draggedPiece = piece;
+        originalParent = piece.parentNode;
     });
 
     piece.addEventListener("touchmove", function (e) {
@@ -218,68 +251,84 @@ function enableMobileDragging(piece) {
         piece.style.left = `${touch.clientX - offsetX}px`;
         piece.style.top = `${touch.clientY - offsetY}px`;
     });
-	
-	piece.addEventListener("touchend", function (e) {
-		setTimeout(() => {
-			let touch = e.changedTouches[0];
-			let target = document.elementFromPoint(touch.clientX, touch.clientY);
 
-			if (target && target.classList.contains("puzzle-slot")) {
-				drop({ preventDefault: () => {}, target });
-			} else {
-				// ✅ Giữ nguyên vị trí thả, không reset về bảng
-				piece.style.position = "absolute";
-				piece.style.left = `${touch.clientX - piece.dataset.offsetX}px`;
-				piece.style.top = `${touch.clientY - piece.dataset.offsetY}px`;
-			}
-		}, 50);
-	});
+    piece.addEventListener("touchend", function (e) {
+        if (!draggedPiece) return;
+
+        let touch = e.changedTouches[0];
+        let pieceRect = draggedPiece.getBoundingClientRect();
+        let pieceCenterX = pieceRect.left + pieceRect.width / 2;
+        let pieceCenterY = pieceRect.top + pieceRect.height / 2;
+
+        // Tìm ô gần nhất
+        let slots = document.querySelectorAll(".puzzle-slot");
+        let closestSlot = null;
+        let minDistance = Infinity;
+
+        slots.forEach(slot => {
+            let slotRect = slot.getBoundingClientRect();
+            let slotCenterX = slotRect.left + slotRect.width / 2;
+            let slotCenterY = slotRect.top + slotRect.height / 2;
+
+            let distance = Math.sqrt(
+                Math.pow(pieceCenterX - slotCenterX, 2) + 
+                Math.pow(pieceCenterY - slotCenterY, 2)
+            );
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestSlot = slot;
+            }
+        });
+
+        if (closestSlot) {
+            // Gọi drop với ô gần nhất
+            drop({ preventDefault: () => {}, target: closestSlot });
+        } else {
+            // Trả mảnh về vị trí ban đầu nếu không gần ô nào
+            originalParent.appendChild(draggedPiece);
+            draggedPiece.style.position = "absolute";
+            draggedPiece.style.left = `${touch.clientX - piece.dataset.offsetX}px`;
+            draggedPiece.style.top = `${touch.clientY - piece.dataset.offsetY}px`;
+        }
+
+        draggedPiece = null;
+    });
 }
-
-// Xử lý kéo thả
-function dragStart(e) {
-    draggedPiece = e.target;
-    originalParent = draggedPiece.parentNode;
-}
-
-function dragOver(e) {
-    e.preventDefault();
-}
-
 
 function drop(e) {
     e.preventDefault();
 
     if (!draggedPiece) return;
 
-	let touch = e.changedTouches ? e.changedTouches[0] : null;
-	let target = touch ? document.elementFromPoint(touch.pageX, touch.pageY) : e.target;
-
+    let target = e.target.classList.contains("puzzle-slot") ? e.target : e.target;
 
     if (target.classList.contains("puzzle-slot")) {
         let correctIndex = parseInt(target.dataset.index);
         let pieceIndex = parseInt(draggedPiece.dataset.index);
 
-        // Chỉ cho phép snap khi đúng vị trí
         if (correctIndex === pieceIndex) {
             target.appendChild(draggedPiece);
 
+            // Lock mảnh ghép
             draggedPiece.draggable = false;
             draggedPiece.style.cursor = "default";
-			draggedPiece.removeEventListener("dragstart", dragStart);
-			draggedPiece.style.position = "static";
-		
+            draggedPiece.style.position = "static";
+            draggedPiece.removeEventListener("dragstart", dragStart);
+
+            // Xóa sự kiện touch để lock trên mobile
             draggedPiece.removeEventListener("touchstart", enableMobileDragging);
             draggedPiece.removeEventListener("touchmove", enableMobileDragging);
             draggedPiece.removeEventListener("touchend", enableMobileDragging);
+
             placedPieces++;
 
             if (placedPieces === totalPieces) {
                 setTimeout(() => alert("Hooray, xong tranh rồi :>  Bồ chờ tí để lưu điểm nhé."), 500);
-				stopTimer();
-				let finalScore = calculateScore();
-				saveScoreToDB("Puzzle", finalScore.score);
-				alert(`🎉 Chúc mừng! Ní đã hoàn thành trò chơi với số điểm: ${finalScore.score} trong ${finalScore.time}`);
+                stopTimer();
+                let finalScore = calculateScore();
+                saveScoreToDB("Puzzle", finalScore.score);
+                alert(`🎉 Chúc mừng! Ní đã hoàn thành trò chơi với số điểm: ${finalScore.score} trong ${finalScore.time}`);
             }
         } else {
             originalParent.appendChild(draggedPiece);
@@ -347,15 +396,22 @@ function checkAnswer(index, selectedOriginalIndex, piece) {
                 button.classList.add("correct");
             }
         });
+		
+		setTimeout(() => {
+			piece.classList.remove("hidden-piece");
+			piece.draggable = true;
+			piece.removeEventListener("click", piece._clickToShowQuestion);
+			piece.addEventListener("dragstart", dragStart);
 
-        setTimeout(() => {
-            piece.classList.remove("hidden-piece");
-            piece.draggable = true;
-            piece.addEventListener("dragstart", dragStart);
+			// 👇 Thêm dòng này để xử lý mobile:
+			if (window.innerWidth <= 768) {
+				enableMobileDragging(piece);
+			}
 
-            document.getElementById("question-text").textContent = "🎉 Chính xác! Bạn đã mở khóa mảnh ghép này!";
-            document.getElementById("options").innerHTML = "";
-        }, 1000);
+			document.getElementById("question-text").textContent = "🎉 Chính xác! Bạn đã mở khóa mảnh ghép này!";
+			document.getElementById("options").innerHTML = "";
+		}, 1000);
+
     } else {
         buttons.forEach(button => {
             if (parseInt(button.dataset.originalIndex) === selectedOriginalIndex) {
@@ -399,7 +455,6 @@ function calculateScore() {
 
 // Gọi `startTimer()` khi game bắt đầu
 document.querySelectorAll(".puzzle-piece").forEach(piece => {
-    piece.addEventListener("mousedown", () => {
-        startTimer();
-    }, { once: true });
+    piece.addEventListener("mousedown", () => startTimer(), { once: true });
+    piece.addEventListener("touchstart", () => startTimer(), { once: true });
 });
