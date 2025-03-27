@@ -8,9 +8,9 @@ let shelves = [];
 function createItems() {
     let items = [];
     characterList.forEach(type => {
-        for (let i = 1; i <= 8; i++) {  // Mỗi nhân vật có 8 hình
-            items.push(`${type} (${i})`);
-        }
+		for (let i = 1; i <= 6; i++) { // Thay vì 8
+			items.push(`${type} (${i})`);
+		}
     });
 
     // Xáo trộn danh sách
