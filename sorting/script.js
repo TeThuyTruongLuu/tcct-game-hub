@@ -273,7 +273,53 @@ function removeItems(shelfIndex) {
 function checkWin() {
     let remainingItems = shelves.flat().filter(item => item !== null).length;
     if (remainingItems === 0) {
-        setTimeout(() => alert("🎉 Bạn đã thắng! 🎉"), 500);
+        clearInterval(timer);
+        let score = timeLeft;
+        setTimeout(() => {
+            alert(`🎉 Bạn đã thắng! 🎉 Điểm của bạn: ${score}`);
+            saveScoreToFirebase(score);
+        }, 500);
+    }
+}
+
+// 🔥 Lưu điểm lên Firebase
+async function saveScoreToFirebase(score) {
+    if (!playerName) {
+        console.error("❌ Không có tên người chơi!");
+        alert("Vui lòng nhập tên trước khi chơi!");
+        return;
+    }
+
+    const gameName = "Sorting";
+    const docId = `${playerName}-${gameName}`; // Định dạng: username-game
+
+    console.log(`🔥 Cập nhật điểm cho ${playerName}: ${score} | ID: ${docId}`);
+
+    try {
+        const scoresRef = db.collection("userScores").doc(docId);
+        const docSnapshot = await scoresRef.get();
+
+        if (!docSnapshot.exists) {
+            await scoresRef.set({
+                username: playerName,
+                game: gameName,
+                score: score,
+                updatedAt: new Date().toISOString()
+            });
+        } else {
+            const existingData = docSnapshot.data();
+            if (score > existingData.score) {
+                await scoresRef.update({
+                    score: score,
+                    updatedAt: new Date().toISOString()
+                });
+            }
+        }
+
+        console.log("✅ Đã lưu điểm lên Firebase thành công!");
+    } catch (error) {
+        console.error("❌ Lỗi khi lưu điểm lên Firebase:", error);
+        alert("Có lỗi xảy ra khi lưu điểm!");
     }
 }
 
