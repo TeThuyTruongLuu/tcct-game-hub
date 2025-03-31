@@ -26,41 +26,54 @@ function createShelves() {
     let items = createItems();
     let index = 0;
 
-    for (let i = 0; i < 14; i++) {  // Tạo 14 kệ đầy 3 item
+    // Hàm kiểm tra xem kệ đã có 2 item cùng loại chưa
+    function canAddItemToShelf(shelf, itemType) {
+        const typePrefix = itemType.split(" ")[0]; // Lấy phần "Du", "Khuu", "Lac", "Vuong"
+        const sameTypeCount = shelf.filter(item => item && item.split(" ")[0] === typePrefix).length;
+        return sameTypeCount < 2; // Chỉ cho phép tối đa 2 item cùng loại
+    }
+
+    // Tạo 14 kệ đầy 3 item
+    for (let i = 0; i < 14; i++) {
         let shelf = document.createElement("div");
         shelf.classList.add("shelf");
         shelf.dataset.index = i;
         shelf.addEventListener("dragover", dragOver);
         shelf.addEventListener("drop", dropItem);
 
-        // Chỉ cho phép thêm item hợp lệ vào kệ
-        for (let j = 0; j < 3 && index < items.length; j++, index++) {
+        // Thêm 3 item vào kệ
+        let itemsAdded = 0;
+        while (itemsAdded < 3 && index < items.length) {
             let itemType = items[index];
-            if (itemType != null) {
+            if (canAddItemToShelf(shelves[i], itemType)) {
                 shelves[i].push(itemType);
                 let item = createItemElement(itemType, i);
                 shelf.appendChild(item);
+                itemsAdded++;
             }
+            index++;
         }
 
         gameBoard.appendChild(shelf);
     }
 
-    // Kệ cuối cùng chỉ chừa lại 1 vị trí trống
+    // Kệ cuối cùng có 2 item và 1 vị trí trống
     let lastShelf = document.createElement("div");
     lastShelf.classList.add("shelf");
     lastShelf.dataset.index = 14;
     lastShelf.addEventListener("dragover", dragOver);
     lastShelf.addEventListener("drop", dropItem);
 
-    // Kệ cuối cùng có 2 item hợp lệ
-    for (let j = 0; j < 2 && index < items.length; j++, index++) {
+    let itemsAddedToLastShelf = 0;
+    while (itemsAddedToLastShelf < 2 && index < items.length) {
         let itemType = items[index];
-        if (itemType != null) {
+        if (canAddItemToShelf(shelves[14], itemType)) {
             shelves[14].push(itemType);
-            let item = createItemElement(itemType, 14);
+            let item = createItemElement(itemType, i);
             lastShelf.appendChild(item);
+            itemsAddedToLastShelf++;
         }
+        index++;
     }
 
     gameBoard.appendChild(lastShelf);
