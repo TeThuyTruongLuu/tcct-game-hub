@@ -78,6 +78,7 @@ function createItemElement(type, shelfIndex) {
 
     // Xử lý kéo & thả
     item.addEventListener("dragstart", dragStart);
+	enableTouchSupport(item);
     return item;
 }
 
@@ -94,6 +95,54 @@ function dragStart(event) {
 function dragOver(event) {
     event.preventDefault();
 }
+
+
+// 📱 Xử lý kéo thả trên mobile (touch)
+function enableTouchSupport(item) {
+    item.addEventListener("touchstart", touchStart, { passive: true });
+    item.addEventListener("touchend", touchEnd);
+}
+
+let touchStartItem = null;
+
+function touchStart(event) {
+    touchStartItem = event.target;
+    sourceShelfIndex = parseInt(touchStartItem.dataset.shelf);
+    touchStartItem.style.opacity = "0.5";
+}
+
+function touchEnd(event) {
+    touchStartItem.style.opacity = "1";
+
+    // Xác định vị trí ngón tay thả
+    const touch = event.changedTouches[0];
+    const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+    const targetShelf = targetElement?.closest(".shelf");
+
+    if (targetShelf && touchStartItem) {
+        const targetIndex = parseInt(targetShelf.dataset.index);
+        const validItems = shelves[targetIndex].filter(item => item != null);
+
+        if (validItems.length < 3) {
+            const itemType = touchStartItem.dataset.type;
+
+            // Xoá khỏi kệ cũ
+            shelves[sourceShelfIndex] = shelves[sourceShelfIndex].filter(item => item !== itemType);
+
+            // Thêm vào cuối kệ mới (hoặc có thể cải tiến targetItemIndex như chuột)
+            shelves[targetIndex].push(itemType);
+
+            updateShelvesUI();
+            checkMatch(targetIndex);
+        } else {
+            alert("Kệ này đã đầy!");
+        }
+    }
+
+    touchStartItem = null;
+}
+
+
 
 function dropItem(event) {
     event.preventDefault();
@@ -187,7 +236,9 @@ function checkMatch(shelfIndex) {
     if (validItems.length === 3) {
         let [a, b, c] = validItems;
         if (a.split(" ")[0] === b.split(" ")[0] && b.split(" ")[0] === c.split(" ")[0]) {
-            removeItems(shelfIndex);
+            setTimeout(() => {
+                removeItems(shelfIndex);
+            }, 400);
         }
     }
 }
@@ -217,11 +268,6 @@ function startTimer() {
         timeLeft--;
         const timerElement = document.getElementById('timer');
         timerElement.innerText = `Thời gian: ${timeLeft}s`;
-
-        // Đổi màu khi thời gian còn lại ít hơn 10 giây
-        if (timeLeft <= 10) {
-            timerElement.classList.add('warning');
-        }
 
         if (timeLeft <= 0) {
             clearInterval(timer);

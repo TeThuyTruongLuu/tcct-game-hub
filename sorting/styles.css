@@ -1,6 +1,6 @@
 @font-face {
-    font-family: 'AmpleSoft'; /* Tên bạn muốn đặt cho font */
-    src: url('../css/fonts/AmpleSoft.ttf') format('truetype'); /* Đường dẫn đến file font */
+    font-family: 'AmpleSoft';
+    src: url('../css/fonts/AmpleSoft.ttf') format('truetype');
 }
 
 body {
@@ -17,16 +17,15 @@ h1 {
 
 .game-board {
     display: flex;
-    flex-wrap: wrap;  /* Cho phép các kệ xuống dòng khi cần */
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 15px; /* Thêm khoảng cách giữa các kệ */
-    width: 800px; /* Cố định chiều rộng */
+    gap: 15px;
+    width: 800px;
     padding: 20px;
     background: #d2b48c;
     border-radius: 10px;
 }
 
-/* Thêm hiệu ứng bóng cho kệ */
 .shelf {
     width: 220px;
     height: 100px;
@@ -36,10 +35,10 @@ h1 {
     flex-direction: row;
     justify-content: space-evenly;
     align-items: center;
-    border: 2px solid #8b5a2b; /* Đổi nét đứt thành nét liền */
+    border: 2px solid #8b5a2b;
     padding: 5px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);  /* Tạo độ sâu cho kệ */
-    transition: transform 0.3s ease-in-out;  /* Thêm hiệu ứng khi hover */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease-in-out;
 }
 
 .item {
@@ -50,12 +49,10 @@ h1 {
     transition: transform 0.2s;
 }
 
-/* Thêm hiệu ứng khi hover trên item */
 .item:hover {
-    transform: scale(1.1);  /* Phóng to item khi hover */
+    transform: scale(1.1);
 }
 
-/* Đặt bộ đếm nằm trong cùng khu vực với game */
 #timer {
     font-size: 18px;
     font-weight: bold;
@@ -67,16 +64,11 @@ h1 {
     text-align: center;
     max-width: 150px;
 
-    position: relative; /* đổi từ fixed để không bị đè lên item */
-    margin: 0 auto 16px; /* căn giữa và tạo khoảng cách */
+    position: relative;
+    margin: 0 auto 16px;
     display: block;
 }
 
-
-/* Thêm hiệu ứng thay đổi màu nền khi thời gian gần hết */
-#timer.warning {
-    background-color: #ff4500;
-}
 
 /* Responsive cho mobile nhưng vẫn giữ 3 kệ mỗi hàng */
 @media screen and (max-width: 768px) {
