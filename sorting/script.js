@@ -99,8 +99,13 @@ function dragOver(event) {
 
 // 📱 Xử lý kéo thả trên mobile (touch)
 function enableTouchSupport(item) {
-    item.addEventListener("touchstart", touchStart, { passive: true });
+    item.addEventListener("touchstart", touchStart, { passive: false });
+    item.addEventListener("touchmove", touchMove, { passive: false });
     item.addEventListener("touchend", touchEnd);
+}
+
+function touchMove(event) {
+    event.preventDefault();
 }
 
 let touchStartItem = null;
