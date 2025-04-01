@@ -8,27 +8,12 @@ let timer;
 function createItems() {
     let items = [];
     characterList.forEach(type => {
-        for (let i = 1; i <= 6; i++) {
+        for (let i = 1; i <= 6; i++) { // Tạo 6 items mỗi char, tổng 24 items
             items.push(`${type} (${i})`);
         }
     });
-
-    // Đảm bảo mỗi loại nhân vật xuất hiện đúng 6 lần (chia hết cho 3)
-    let balancedItems = [];
-    const itemsPerType = 6; // Mỗi loại có 6 item
-    const types = characterList.length; // 4 loại
-    const totalItems = itemsPerType * types; // 24 item
-
-    // Tạo danh sách item cân bằng
-    for (let i = 0; i < totalItems; i++) {
-        const typeIndex = Math.floor(i / itemsPerType); // Chia đều cho mỗi loại
-        const type = characterList[typeIndex];
-        const itemNumber = (i % itemsPerType) + 1; // Số từ 1 đến 6
-        balancedItems.push(`${type} (${itemNumber})`);
-    }
-
     // Xáo trộn danh sách
-    return balancedItems.sort(() => Math.random() - 0.5);
+    return items.sort(() => Math.random() - 0.5);
 }
 
 function createShelves() {
@@ -36,76 +21,71 @@ function createShelves() {
     shelves = Array(7).fill().map(() => ({ front: [], back: [] }));
 
     let items = createItems();
-    let index = 0;
 
-    function canAddItemToShelf(shelfFront, itemType) {
-        const typePrefix = itemType.split(" ")[0];
-        const sameTypeCount = shelfFront.filter(item => item && item.split(" ")[0] === typePrefix).length;
-        return sameTypeCount < 2;
+    // Random chọn 6 items cho mặt sau
+    let backItems = [];
+    while (backItems.length < 6) {
+        const randomIndex = Math.floor(Math.random() * items.length);
+        backItems.push(items[randomIndex]);
+        items.splice(randomIndex, 1); // Xóa item đã chọn khỏi danh sách
     }
 
-    const specialShelves = [];
-    while (specialShelves.length < 4) {
-        const idx = Math.floor(Math.random() * 6);
-        if (!specialShelves.includes(idx)) specialShelves.push(idx);
+    // 18 items còn lại cho mặt trước
+    let frontItems = items;
+
+    // Phân phối ngẫu nhiên 6 items vào mặt sau của 7 kệ (mỗi kệ tối đa 3 items)
+    let backDistribution = Array(7).fill(0); // Số items ở mặt sau của mỗi kệ
+    let remainingBackItems = 6;
+    while (remainingBackItems > 0) {
+        const shelfIndex = Math.floor(Math.random() * 7); // Chọn ngẫu nhiên kệ
+        if (backDistribution[shelfIndex] < 3) { // Kiểm tra giới hạn 3 items
+            backDistribution[shelfIndex]++;
+            remainingBackItems--;
+        }
     }
 
-    for (let i = 0; i < 6; i++) {
+    // Phân phối ngẫu nhiên 18 items vào mặt trước của 7 kệ (mỗi kệ tối đa 3 items)
+    let frontDistribution = Array(7).fill(0); // Số items ở mặt trước của mỗi kệ
+    let remainingFrontItems = 18;
+    while (remainingFrontItems > 0) {
+        const shelfIndex = Math.floor(Math.random() * 7); // Chọn ngẫu nhiên kệ
+        if (frontDistribution[shelfIndex] < 3) { // Kiểm tra giới hạn 3 items
+            frontDistribution[shelfIndex]++;
+            remainingFrontItems--;
+        }
+    }
+
+    // Gán items vào mặt sau
+    let backIndex = 0;
+    for (let i = 0; i < 7; i++) {
+        for (let j = 0; j < backDistribution[i]; j++) {
+            if (backIndex < backItems.length) {
+                shelves[i].back.push(backItems[backIndex]);
+                backIndex++;
+            }
+        }
+    }
+
+    // Gán items vào mặt trước
+    let frontIndex = 0;
+    for (let i = 0; i < 7; i++) {
+        for (let j = 0; j < frontDistribution[i]; j++) {
+            if (frontIndex < frontItems.length) {
+                shelves[i].front.push(frontItems[frontIndex]);
+                frontIndex++;
+            }
+        }
+    }
+
+    // Tạo UI cho các kệ
+    for (let i = 0; i < 7; i++) {
         let shelf = document.createElement("div");
         shelf.classList.add("shelf");
         shelf.dataset.index = i;
         shelf.addEventListener("dragover", dragOver);
         shelf.addEventListener("drop", dropItem);
-
-        if (specialShelves.includes(i)) {
-            let itemsAddedFront = 0;
-            while (itemsAddedFront < 3 && index < items.length) {
-                let itemType = items[index];
-                if (canAddItemToShelf(shelves[i].front, itemType)) {
-                    shelves[i].front.push(itemType);
-                    itemsAddedFront++;
-                }
-                index++;
-            }
-            let itemsAddedBack = 0;
-            while (itemsAddedBack < 2 && index < items.length) {
-                let itemType = items[index];
-                if (canAddItemToShelf(shelves[i].back, itemType)) {
-                    shelves[i].back.push(itemType);
-                    itemsAddedBack++;
-                }
-                index++;
-            }
-        } else if (i === 4) {
-            let itemsAddedFront = 0;
-            while (itemsAddedFront < 3 && index < items.length) {
-                let itemType = items[index];
-                if (canAddItemToShelf(shelves[i].front, itemType)) {
-                    shelves[i].front.push(itemType);
-                    itemsAddedFront++;
-                }
-                index++;
-            }
-        } else {
-            let itemsAddedFront = 0;
-            while (itemsAddedFront < 1 && index < items.length) {
-                let itemType = items[index];
-                if (canAddItemToShelf(shelves[i].front, itemType)) {
-                    shelves[i].front.push(itemType);
-                    itemsAddedFront++;
-                }
-                index++;
-            }
-        }
         gameBoard.appendChild(shelf);
     }
-
-    let lastShelf = document.createElement("div");
-    lastShelf.classList.add("shelf");
-    lastShelf.dataset.index = 6;
-    lastShelf.addEventListener("dragover", dragOver);
-    lastShelf.addEventListener("drop", dropItem);
-    gameBoard.appendChild(lastShelf);
 
     updateShelvesUI();
 }
@@ -264,7 +244,7 @@ function checkMatch(shelfIndex) {
 }
 
 function removeItems(shelfIndex) {
-    shelves[shelfIndex].front = [null, null, null];
+    shelves[shelfIndex].front = [];
     if (shelves[shelfIndex].back.length > 0) {
         shelves[shelfIndex].front = shelves[shelfIndex].back;
         shelves[shelfIndex].back = [];
@@ -335,4 +315,3 @@ function startTimer() {
 
 createShelves();
 startTimer();
-
