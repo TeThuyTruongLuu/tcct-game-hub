@@ -83,7 +83,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
             background: white;
         }
 		.page-left {
@@ -93,6 +92,7 @@
 			background-position: center;
 			transform: scaleX(-1);
 			box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+			padding: 20px;
 		}
 
 		.page-right {
@@ -102,7 +102,9 @@
 			background-size: auto 95%;
 			font-size: 16px;
 			text-align: center;
+			padding: 10px;			
 		}
+		.page-right text { padding-left: -15px;}
         .page-left img {
             max-width: 120%;
             height: 120%;
@@ -182,9 +184,55 @@
 
     <script>
         const dialogues = [
-            { img: 'img/catwjx-1.png', text: 'Đây là câu chuyện đầu tiên.' },
-            { img: '../../2048/images/Khuu (1).png', text: 'Một ngày đẹp trời, nhân vật bước ra ngoài.' },
-            { img: '../../2048/images/Vuong (1).png', text: 'Hành trình kỳ diệu bắt đầu từ đây.' }
+			{ img: 'img/catwjx-1.png', text: 'ROLL điểm.' },
+			{ img: 'img/catwjx-2.png', text: 'Đừng làm chỗ dựa, hãy làm tấm gương sao?' },
+			{ img: 'img/catwjx-3.png', text: 'Cậu không được thế này, tuyệt đối không được.' },
+			{ img: 'img/catwjx-4.png', text: 'Không thả là bất hạnh của Trung Thảo Đường, thả thì là bất hạnh của tất cả các đội.' },
+			{ img: 'img/catwjx-5.png', text: 'Đoán không ra, hầy, đoán không ra.' },
+			{ img: 'img/catwjx-6.png', text: 'Khoảng cách này chỉ là tạm thời thôi, cậu có tiềm năng rất lớn!' },
+			{ img: 'img/catwjx-7.png', text: 'Cậu vẫn còn rất trẻ, hãy tiếp tục cố gắng, rồi sẽ có một ngày nào đó cậu vượt qua tất cả mọi người.' },
+			{ img: 'img/catwjx-8.png', text: 'Nếu như may mắn cũng là sai lầm, vậy thì tôi nguyện ý sai càng thêm sai.' },
+			{ img: 'img/catwjx-9.png', text: 'Gánh nặng này........ Quá nặng rồi.' },
+			{ img: 'img/catwjx-10.png', text: 'Tự tin lên, đừng hoài nghi bản thân.' },
+			{ img: 'img/catwjx-11.png', text: 'Rất mong chờ trận đấu tiếp theo với hắn.' },
+			{ img: 'img/catwjx-12.png', text: 'Tại thời khắc mấu chốt, anh ấy chưa từng thất bại. Anh ấy có thể thua, nhưng từ trước đến nay chưa từng khiến người khác mất đi niềm tin vào mình.' },
+			{ img: 'img/catwjx-13.png', text: 'Giống ở đâu nhỉ.....' },
+			{ img: 'img/catwjx-14.png', text: 'Rõ ràng là họ đang bị dẫn trước, nhưng khi Vương Kiệt Hi vừa vào sân thì họ trông như chắc chắn sẽ thắng vậy.' },
+			{ img: 'img/catwjx-15.png', text: 'Có lẽ là vậy!' },
+			{ img: 'img/catwjx-16.png', text: 'Cơ hội thế này e rằng khó mà có được.' },
+			{ img: 'img/catwjx-17.png', text: 'Tích cực, chủ động.' },
+			{ img: 'img/catwjx-18.png', text: 'Bây giờ, tiếp tục huấn luyện.' },
+			{ img: 'img/catwjx-19.png', text: 'Trận đấu tuyệt vời.' },
+			{ img: 'img/catwjx-20.png', text: 'Cuối cùng cũng hiểu rồi.' },
+			{ img: 'img/catwjx-21.png', text: 'Một trong những tuyển thủ đáng tin cậy nhất trong Liên minh.' },
+			{ img: 'img/catwjx-22.png', text: 'Cocacola nhé, cảm ơn.' },
+			{ img: 'img/catwjx-23.png', text: 'Tôi nghĩ là tôi có thể.' },
+			{ img: 'img/catwjx-24.png', text: 'Đến rồi.' },
+			{ img: 'img/catwjx-25.png', text: 'Lười rồi.' },
+			{ img: 'img/catwjx-26.png', text: 'Tướng lang cố.' },
+			{ img: 'img/catwjx-27.png', text: 'Cậu đùa cái gì? Thời gian của cậu dùng để lãng phí vào việc này sao?' },
+			{ img: 'img/catwjx-28.png', text: 'Mỗi người chúng ta đều miễn cưỡng bản thân một chút, nghe theo mong muốn của anh ấy đi?' },
+			{ img: 'img/catwjx-29.png', text: 'Ngày mai, ai cũng có ngày mai.' },
+			{ img: 'img/catwjx-30.png', text: 'Cậu nghĩ chỉ có hắn mới cân được trình này sao?' },
+			{ img: 'img/catwjx-31.png', text: 'Không thể mệt mỏi! Muốn tồn tại trong Liên minh thì phải ngược dòng mà đi.' },
+			{ img: 'img/catwjx-32.png', text: 'Ký tên ở đâu?' },
+			{ img: 'img/catwjx-33.png', text: 'Trước nay chưa từng xem thường đối thủ nào.' },
+			{ img: 'img/catwjx-34.png', text: 'Chênh lệch thực lực không quyết định thắng bại, tranh tài là để chiến thắng, không phải để so sánh.' },
+			{ img: 'img/catwjx-35.png', text: 'Cậu muốn thử à?' },
+			{ img: 'img/catwjx-36.png', text: 'Tắt điện thoại di động.' },
+			{ img: 'img/catwjx-37.png', text: 'Không có gì đặc biệt, chỉ là lối đánh quê mùa nhất.' },
+			{ img: 'img/catwjx-38.png', text: 'Phải gánh lấy tương lai của Vi Thảo nhé!' },
+			{ img: 'img/catwjx-39.png', text: 'Vương Kiệt Hi và Vương Bất Lưu Hành của anh ấy cứ thế không gì cản nổi, gánh lấy Vi Thảo bay về phía trước.' },
+			{ img: 'img/catwjx-40.png', text: 'Có khó dùng không?' },
+			{ img: 'img/catwjx-41.png', text: 'Đánh thua cũng không sao, nhưng đừng để mất niềm tin nhé!' },
+			{ img: 'img/catwjx-42.png', text: 'Có đôi khi lựa chọn không phải là đúng hay sai, chỉ là cậu có kiên định bước tiếp hay không.' },
+			{ img: 'img/catwjx-43.png', text: 'Tôi mong mọi người có thể tiếp tục và học được gì đó.' },
+			{ img: 'img/catwjx-44.png', text: 'Nhất định.' },
+			{ img: 'img/catwjx-45.png', text: 'Nói nhảm thì có nghĩa lý gì......' },
+			{ img: 'img/catwjx-46.png', text: 'Các cậu kiểu gì cũng sẽ gặp lại.' },
+			{ img: 'img/catwjx-47.png', text: 'Cậu tự tin quá nhỉi?' },
+			{ img: 'img/catwjx-48.png', text: 'Vi Thảo mới là lựa chọn tốt nhất.' },
+			{ img: 'img/catwjx-49.png', text: 'Dùng lối đánh em thoải mái nhất, am hiểu nhất, quen thuộc nhất là được rồi.' },
         ];
         let currentIndex = 0;
         
@@ -196,14 +244,16 @@
             image.innerHTML = `<img src="${dialogues[currentIndex].img}" alt="Story Image">`;
             text.textContent = dialogues[currentIndex].text;
         }
-        
-        book.addEventListener('click', () => {
-            if (book.classList.contains('closed')) {
-                updatePage();
-                book.classList.remove('closed');
-                book.classList.add('opened');
-            }
-        });
+				
+		book.addEventListener('click', () => {
+			if (book.classList.contains('closed')) {
+				currentIndex = Math.floor(Math.random() * dialogues.length); // chọn ngẫu nhiên một chỉ mục
+				updatePage();
+				book.classList.remove('closed');
+				book.classList.add('opened');
+			}
+		});
+
 
         function nextPage() {
             if (currentIndex < dialogues.length - 1) {
