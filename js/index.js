@@ -356,11 +356,23 @@ async function showLeaderboard() {
 
 async function updateTotalScore() {
     const username = localStorage.getItem("username");
+    const totalScoreElement = document.getElementById("user-points");
+
     if (!username) {
         console.warn("⚠️ Người chơi chưa đăng nhập, không cập nhật tổng điểm.");
+        totalScoreElement.innerText = "N/A";
         return;
     }
 
+    // B1: Ưu tiên hiển thị localStorage trước nếu có
+    const cachedScore = localStorage.getItem("totalScore");
+    if (cachedScore !== null) {
+        totalScoreElement.innerText = cachedScore;
+    } else {
+        totalScoreElement.innerText = "N/A";
+    }
+
+    // B2: Fetch từ Firestore để cập nhật chính xác
     const scoresRef = firebase.firestore().collection("userScores");
     const q = scoresRef.where("username", "==", username);
 
@@ -370,7 +382,8 @@ async function updateTotalScore() {
 
         if (querySnapshot.empty) {
             console.log(`⚠️ Người chơi ${username} chưa có điểm trong game nào.`);
-            document.getElementById("user-points").innerText = "0";
+            totalScoreElement.innerText = "N/A";
+            localStorage.setItem("totalScore", "N/A");
             return;
         }
 
@@ -381,20 +394,20 @@ async function updateTotalScore() {
         });
 
         console.log(`🔥 Tổng điểm mới của ${username}: ${totalScore}`);
-        document.getElementById("user-points").innerText = totalScore;
-
-        // 🔥 Cập nhật tổng điểm vào Firestore
-        const userRef = firebase.firestore().collection("users").doc(username);
-        await userRef.update({ totalScore: totalScore });
-		
-        document.getElementById("user-points").innerText = totalScore;
+        totalScoreElement.innerText = totalScore;
         localStorage.setItem("totalScore", totalScore);
 
-        console.log(`✅ Đã cập nhật tổng điểm vào Firestore.`);
+        // Đồng bộ với Firestore (users collection)
+        const userRef = firebase.firestore().collection("users").doc(username);
+        await userRef.set({ totalScore }, { merge: true });
+
+        console.log(`✅ Đã cập nhật tổng điểm vào Firestore & localStorage.`);
     } catch (error) {
-        console.error("❌ Lỗi khi cập nhật tổng điểm:", error);
+        console.error("❌ Lỗi khi cập nhật tổng điểm từ Firestore:", error);
+        totalScoreElement.innerText = cachedScore || "N/A"; // fallback
     }
 }
+
 
 
 async function updateOldLeaderboardData() {
