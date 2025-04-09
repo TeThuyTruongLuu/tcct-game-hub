@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thần mèo quyết định</title>
+    <style>
+		@font-face {
+			font-family: '000 Chinacat [TeddyBear]'; /* Tên bạn muốn đặt cho font */
+			src: url('../../css/fonts/000 Chinacat [TeddyBear].ttf') format('truetype'); /* Đường dẫn đến file font */
+		}
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, #c8e6c9, #81c784);
+            overflow: hidden;
+        }
+        input {
+            width: 50%;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .book-container {
+            position: relative;
+            width: 40vw;
+            max-width: 400px;
+            height: 300px;
+            perspective: 1200px;
+        }
+        .book {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s;
+        }
+        .closed {
+            transform: rotateY(0deg);
+        }
+        .opened {
+            transform: rotateY(-180deg);
+        }
+        .cover {
+			font-family: '000 Chinacat [TeddyBear]';
+            width: 50%;
+            height: 100%;
+			background: white url('img/catwjx-cover.jpg') no-repeat center center;
+            border-radius: 0px 5px 5px 0px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            backface-visibility: hidden;
+            position: absolute;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            left: 50%;
+            transform-origin: left;
+			font-weight: bold;
+			background-size: 100%;
+        }
+        .pages {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2);
+            transform: rotateY(180deg);
+            backface-visibility: hidden;
+        }
+        .page-left, .page-right {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+		.page-left {
+			border-radius: 0px 5px 5px 0px;
+			background: white url('img/catwjx-text.jpg') no-repeat center center;
+			background-size: auto 95%;
+			background-position: center;
+			transform: scaleX(-1);
+			box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+			padding: 20px;
+		}
+
+		.page-right {
+			font-family: '000 Chinacat [TeddyBear]';
+			border-radius: 0px 5px 5px 0px;
+			background: white url('img/catwjx-text.jpg') no-repeat center center;
+			background-size: auto 95%;
+			font-size: 16px;
+			text-align: center;
+			padding: 20px;			
+		}
+		.page-right text { padding-left: -15px;}
+        .page-left img {
+            max-width: 120%;
+            height: 120%;
+			object-fit: contain;
+			transform: scaleX(-1);
+        }
+		.nav-button {
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+			background: rgba(0, 0, 0, 0.11);
+			border: none;
+			cursor: pointer;
+			padding: 0;
+			border-radius: 50%;
+			width: 2.5vw;
+			height: 2.5vw;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		.nav-button img {
+			width: 100%;
+			height: auto;
+		}
+		.next img {
+			transform: scaleX(-1);
+		}
+		.prev { left: -8vw; }
+		.next { right: -8vw; }
+		
+		@media (max-width: 768px) {
+			input {
+				width: 80%;
+				font-size: 16px;
+			}
+			.book-container {
+				width: 90vw;
+				height: auto;
+				max-width: 300px;
+			}
+			.book, .pages {
+				height: 250px;
+			}
+			.page-left, .page-right {
+				padding: 10px;
+				font-size: 14px;
+			}
+			.nav-button {
+				width: 35px;
+				height: 35px;
+				padding: 8px;
+			}
+			.prev { left: -40px; }
+			.next { right: -40px; }
+		}
+
+    </style>
+</head>
+<body>
+    <input type="text" placeholder="Nhập câu hỏi...">
+    <div class="book-container">
+		<button class="nav-button prev" onclick="prevPage()">
+			<img src="../../img/prev.png" alt="Prev">
+		</button>
+        <div class="book closed" id="book">
+            <div class="cover"></div>
+            <div class="pages" id="pages">
+                <div class="page-left" id="image"></div>
+                <div class="page-right" id="text"></div>
+            </div>
+        </div>
+		<button class="nav-button next" onclick="nextPage()">
+			<img src="../../img/prev.png" alt="Next">
+		</button>
+    </div>
+
+    <script>
+        const dialogues = [
+			{ img: 'img/catwjx-1.png', text: 'ROLL điểm.' },
+			{ img: 'img/catwjx-2.png', text: 'Đừng làm chỗ dựa, hãy làm tấm gương sao?' },
+			{ img: 'img/catwjx-3.png', text: 'Cậu không được thế này, tuyệt đối không được.' },
+			{ img: 'img/catwjx-4.png', text: 'Không thả là bất hạnh của Trung Thảo Đường, thả thì là bất hạnh của tất cả các đội.' },
+			{ img: 'img/catwjx-5.png', text: 'Đoán không ra, hầy, đoán không ra.' },
+			{ img: 'img/catwjx-6.png', text: 'Khoảng cách này chỉ là tạm thời thôi, cậu có tiềm năng rất lớn!' },
+			{ img: 'img/catwjx-7.png', text: 'Cậu vẫn còn rất trẻ, hãy tiếp tục cố gắng, rồi sẽ có một ngày nào đó cậu vượt qua tất cả mọi người.' },
+			{ img: 'img/catwjx-8.png', text: 'Nếu như may mắn cũng là sai lầm, vậy thì tôi nguyện ý sai càng thêm sai.' },
+			{ img: 'img/catwjx-9.png', text: 'Gánh nặng này........ Quá nặng rồi.' },
+			{ img: 'img/catwjx-10.png', text: 'Tự tin lên, đừng hoài nghi bản thân.' },
+			{ img: 'img/catwjx-11.png', text: 'Rất mong chờ trận đấu tiếp theo với hắn.' },
+			{ img: 'img/catwjx-12.png', text: 'Tại thời khắc mấu chốt, anh ấy chưa từng thất bại. Anh ấy có thể thua, nhưng từ trước đến nay chưa từng khiến người khác mất đi niềm tin vào mình.' },
+			{ img: 'img/catwjx-13.png', text: 'Giống ở đâu nhỉ.....' },
+			{ img: 'img/catwjx-14.png', text: 'Rõ ràng là họ đang bị dẫn trước, nhưng khi Vương Kiệt Hi vừa vào sân thì họ trông như chắc chắn sẽ thắng vậy.' },
+			{ img: 'img/catwjx-15.png', text: 'Có lẽ là vậy!' },
+			{ img: 'img/catwjx-16.png', text: 'Cơ hội thế này e rằng khó mà có được.' },
+			{ img: 'img/catwjx-17.png', text: 'Tích cực, chủ động.' },
+			{ img: 'img/catwjx-18.png', text: 'Bây giờ, tiếp tục huấn luyện.' },
+			{ img: 'img/catwjx-19.png', text: 'Trận đấu tuyệt vời.' },
+			{ img: 'img/catwjx-20.png', text: 'Cuối cùng cũng hiểu rồi.' },
+			{ img: 'img/catwjx-21.png', text: 'Một trong những tuyển thủ đáng tin cậy nhất trong Liên minh.' },
+			{ img: 'img/catwjx-22.png', text: 'Cocacola nhé, cảm ơn.' },
+			{ img: 'img/catwjx-23.png', text: 'Tôi nghĩ là tôi có thể.' },
+			{ img: 'img/catwjx-24.png', text: 'Đến rồi.' },
+			{ img: 'img/catwjx-25.png', text: 'Lười rồi.' },
+			{ img: 'img/catwjx-26.png', text: 'Tướng lang cố.' },
+			{ img: 'img/catwjx-27.png', text: 'Cậu đùa cái gì? Thời gian của cậu dùng để lãng phí vào việc này sao?' },
+			{ img: 'img/catwjx-28.png', text: 'Mỗi người chúng ta đều miễn cưỡng bản thân một chút, nghe theo mong muốn của anh ấy đi?' },
+			{ img: 'img/catwjx-29.png', text: 'Ngày mai, ai cũng có ngày mai.' },
+			{ img: 'img/catwjx-30.png', text: 'Cậu nghĩ chỉ có hắn mới cân được trình này sao?' },
+			{ img: 'img/catwjx-31.png', text: 'Không thể mệt mỏi! Muốn tồn tại trong Liên minh thì phải ngược dòng mà đi.' },
+			{ img: 'img/catwjx-32.png', text: 'Ký tên ở đâu?' },
+			{ img: 'img/catwjx-33.png', text: 'Trước nay chưa từng xem thường đối thủ nào.' },
+			{ img: 'img/catwjx-34.png', text: 'Chênh lệch thực lực không quyết định thắng bại, tranh tài là để chiến thắng, không phải để so sánh.' },
+			{ img: 'img/catwjx-35.png', text: 'Cậu muốn thử à?' },
+			{ img: 'img/catwjx-36.png', text: 'Tắt điện thoại di động.' },
+			{ img: 'img/catwjx-37.png', text: 'Không có gì đặc biệt, chỉ là lối đánh quê mùa nhất.' },
+			{ img: 'img/catwjx-38.png', text: 'Phải gánh lấy tương lai của Vi Thảo nhé!' },
+			{ img: 'img/catwjx-39.png', text: 'Vương Kiệt Hi và Vương Bất Lưu Hành của anh ấy cứ thế không gì cản nổi, gánh lấy Vi Thảo bay về phía trước.' },
+			{ img: 'img/catwjx-40.png', text: 'Có khó dùng không?' },
+			{ img: 'img/catwjx-41.png', text: 'Đánh thua cũng không sao, nhưng đừng để mất niềm tin nhé!' },
+			{ img: 'img/catwjx-42.png', text: 'Có đôi khi lựa chọn không phải là đúng hay sai, chỉ là cậu có kiên định bước tiếp hay không.' },
+			{ img: 'img/catwjx-43.png', text: 'Tôi mong mọi người có thể tiếp tục và học được gì đó.' },
+			{ img: 'img/catwjx-44.png', text: 'Nhất định.' },
+			{ img: 'img/catwjx-45.png', text: 'Nói nhảm thì có nghĩa lý gì......' },
+			{ img: 'img/catwjx-46.png', text: 'Các cậu kiểu gì cũng sẽ gặp lại.' },
+			{ img: 'img/catwjx-47.png', text: 'Cậu tự tin quá nhỉi?' },
+			{ img: 'img/catwjx-48.png', text: 'Vi Thảo mới là lựa chọn tốt nhất.' },
+			{ img: 'img/catwjx-49.png', text: 'Dùng lối đánh em thoải mái nhất, am hiểu nhất, quen thuộc nhất là được rồi.' },
+        ];
+        let currentIndex = 0;
+        
+        const book = document.getElementById('book');
+        const image = document.getElementById('image');
+        const text = document.getElementById('text');
+
+        function updatePage() {
+            image.innerHTML = `<img src="${dialogues[currentIndex].img}" alt="Story Image">`;
+            text.textContent = dialogues[currentIndex].text;
+        }
+				
+		book.addEventListener('click', () => {
+			if (book.classList.contains('closed')) {
+				currentIndex = Math.floor(Math.random() * dialogues.length); // chọn ngẫu nhiên một chỉ mục
+				updatePage();
+				book.classList.remove('closed');
+				book.classList.add('opened');
+			}
+		});
+
+
+        function nextPage() {
+            if (currentIndex < dialogues.length - 1) {
+                currentIndex++;
+                updatePage();
+            }
+        }
+
+        function prevPage() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updatePage();
+            }
+        }
+    </script>
+</body>
+</html>
