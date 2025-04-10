@@ -2,12 +2,11 @@ document.addEventListener('deviceready', onDeviceReady, false);
 
 function onDeviceReady() {
     // Cordova is now initialized. Have fun!
-
     console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
     document.getElementById('deviceready').classList.add('ready');
 }
 
-//Load login
+// Load login
 document.addEventListener("deviceready", function() {
     document.addEventListener("backbutton", function(e) {
         const loginModal = document.getElementById("login-modal");
@@ -17,7 +16,6 @@ document.addEventListener("deviceready", function() {
         }
     }, false);
 }, false);
-
 
 // Kiểm tra Firebase
 if (!firebase.apps.length) {
@@ -38,15 +36,69 @@ if (!firebase.apps.length) {
 // Lấy Firestore
 const db = firebase.firestore();
 
-//Kiểm tra điều kiện log-in, log-out
+// Object chứa danh sách hình ảnh cho từng nhân vật
+const characterImagesData = {
+    "Du": [
+        "../2048/images/Du_1.jpg",
+        "../2048/images/Du_2.jpg",
+        "../2048/images/Du_3.jpg",
+        "../2048/images/Du_4.jpg",
+        "../2048/images/Du_5.jpg",
+        "../2048/images/Du_6.jpg",
+        "../2048/images/Du_7.jpg",
+        "../2048/images/Du_8.jpg"
+    ],
+    "Khuu": [
+        "../2048/images/Khuu_1.jpg",
+        "../2048/images/Khuu_2.jpg",
+        "../2048/images/Khuu_3.jpeg",
+        "../2048/images/Khuu_3.jpg",
+        "../2048/images/Khuu_4.jpg",
+        "../2048/images/Khuu_5.jpg",
+        "../2048/images/Khuu_6.jpg",
+        "../2048/images/Khuu_7.jpg",
+        "../2048/images/Khuu_8.jpg"
+    ],
+    "Lac": [
+        "../2048/images/Lac_1.jpg",
+        "../2048/images/Lac_2.jpg",
+        "../2048/images/Lac_3.jpg",
+        "../2048/images/Lac_4.jpg",
+        "../2048/images/Lac_5.jpg",
+        "../2048/images/Lac_6.jpg",
+        "../2048/images/Lac_7.jpg",
+        "../2048/images/Lac_8.jpg"
+    ],
+    "Vuong": [
+        "../2048/images/Vuong_1.jpg",
+        "../2048/images/Vuong_2.jpg",
+        "../2048/images/Vuong_3.jpg",
+        "../2048/images/Vuong_4.jpg",
+        "../2048/images/Vuong_5.jpg",
+        "../2048/images/Vuong_6.jpg",
+        "../2048/images/Vuong_7.jpg",
+        "../2048/images/Vuong_8.jpg"
+    ]
+};
 
+async function fetchCharacterImages(character) {
+    // Kiểm tra xem nhân vật có trong danh sách không
+    if (characterImagesData[character]) {
+        console.log(`📷 Đã tìm thấy ảnh nhân vật ${character} trong thư mục offline.`);
+        return characterImagesData[character];
+    }
 
+    console.warn(`⚠️ Không tìm thấy ảnh của ${character}, dùng ảnh mặc định.`);
+    return ["../2048/images/Vuong_1.jpg"];
+}
+
+// Kiểm tra điều kiện log-in, log-out
 document.addEventListener("DOMContentLoaded", async function () {
     console.log("🔥 DOM đã load xong!");
 
     let username = localStorage.getItem("username");
     let selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
-	let totalScore = localStorage.getItem("totalScore") ? parseInt(localStorage.getItem("totalScore")) : 0;
+    let totalScore = localStorage.getItem("totalScore") ? parseInt(localStorage.getItem("totalScore")) : 0;
 
     // 🛠 Kiểm tra nếu user đã đăng nhập trước đó
     if (username) {
@@ -83,8 +135,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // ✅ Cập nhật UI với dữ liệu vừa lấy được
     document.getElementById("character-select").value = selectedCharacter;
-	document.getElementById("user-points").innerText = totalScore;
-	
+    document.getElementById("user-points").innerText = totalScore;
+    
     // ✅ Hiển thị thông tin nhân vật
     showRandomCharacterImage();
     showRandomCharacterQuote();
@@ -127,8 +179,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             document.getElementById("scoreboard").style.display = "block";
             document.getElementById("character-callout").style.display = "flex";
             document.getElementById("settings-btn-game").style.display = "block";
-
-            //await initializeGame(); // 🔥 Load lại dữ liệu sau khi đăng nhập
         });
     }
 
@@ -184,14 +234,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 });
 
-
 function logout() {
-	localStorage.clear();
+    localStorage.clear();
     location.reload();
 }
 
-
-//Lưu điểm
+// Lưu điểm
 async function saveScoreToDB(game, newScore) {
     const username = localStorage.getItem("username");
     if (!username) {
@@ -236,7 +284,7 @@ async function saveScoreToDB(game, newScore) {
 
 window.saveScoreToDB = saveScoreToDB;
 
-//Leaderboard + Personal score
+// Leaderboard + Personal score
 let personalScoresVisible = false;
 let leaderboardVisible = false;
 
@@ -289,7 +337,6 @@ async function loadLeaderboard(game) {
     }
 }
 
-
 function formatDate(isoString) {
     const date = new Date(isoString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -298,7 +345,6 @@ function formatDate(isoString) {
 
     return `${day}/${month}/${year}`;
 }
-
 
 async function showPersonalScores() {
     const scoreboard = document.getElementById("scoreboard");
@@ -340,7 +386,6 @@ async function showPersonalScores() {
         console.error("❌ Lỗi khi lấy bảng điểm cá nhân:", error);
     }
 }
-
 
 async function showLeaderboard() {
     const leaderboardSection = document.getElementById("leaderboard-section");
@@ -408,8 +453,6 @@ async function updateTotalScore() {
     }
 }
 
-
-
 async function updateOldLeaderboardData() {
     const scoresRef = firebase.firestore().collection("userScores");
     
@@ -441,7 +484,7 @@ async function updateOldLeaderboardData() {
 
 updateOldLeaderboardData();
 
-//Nút setting
+// Nút setting
 document.addEventListener("DOMContentLoaded", function () {
     const settingsButton = document.getElementById("settings-btn-game");
     const settingsModal = document.getElementById("settings-modal");
@@ -451,21 +494,17 @@ document.addEventListener("DOMContentLoaded", function () {
     if (settingsButton && settingsModal) {
         settingsButton.addEventListener("click", function () {
             settingsModal.style.display = "block";
-            
         });
     }
 
     if (closeSettingsButton) {
         closeSettingsButton.addEventListener("click", function () {
             settingsModal.style.display = "none";
-            
         });
     }
 });
 
-
-
-//Chọn bias
+// Chọn bias
 async function loadUserBias() {
     console.log("🔄 Đang tải bias của user...");
 
@@ -493,7 +532,6 @@ async function loadUserBias() {
     return selectedCharacter;
 }
 
-
 async function setSelectedCharacter() {
     const characterSelect = document.getElementById("character-select");
     const selectedCharacter = characterSelect?.value || "Vương";
@@ -514,30 +552,6 @@ async function setSelectedCharacter() {
     showRandomCharacterImage();
     showRandomCharacterQuote();
     checkUserPoints();
-}
-
-
-
-async function fetchCharacterImages(character) {
-    let images = JSON.parse(localStorage.getItem(`images_${character}`)) || [];
-
-    if (images.length > 0) {
-        console.log(`📷 Đã tìm thấy ảnh nhân vật ${character} trong bộ nhớ offline.`);
-        return images;
-    }
-
-    const imageRef = db.collection("characterImages").doc(character);
-    const imageDoc = await imageRef.get();
-
-    if (imageDoc.exists) {
-        console.log(`📷 Ảnh của ${character} đã tải từ Firestore.`);
-        images = imageDoc.data().images || [];
-        localStorage.setItem(`images_${character}`, JSON.stringify(images));  // Lưu offline
-        return images;
-    }
-
-    console.warn(`⚠️ Không tìm thấy ảnh của ${character}, dùng ảnh mặc định.`);
-    return ["https://i.imgur.com/default.png"];
 }
 
 async function fetchCharacterQuotes(character) {
@@ -565,10 +579,6 @@ async function fetchCharacterQuotes(character) {
     console.warn(`⚠️ Không tìm thấy thoại của ${character}, dùng thoại mặc định.`);
     return ["Xin chào! Tôi sẽ là trợ thủ của bạn!"];
 }
-
-
-
-
 
 async function showRandomCharacterImage() {
     const character = localStorage.getItem("selectedCharacter") || "Vương";
@@ -606,8 +616,6 @@ async function showRandomCharacterQuote() {
     }
 }
 
-
-
 async function checkUserPoints() {
     const username = localStorage.getItem("username");
     if (!username) {
@@ -641,7 +649,6 @@ async function checkUserPoints() {
         document.getElementById("custom-quote-section").style.display = "none";
     }
 }
-
 
 function displayQuoteInputs(existingQuotes, allowedQuotes) {
     const customQuoteSection = document.getElementById("custom-quote-section");
@@ -709,7 +716,6 @@ async function submitCustomQuotes() {
     }
 }
 
-
 async function fetchUserQuotes(character, username) {
     try {
         console.log(`📥 Đang lấy thoại của ${character} cho user ${username}...`);
@@ -733,7 +739,6 @@ async function fetchUserQuotes(character, username) {
     }
 }
 
-
 async function downloadCharacterData() {
     const character = localStorage.getItem("selectedCharacter") || "Vương";
 
@@ -748,7 +753,7 @@ async function downloadCharacterData() {
     localStorage.removeItem(`images_${character}`);
     localStorage.removeItem(`dialogues_${character}`);
 
-    // 🔄 Tải ảnh và thoại từ Firestore
+    // 🔄 Tải ảnh và thoại
     const images = await fetchCharacterImages(character);
     const dialogues = await fetchCharacterQuotes(character);
 
