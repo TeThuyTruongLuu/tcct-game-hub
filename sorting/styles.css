@@ -68,7 +68,6 @@ h1 {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     text-align: center;
     max-width: 150px;
-
     position: relative;
     margin: 0 auto 16px;
     display: block;
@@ -104,6 +103,7 @@ h1 {
     #timer {
         font-size: 5vw;
         padding: 2vw 3vw;
+		max-width: 80%;
         margin-bottom: 3vw;
     }
 
