@@ -346,6 +346,7 @@ th {
     cursor: pointer;
     z-index: 999;
 	background-color: #FFEEEE;
+	padding-bottom: 1.5vw;
 }
 
 #settings-icon-game {
