@@ -9,7 +9,7 @@ function createItems() {
     let items = [];
     characterList.forEach(type => {
         for (let i = 1; i <= 6; i++) { // Tạo 6 items mỗi char, tổng 24 items
-            items.push(`${type} (${i})`);
+            items.push(`${type}_${i}`);
         }
     });
     // Xáo trộn danh sách

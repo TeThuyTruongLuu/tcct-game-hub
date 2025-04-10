@@ -162,7 +162,7 @@ function loadCharacterTiles(charId) {
 	const totalImages = 8;
     for (let i = 1; i <= totalImages; i++) {
         const img = document.createElement("img");
-        img.src = `images/${charId} (${i}).jpg`;
+        img.src = `images/${charId}_${i}.jpg`;
         img.draggable = true;
         img.dataset.charId = charId;
         img.dataset.tileIndex = i;
@@ -200,8 +200,8 @@ document.querySelectorAll(".tile-slot").forEach((slot) => {
         const tileValue = slot.dataset.value;
 
         // Gán ảnh
-        slot.innerHTML = `<img src="images/${charId} (${tileIndex}).jpg" alt="Tile">`;
-        characterImages[tileValue] = `images/${charId} (${tileIndex}).jpg`;
+        slot.innerHTML = `<img src="images/${charId}_${tileIndex}.jpg" alt="Tile">`;
+        characterImages[tileValue] = `images/${charId}_${tileIndex}.jpg`;
     });
     slot.addEventListener("touchend", (e) => {
         if (draggedImage) {
