@@ -467,6 +467,34 @@ th {
     margin-top: 10px; /* Tạo khoảng cách giữa input và nút */
 }
 
+#custom-quote-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin: 10px auto;
+}
+
+#custom-quote-container input[type="text"].custom-quote {
+    width: 80%;
+    max-width: 300px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    background: #ffffff;
+    color: #333;
+    text-align: center;
+    transition: border-color 0.2s ease-in-out;
+}
+
+#custom-quote-container input[type="text"].custom-quote:focus {
+    border-color: #888;
+    outline: none;
+}
+
 
 /* Responsive: Hiển thị đẹp trên điện thoại */
 @media (max-width: 750px) {

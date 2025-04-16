@@ -589,7 +589,9 @@ async function checkUserPoints() {
 function displayQuoteInputs(existingQuotes, allowedQuotes) {
     const customQuoteSection = document.getElementById("custom-quote-section");
     const quoteMessage = document.getElementById("quote-message");
-    const inputField = document.getElementById("custom-quote");
+    const inputContainer = document.getElementById("custom-quote-container");
+
+    inputContainer.innerHTML = ""; // clear old
 
     if (allowedQuotes === 0 && existingQuotes.length === 0) {
         customQuoteSection.style.display = "none";
@@ -597,28 +599,32 @@ function displayQuoteInputs(existingQuotes, allowedQuotes) {
     }
 
     customQuoteSection.style.display = "block";
+    quoteMessage.innerText = existingQuotes.length > 0
+        ? "📜 Thoại đã nhập trước đó:"
+        : `💬 Bạn có thể nhập tối đa ${allowedQuotes} câu thoại.`;
 
-    if (existingQuotes.length > 0) {
-        quoteMessage.innerText = "📜 Thoại đã nhập trước đó:";
-        inputField.value = existingQuotes[0];
-    } else {
-        quoteMessage.innerText = `💬 Bạn có thể nhập tối đa ${allowedQuotes} câu thoại.`;
-        inputField.value = "";
+    const totalInputs = Math.max(existingQuotes.length, allowedQuotes);
+
+    for (let i = 0; i < totalInputs; i++) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "custom-quote";
+        input.placeholder = `Câu thoại ${i + 1}`;
+        input.value = existingQuotes[i] || "";
+        inputContainer.appendChild(input);
     }
 }
 
 async function submitCustomQuotes() {
     const username = localStorage.getItem("username");
-    if (!username) {
-        alert("⚠️ Bạn chưa đăng nhập!");
-        return;
-    }
-
     const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vuong";
-    const inputField = document.getElementById("custom-quote");
-    const quoteText = inputField.value.trim();
+    const inputFields = document.querySelectorAll(".custom-quote");
 
-    if (!quoteText) {
+    const quotes = Array.from(inputFields)
+                        .map(input => input.value.trim())
+                        .filter(text => text);
+
+    if (!username || quotes.length === 0) {
         alert("⚠️ Bạn chưa nhập câu thoại nào.");
         return;
     }
@@ -628,15 +634,16 @@ async function submitCustomQuotes() {
         const docSnapshot = await docRef.get();
 
         let existingUserQuotes = docSnapshot.exists ? docSnapshot.data().userQuotes || {} : {};
-        existingUserQuotes[username] = [quoteText];
+        existingUserQuotes[username] = quotes;
 
         await docRef.set({ userQuotes: existingUserQuotes }, { merge: true });
         alert("✅ Thoại đã được cập nhật thành công!");
-        localStorage.setItem(`dialogues_${selectedCharacter}`, JSON.stringify([quoteText]));
-        displayQuoteInputs([quoteText], Math.floor(localStorage.getItem("totalScore") / 1000));
+
+        localStorage.setItem(`dialogues_${selectedCharacter}`, JSON.stringify(quotes));
+        displayQuoteInputs(quotes, Math.floor(localStorage.getItem("totalScore") / 1000));
     } catch (error) {
         console.error(error);
-        alert("❌ Đã xảy ra lỗi khi cập nhật thoại, thử lại sau.");
+        alert("❌ Đã xảy ra lỗi khi cập nhật thoại.");
     }
 }
 
