@@ -37,15 +37,25 @@
 		<button onclick="showLeaderboard()">Bảng kỷ lục</button>
 	</div>
 	<div id="leaderboard-section" style="display: none;">
-		<div class="leaderboard-tabs">
-			<button class="tab-btn active" data-game="2048">2048</button>
-			<button class="tab-btn" data-game="Lật hình">Lật hình</button>
-			<button class="tab-btn" data-game="Nối hình">Nối hình</button>
-			<button class="tab-btn" data-game="Puzzle">Xếp hình</button>
+		<div class="tab-group-wrapper">
+			<button class="tab-group-btn left" onclick="switchTabPage(-1)">&#8249;</button>
+			<div class="tab-group" id="tabGroup">
+				<div class="tab-page active">
+					<button class="tab-btn" data-game="2048">2048</button>
+					<button class="tab-btn" data-game="Lật hình">Lật hình</button>
+					<button class="tab-btn" data-game="Nối hình">Nối hình</button>
+					<button class="tab-btn" data-game="Puzzle">Xếp hình</button>
+				</div>
+				<div class="tab-page">
+					<button class="tab-btn" data-game="Sorting">Xếp kệ</button>
+					<button class="tab-btn" data-game="Minesweeper">Dò mìn</button>
+					<button class="tab-btn" data-game="Nonogram">Nonogram</button>
+					<button class="tab-btn" data-game="Snake">Bắn tàu</button>
+				</div>
+			</div>
+			<button class="tab-group-btn right" onclick="switchTabPage(1)">&#8250;</button>
 		</div>
-		<div id="leaderboard-content">
-			<!-- Nội dung bảng xếp hạng sẽ được cập nhật ở đây -->
-		</div>
+		<div id="leaderboard-content"></div>
 	</div>
 	<div id="scoreboard" style="display: none;"></div>
 	

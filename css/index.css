@@ -273,23 +273,56 @@ th {
     margin: 0 auto 15px;
 }
 
-/* Nút tab */
-.tab-btn {
-    background: transparent;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
-    border-radius: 20px;
-    transition: all 0.3s ease;
+.tab-group-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px auto;
 }
 
-/* Khi nút được chọn */
+.tab-group {
+    background: #f8f8f8;
+    padding: 6px 10px;
+    border-radius: 25px;
+    display: flex;
+    overflow: hidden;
+    width: fit-content;
+    max-width: 90vw;
+}
+
+.tab-page {
+    display: none;
+    gap: 6px;
+}
+
+.tab-page.active {
+    display: flex;
+}
+
+.tab-btn {
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #333;
+    transition: background 0.3s, color 0.3s;
+}
+
 .tab-btn.active {
     background: #3a2e25;
-    color: white;
+    color: #fff;
+}
+
+.tab-group-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #555;
+    cursor: pointer;
+    padding: 5px 10px;
 }
 
 

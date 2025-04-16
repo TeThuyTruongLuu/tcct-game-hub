@@ -188,16 +188,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 
-    const tabButtons = document.querySelectorAll(".tab-btn");
-    tabButtons.forEach((btn) => {
-        btn.addEventListener("click", function () {
-            tabButtons.forEach((btn) => btn.classList.remove("active"));
-            this.classList.add("active");
+	const tabButtons = document.querySelectorAll(".tab-btn");
+	tabButtons.forEach((btn) => {
+		btn.addEventListener("click", function () {
+			tabButtons.forEach((btn) => btn.classList.remove("active"));
+			this.classList.add("active");
 
-            const game = this.getAttribute("data-game");
-            loadLeaderboard(game);
-        });
-    });
+			const game = this.getAttribute("data-game");
+			loadLeaderboard(game);
+		});
+	});
 
     loadLeaderboard("2048");
 
@@ -261,7 +261,7 @@ async function loadLeaderboard(game) {
         return;
     }
 
-    leaderboardContent.innerHTML = `<h3>Bảng xếp hạng</h3>`;
+    let html = `<h3>Bảng xếp hạng</h3>`; // Start with the header
 
     const scoresRef = firebase.firestore().collection("userScores");
 
@@ -274,7 +274,6 @@ async function loadLeaderboard(game) {
 
     try {
         const querySnapshot = await q.get();
-        let html = "";
         if (game === "Lật hình") {
             html += `<table><tr><th>Người chơi</th><th>Thời gian (s)</th><th>Điểm</th></tr>`;
         } else {
@@ -295,9 +294,10 @@ async function loadLeaderboard(game) {
         }
 
         html += `</table>`;
-        leaderboardContent.innerHTML += html;
+        leaderboardContent.innerHTML = html; // Set the entire HTML at once
     } catch (error) {
         console.error(error);
+        leaderboardContent.innerHTML = `<h3>Bảng xếp hạng</h3><p>Đã xảy ra lỗi khi tải bảng xếp hạng.</p>`;
     }
 }
 
@@ -351,13 +351,24 @@ async function showPersonalScores() {
 
 async function showLeaderboard() {
     const leaderboardSection = document.getElementById("leaderboard-section");
+    const tabPages = document.querySelectorAll(".tab-page");
+    const allTabs = document.querySelectorAll(".tab-btn");
+
     if (leaderboardSection.style.display === "none") {
         leaderboardSection.style.display = "block";
-        loadLeaderboard("2048");
+
+        // Reset tất cả tab về inactive
+        allTabs.forEach(btn => btn.classList.remove("active"));
+		const firstTab = tabPages[0].querySelector(".tab-btn");
+		if (firstTab) {
+			firstTab.classList.add("active");
+			loadLeaderboard(firstTab.getAttribute("data-game"));
+		}
     } else {
         leaderboardSection.style.display = "none";
     }
 }
+
 
 async function updateTotalScore() {
     const username = localStorage.getItem("username");
@@ -692,3 +703,29 @@ async function downloadCharacterData() {
         alert("❌ Không thể tải dữ liệu, kiểm tra kết nối mạng.");
     }
 }
+
+function scrollTabs(direction) {
+    const tabContainer = document.getElementById("gameTabs");
+    const scrollAmount = 120;
+    tabContainer.scrollBy({ left: direction * scrollAmount, behavior: "smooth" });
+}
+
+let currentTabPage = 0;
+
+function switchTabPage(direction) {
+    const pages = document.querySelectorAll(".tab-page");
+    pages[currentTabPage].classList.remove("active");
+    currentTabPage = (currentTabPage + direction + pages.length) % pages.length;
+    pages[currentTabPage].classList.add("active");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const tabs = document.querySelectorAll(".tab-btn");
+    tabs.forEach((btn) => {
+        btn.addEventListener("click", function () {
+            tabs.forEach((b) => b.classList.remove("active"));
+            this.classList.add("active");
+            loadLeaderboard(this.getAttribute("data-game"));
+        });
+    });
+});
