@@ -1,12 +1,10 @@
 document.addEventListener('deviceready', onDeviceReady, false);
 
 function onDeviceReady() {
-    // Cordova is now initialized. Have fun!
     console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
     document.getElementById('deviceready').classList.add('ready');
 }
 
-// Load login
 document.addEventListener("deviceready", function() {
     document.addEventListener("backbutton", function(e) {
         const loginModal = document.getElementById("login-modal");
@@ -17,7 +15,6 @@ document.addEventListener("deviceready", function() {
     }, false);
 }, false);
 
-// Kiểm tra Firebase
 if (!firebase.apps.length) {
     const firebaseConfig = {
         apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
@@ -28,83 +25,77 @@ if (!firebase.apps.length) {
         appId: "1:604780847536:web:f8015bde5ef469b04c7675",
         measurementId: "G-1GGDZR6VY5"
     };
-
     firebase.initializeApp(firebaseConfig);
-    console.log("🔥 Firebase đã được khởi tạo!");
 }
 
-// Lấy Firestore
 const db = firebase.firestore();
 
-// Object chứa danh sách hình ảnh cho từng nhân vật
 const characterImagesData = {
     "Du": [
-        "../2048/images/Du_1.jpg",
-        "../2048/images/Du_2.jpg",
-        "../2048/images/Du_3.jpg",
-        "../2048/images/Du_4.jpg",
-        "../2048/images/Du_5.jpg",
-        "../2048/images/Du_6.jpg",
-        "../2048/images/Du_7.jpg",
-        "../2048/images/Du_8.jpg"
+        "2048/images/Du_1.jpg",
+        "2048/images/Du_2.jpg",
+        "2048/images/Du_3.jpg",
+        "2048/images/Du_4.jpg",
+        "2048/images/Du_5.jpg",
+        "2048/images/Du_6.jpg",
+        "2048/images/Du_7.jpg",
+        "2048/images/Du_8.jpg"
     ],
     "Khuu": [
-        "../2048/images/Khuu_1.jpg",
-        "../2048/images/Khuu_2.jpg",
-        "../2048/images/Khuu_3.jpeg",
-        "../2048/images/Khuu_3.jpg",
-        "../2048/images/Khuu_4.jpg",
-        "../2048/images/Khuu_5.jpg",
-        "../2048/images/Khuu_6.jpg",
-        "../2048/images/Khuu_7.jpg",
-        "../2048/images/Khuu_8.jpg"
+        "2048/images/Khuu_1.jpg",
+        "2048/images/Khuu_2.jpg",
+        "2048/images/Khuu_3.jpg",
+        "2048/images/Khuu_4.jpg",
+        "2048/images/Khuu_5.jpg",
+        "2048/images/Khuu_6.jpg",
+        "2048/images/Khuu_7.jpg",
+        "2048/images/Khuu_8.jpg"
     ],
     "Lac": [
-        "../2048/images/Lac_1.jpg",
-        "../2048/images/Lac_2.jpg",
-        "../2048/images/Lac_3.jpg",
-        "../2048/images/Lac_4.jpg",
-        "../2048/images/Lac_5.jpg",
-        "../2048/images/Lac_6.jpg",
-        "../2048/images/Lac_7.jpg",
-        "../2048/images/Lac_8.jpg"
+        "2048/images/Lac_1.jpg",
+        "2048/images/Lac_2.jpg",
+        "2048/images/Lac_3.jpg",
+        "2048/images/Lac_4.jpg",
+        "2048/images/Lac_5.jpg",
+        "2048/images/Lac_6.jpg",
+        "2048/images/Lac_7.jpg",
+        "2048/images/Lac_8.jpg"
     ],
     "Vuong": [
-        "../2048/images/Vuong_1.jpg",
-        "../2048/images/Vuong_2.jpg",
-        "../2048/images/Vuong_3.jpg",
-        "../2048/images/Vuong_4.jpg",
-        "../2048/images/Vuong_5.jpg",
-        "../2048/images/Vuong_6.jpg",
-        "../2048/images/Vuong_7.jpg",
-        "../2048/images/Vuong_8.jpg"
+        "2048/images/Vuong_1.jpg",
+        "2048/images/Vuong_2.jpg",
+        "2048/images/Vuong_3.jpg",
+        "2048/images/Vuong_4.jpg",
+        "2048/images/Vuong_5.jpg",
+        "2048/images/Vuong_6.jpg",
+        "2048/images/Vuong_7.jpg",
+        "2048/images/Vuong_8.jpg"
     ]
 };
 
-async function fetchCharacterImages(character) {
-    // Kiểm tra xem nhân vật có trong danh sách không
-    if (characterImagesData[character]) {
-        console.log(`📷 Đã tìm thấy ảnh nhân vật ${character} trong thư mục offline.`);
-        return characterImagesData[character];
-    }
-
-    console.warn(`⚠️ Không tìm thấy ảnh của ${character}, dùng ảnh mặc định.`);
-    return ["../2048/images/Vuong_1.jpg"];
+function removeVietnameseTones(str) {
+    return str.normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .replace(/đ/g, 'd').replace(/Đ/g, 'D');
 }
 
-// Kiểm tra điều kiện log-in, log-out
+async function fetchCharacterImages(character) {
+    const charKey = removeVietnameseTones(character);
+    const imagePaths = [];
+
+    for (let i = 1; i <= 8; i++) {
+        imagePaths.push(`2048/images/${charKey}_${i}.jpg`);
+    }
+
+    return imagePaths;
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
-    console.log("🔥 DOM đã load xong!");
-
     let username = localStorage.getItem("username");
-    let selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
-    let totalScore = localStorage.getItem("totalScore") ? parseInt(localStorage.getItem("totalScore")) : 0;
+    let selectedCharacter = localStorage.getItem("selectedCharacter") || "Vuong";
+    let totalScore = localStorage.getItem("totalScore") ? parseInt(localStorage.getItem("totalScore")) : "N/A";
 
-    // 🛠 Kiểm tra nếu user đã đăng nhập trước đó
     if (username) {
-        console.log(`🔄 Tự động đăng nhập: ${username}`);
-
-        // ✅ Hiển thị UI cho user đã đăng nhập
         document.getElementById("login-modal").style.display = "none";
         document.getElementById("welcome-message").style.display = "block";
         document.getElementById("display-name").innerText = username;
@@ -117,32 +108,25 @@ document.addEventListener("DOMContentLoaded", async function () {
         document.getElementById("character-callout").style.display = "flex";
         document.getElementById("settings-btn-game").style.display = "block";
 
-        // 📡 Tải dữ liệu từ Firestore nếu user đã đăng nhập
         const userRef = db.collection("users").doc(username);
         const userDoc = await userRef.get();
 
         if (userDoc.exists) {
             selectedCharacter = userDoc.data().bias || selectedCharacter;
-            await updateTotalScore();			
             localStorage.setItem("selectedCharacter", selectedCharacter);
+            await updateTotalScore();
         }
     } else {
-        console.warn("⚠️ Chế độ chơi ẩn danh. Điểm số không được lưu.");
         document.getElementById("settings-btn-game").style.display = "block";
     }
 
-    console.log(`✅ Bias đã tải: ${selectedCharacter}, Tổng điểm: ${totalScore}`);
-
-    // ✅ Cập nhật UI với dữ liệu vừa lấy được
     document.getElementById("character-select").value = selectedCharacter;
     document.getElementById("user-points").innerText = totalScore;
     
-    // ✅ Hiển thị thông tin nhân vật
     showRandomCharacterImage();
     showRandomCharacterQuote();
     checkUserPoints();
 
-    // 🎯 Xử lý đăng nhập khi nhấn "Vào game"
     const startButton = document.getElementById("start-button");
     if (startButton) {
         startButton.addEventListener("click", async () => {
@@ -154,15 +138,13 @@ document.addEventListener("DOMContentLoaded", async function () {
                 return;
             }
 
-            console.log(`📌 Đăng nhập với tên: ${nicknameInputValue}`);
-
             const userRef = db.collection("users").doc(nicknameInputValue);
             const userDoc = await userRef.get();
 
             if (userDoc.exists) {
                 alert(`Chào mừng trở lại, ${nicknameInputValue}!`);
             } else {
-                await userRef.set({ username: nicknameInputValue, bias: "Vương", totalScore: 0 });
+                await userRef.set({ username: nicknameInputValue, bias: "Vuong", totalScore: 0 });
                 alert(`Tạo tài khoản thành công! Xin chào, ${nicknameInputValue}.`);
             }
 
@@ -182,7 +164,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 
-    // 🎯 Khi nhấn Enter trong input => Click vào nút "Vào game"
     function handleEnterKey(event) {
         if (event.key === "Enter" && startButton) {
             startButton.click();
@@ -191,12 +172,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.getElementById("code-input")?.addEventListener("keydown", handleEnterKey);
     document.getElementById("nickname-input")?.addEventListener("keydown", handleEnterKey);
 
-    // 🎮 Chế độ chơi ẩn danh
     const playWithoutLoginButton = document.getElementById("play-without-login");
     if (playWithoutLoginButton) {
         playWithoutLoginButton.addEventListener("click", () => {
-            console.log("🎮 Chế độ chơi ẩn danh");
-
             document.getElementById("login-modal").style.display = "none";
             document.querySelector(".game-list").style.display = "grid";
             document.querySelector(".points").style.display = "none";
@@ -210,7 +188,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 
-    // 🎯 Xử lý chuyển đổi giữa các game trong bảng kỷ lục
     const tabButtons = document.querySelectorAll(".tab-btn");
     tabButtons.forEach((btn) => {
         btn.addEventListener("click", function () {
@@ -222,10 +199,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     });
 
-    loadLeaderboard();
+    loadLeaderboard("2048");
 
     const calloutAvatar = document.getElementById("callout-avatar");
-
     if (calloutAvatar) {
         calloutAvatar.addEventListener("click", function () {
             showRandomCharacterImage();
@@ -239,7 +215,6 @@ function logout() {
     location.reload();
 }
 
-// Lưu điểm
 async function saveScoreToDB(game, newScore) {
     const username = localStorage.getItem("username");
     if (!username) {
@@ -247,44 +222,35 @@ async function saveScoreToDB(game, newScore) {
         return;
     }
 
-    const scoreDocId = `${username}-${game}`; // 🔥 Tạo ID duy nhất cho mỗi user-game
+    const scoreDocId = `${username}-${game}`;
     const scoreRef = firebase.firestore().collection("userScores").doc(scoreDocId);
 
     try {
         const docSnapshot = await scoreRef.get();
         if (!docSnapshot.exists) {
-            // 🔥 Nếu chưa có dữ liệu, tạo mới
             await scoreRef.set({
                 username: username,
                 game: game,
                 score: newScore,
                 updatedAt: new Date().toISOString()
             });
-            console.log(`🆕 Tạo điểm mới: ${username} - ${game}: ${newScore}`);
         } else {
             const oldScore = docSnapshot.data().score;
             if (newScore > oldScore) {
-                // 🔥 Nếu điểm mới cao hơn điểm cũ, ghi đè lên
                 await scoreRef.update({
                     score: newScore,
                     updatedAt: new Date().toISOString()
                 });
-                console.log(`✅ Cập nhật điểm: ${username} - ${game}: ${newScore}`);
-            } else {
-                console.log("⚠️ Điểm mới không cao hơn điểm cũ, không cập nhật.");
             }
         }
-
-        // 🔥 Cập nhật tổng điểm sau khi thay đổi điểm của game
         updateTotalScore();
     } catch (error) {
-        console.error("❌ Lỗi khi cập nhật điểm:", error);
+        console.error(error);
     }
 }
 
 window.saveScoreToDB = saveScoreToDB;
 
-// Leaderboard + Personal score
 let personalScoresVisible = false;
 let leaderboardVisible = false;
 
@@ -292,7 +258,6 @@ async function loadLeaderboard(game) {
     const leaderboardContent = document.getElementById("leaderboard-content");
 
     if (!game) {
-        console.error("❌ Lỗi: Game không hợp lệ hoặc bị undefined.");
         return;
     }
 
@@ -309,7 +274,6 @@ async function loadLeaderboard(game) {
 
     try {
         const querySnapshot = await q.get();
-        
         let html = "";
         if (game === "Lật hình") {
             html += `<table><tr><th>Người chơi</th><th>Thời gian (s)</th><th>Điểm</th></tr>`;
@@ -333,16 +297,15 @@ async function loadLeaderboard(game) {
         html += `</table>`;
         leaderboardContent.innerHTML += html;
     } catch (error) {
-        console.error(`❌ Lỗi khi tải bảng xếp hạng ${game}:`, error);
+        console.error(error);
     }
 }
 
 function formatDate(isoString) {
     const date = new Date(isoString);
     const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Tháng bắt đầu từ 0 nên +1
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
-
     return `${day}/${month}/${year}`;
 }
 
@@ -350,7 +313,7 @@ async function showPersonalScores() {
     const scoreboard = document.getElementById("scoreboard");
 
     if (personalScoresVisible) {
-        scoreboard.innerHTML = ""; // Ẩn bảng điểm khi bấm lại
+        scoreboard.innerHTML = "";
         personalScoresVisible = false;
         return;
     }
@@ -369,31 +332,28 @@ async function showPersonalScores() {
         let html = "<h2>Bảng điểm cá nhân</h2><table><tr><th>Game</th><th>Điểm cao nhất</th><th>Thời gian</th></tr>";
 
         if (querySnapshot.empty) {
-            html += `<tr><td colspan="3">N/A</td></tr>`; // Không có dữ liệu thì hiển thị "N/A"
+            html += `<tr><td colspan="3">N/A</td></tr>`;
         } else {
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                const formattedDate = formatDate(data.updatedAt); // Chuyển đổi thời gian
-
+                const formattedDate = formatDate(data.updatedAt);
                 html += `<tr><td>${data.game}</td><td>${data.score}</td><td>${formattedDate}</td></tr>`;
             });
         }
 
         html += "</table>";
         scoreboard.innerHTML = html;
-        personalScoresVisible = true; // Đánh dấu bảng điểm đang hiển thị
+        personalScoresVisible = true;
     } catch (error) {
-        console.error("❌ Lỗi khi lấy bảng điểm cá nhân:", error);
+        console.error(error);
     }
 }
 
 async function showLeaderboard() {
     const leaderboardSection = document.getElementById("leaderboard-section");
-
-    // Nếu đang ẩn thì hiển thị, nếu đang hiển thị thì ẩn đi
     if (leaderboardSection.style.display === "none") {
         leaderboardSection.style.display = "block";
-        loadLeaderboard("2048"); // Mặc định hiển thị game đầu tiên
+        loadLeaderboard("2048");
     } else {
         leaderboardSection.style.display = "none";
     }
@@ -404,20 +364,22 @@ async function updateTotalScore() {
     const totalScoreElement = document.getElementById("user-points");
 
     if (!username) {
-        console.warn("⚠️ Người chơi chưa đăng nhập, không cập nhật tổng điểm.");
         totalScoreElement.innerText = "N/A";
         return;
     }
 
-    // B1: Ưu tiên hiển thị localStorage trước nếu có
-    const cachedScore = localStorage.getItem("totalScore");
-    if (cachedScore !== null) {
+    let cachedScore = localStorage.getItem("totalScore");
+    if (cachedScore !== null && cachedScore !== "0") {
         totalScoreElement.innerText = cachedScore;
     } else {
         totalScoreElement.innerText = "N/A";
+        localStorage.setItem("totalScore", "N/A");
     }
 
-    // B2: Fetch từ Firestore để cập nhật chính xác
+    if (!navigator.onLine) {
+        return;
+    }
+
     const scoresRef = firebase.firestore().collection("userScores");
     const q = scoresRef.where("username", "==", username);
 
@@ -426,7 +388,6 @@ async function updateTotalScore() {
         let totalScore = 0;
 
         if (querySnapshot.empty) {
-            console.log(`⚠️ Người chơi ${username} chưa có điểm trong game nào.`);
             totalScoreElement.innerText = "N/A";
             localStorage.setItem("totalScore", "N/A");
             return;
@@ -434,61 +395,52 @@ async function updateTotalScore() {
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            console.log(`🔹 Game: ${data.game}, Điểm: ${data.score}`);
             totalScore += data.score;
         });
 
-        console.log(`🔥 Tổng điểm mới của ${username}: ${totalScore}`);
-        totalScoreElement.innerText = totalScore;
-        localStorage.setItem("totalScore", totalScore);
+        if (totalScore === 0) {
+            totalScoreElement.innerText = "N/A";
+            localStorage.setItem("totalScore", "N/A");
+        } else {
+            totalScoreElement.innerText = totalScore;
+            localStorage.setItem("totalScore", totalScore);
+        }
 
-        // Đồng bộ với Firestore (users collection)
         const userRef = firebase.firestore().collection("users").doc(username);
         await userRef.set({ totalScore }, { merge: true });
-
-        console.log(`✅ Đã cập nhật tổng điểm vào Firestore & localStorage.`);
     } catch (error) {
-        console.error("❌ Lỗi khi cập nhật tổng điểm từ Firestore:", error);
-        totalScoreElement.innerText = cachedScore || "N/A"; // fallback
+        console.error(error);
+        totalScoreElement.innerText = cachedScore || "N/A";
     }
 }
 
 async function updateOldLeaderboardData() {
     const scoresRef = firebase.firestore().collection("userScores");
-    
     try {
         const querySnapshot = await scoresRef.where("game", "==", "Lật hình").get();
         let count = 0;
 
         querySnapshot.forEach(async (doc) => {
             const data = doc.data();
-
             if (!data.totalTimeInSeconds && data.totalTime) {
                 const totalTimeParts = data.totalTime.split(":").map(Number);
-                const totalTimeInSeconds = totalTimeParts[0] * 60 + totalTimeParts[1]; // Chuyển thành giây
-
+                const totalTimeInSeconds = totalTimeParts[0] * 60 + totalTimeParts[1];
                 await scoresRef.doc(doc.id).update({
                     totalTimeInSeconds: totalTimeInSeconds
                 });
-
-                console.log(`✅ Đã cập nhật ${data.username}: ${data.totalTime} → ${totalTimeInSeconds}s`);
                 count++;
             }
         });
-
-        console.log(`🎉 Đã cập nhật xong ${count} bản ghi.`);
     } catch (error) {
-        console.error("❌ Lỗi khi cập nhật dữ liệu:", error);
+        console.error(error);
     }
 }
 
 updateOldLeaderboardData();
 
-// Nút setting
 document.addEventListener("DOMContentLoaded", function () {
     const settingsButton = document.getElementById("settings-btn-game");
     const settingsModal = document.getElementById("settings-modal");
-    
     const closeSettingsButton = document.getElementById("close-settings");
 
     if (settingsButton && settingsModal) {
@@ -504,15 +456,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-// Chọn bias
 async function loadUserBias() {
-    console.log("🔄 Đang tải bias của user...");
-
     const username = localStorage.getItem("username");
     let selectedCharacter = localStorage.getItem("selectedCharacter");  
 
     if (!selectedCharacter) {
-        selectedCharacter = "Vương"; // Nếu chưa có, đặt mặc định là Vương
+        selectedCharacter = "Vuong";
         localStorage.setItem("selectedCharacter", selectedCharacter);
     }
 
@@ -534,21 +483,15 @@ async function loadUserBias() {
 
 async function setSelectedCharacter() {
     const characterSelect = document.getElementById("character-select");
-    const selectedCharacter = characterSelect?.value || "Vương";
-
-    console.log(`🔄 Người chơi đã chọn nhân vật: ${selectedCharacter}`);
-
-    // Cập nhật LocalStorage ngay lập tức
+    const selectedCharacter = characterSelect?.value || "Vuong";
     localStorage.setItem("selectedCharacter", selectedCharacter);
 
     const username = localStorage.getItem("username");
-
     if (username) {
         const userRef = db.collection("users").doc(username);
         await userRef.set({ bias: selectedCharacter }, { merge: true });
     }
 
-    // Cập nhật ngay hình ảnh & thoại nhân vật mới
     showRandomCharacterImage();
     showRandomCharacterQuote();
     checkUserPoints();
@@ -556,9 +499,7 @@ async function setSelectedCharacter() {
 
 async function fetchCharacterQuotes(character) {
     let dialogues = JSON.parse(localStorage.getItem(`dialogues_${character}`)) || [];
-
     if (dialogues.length > 0) {
-        console.log(`💬 Đã tìm thấy thoại của ${character} trong bộ nhớ offline.`);
         return dialogues;
     }
 
@@ -566,53 +507,56 @@ async function fetchCharacterQuotes(character) {
     const quoteDoc = await quoteRef.get();
 
     if (quoteDoc.exists) {
-        console.log(`💬 Thoại của ${character} đã tải từ Firestore.`);
         const data = quoteDoc.data();
         const defaultQuotes = data.quotes || [];
-        const userQuotes = Object.values(data.userQuotes || {}).flat();  // Đảm bảo userQuotes là mảng
-
+        const userQuotes = Object.values(data.userQuotes || {}).flat();
         dialogues = [...defaultQuotes, ...userQuotes];
-        localStorage.setItem(`dialogues_${character}`, JSON.stringify(dialogues)); // Lưu offline
+        localStorage.setItem(`dialogues_${character}`, JSON.stringify(dialogues));
         return dialogues;
     }
 
-    console.warn(`⚠️ Không tìm thấy thoại của ${character}, dùng thoại mặc định.`);
     return ["Xin chào! Tôi sẽ là trợ thủ của bạn!"];
 }
 
 async function showRandomCharacterImage() {
-    const character = localStorage.getItem("selectedCharacter") || "Vương";
-    let images = JSON.parse(localStorage.getItem(`images_${character}`)) || [];
+    const character = localStorage.getItem("selectedCharacter") || "Vuong";
+	const charKey = removeVietnameseTones(character);
+    let images = JSON.parse(localStorage.getItem(`images_${charKey}`)) || [];
 
     if (images.length === 0) {
         images = await fetchCharacterImages(character);
-        localStorage.setItem(`images_${character}`, JSON.stringify(images));
+        localStorage.setItem(`images_${charKey}`, JSON.stringify(images));
     }
 
-    const randomImage = images[Math.floor(Math.random() * images.length)];
-    document.getElementById("callout-avatar").src = randomImage;
+    if (images.length === 0) {
+        return;
+    }
 
-    console.log(`🖼️ Hiển thị ảnh nhân vật: ${character} - ${randomImage}`);
+    const calloutAvatar = document.getElementById("callout-avatar");
+    const currentImage = calloutAvatar.src;
+    const availableImages = images.filter(img => !currentImage.includes(img));
+    const finalImages = availableImages.length > 0 ? availableImages : images;
+
+    const randomImage = finalImages[Math.floor(Math.random() * finalImages.length)];
+    calloutAvatar.src = randomImage;
 }
 
 async function showRandomCharacterQuote() {
-    const character = localStorage.getItem("selectedCharacter") || "Vương";
+    const character = localStorage.getItem("selectedCharacter") || "Vuong";
     let dialogues = JSON.parse(localStorage.getItem(`dialogues_${character}`)) || [];
 
-    if (dialogues.length === 0) { // Nếu chưa có dữ liệu offline
+    if (dialogues.length === 0) {
         try {
             dialogues = await fetchCharacterQuotes(character);
             localStorage.setItem(`dialogues_${character}`, JSON.stringify(dialogues));
         } catch (error) {
-            console.error("❌ Lỗi khi tải thoại:", error);
+            console.error(error);
         }
     }
 
     if (dialogues.length > 0) {
         const randomDialogue = dialogues[Math.floor(Math.random() * dialogues.length)];
         document.getElementById("callout-bubble").innerText = randomDialogue;
-    } else {
-        console.warn("⚠️ Không có thoại nào để hiển thị.");
     }
 }
 
@@ -622,30 +566,22 @@ async function checkUserPoints() {
         return;
     }
 
-    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
+    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vuong";
     const userRef = db.collection("users").doc(username);
     const userDoc = await userRef.get();
 
     let totalPoints = userDoc.exists ? (userDoc.data().totalScore || 0) : 0;
-    console.log(`📝 Tổng điểm của ${username}: ${totalPoints}`);
-
     const allowedQuotes = Math.floor(totalPoints / 1000);
-    console.log(`💬 Số ô thoại được phép nhập: ${allowedQuotes}`);
-
-    // 🔥 Lấy thoại đã lưu và hiển thị
     const existingQuotes = await fetchUserQuotes(selectedCharacter, username);
     
     if (existingQuotes.length > 0) {
-        console.log(`✅ Đã tìm thấy thoại cũ của ${selectedCharacter}, hiển thị ngay.`);
         displayQuoteInputs(existingQuotes, allowedQuotes);
         return;
     }
 
     if (allowedQuotes > 0) {
-        console.log(`✅ User có ${totalPoints} điểm, đủ điều kiện nhập thoại.`);
         displayQuoteInputs([], allowedQuotes);
     } else {
-        console.log(`❌ User chưa có đủ điểm (${totalPoints} điểm), ẩn ô nhập thoại.`);
         document.getElementById("custom-quote-section").style.display = "none";
     }
 }
@@ -655,22 +591,19 @@ function displayQuoteInputs(existingQuotes, allowedQuotes) {
     const quoteMessage = document.getElementById("quote-message");
     const inputField = document.getElementById("custom-quote");
 
-    // Ẩn nếu không đủ điểm và chưa có thoại
     if (allowedQuotes === 0 && existingQuotes.length === 0) {
         customQuoteSection.style.display = "none";
         return;
     }
 
-    // Hiển thị ô nhập thoại
     customQuoteSection.style.display = "block";
 
-    // Nếu có thoại trước đó, hiển thị lại
     if (existingQuotes.length > 0) {
         quoteMessage.innerText = "📜 Thoại đã nhập trước đó:";
-        inputField.value = existingQuotes[0]; // Lấy thoại đầu tiên của user
+        inputField.value = existingQuotes[0];
     } else {
         quoteMessage.innerText = `💬 Bạn có thể nhập tối đa ${allowedQuotes} câu thoại.`;
-        inputField.value = ""; // Chưa nhập thì để input rỗng
+        inputField.value = "";
     }
 }
 
@@ -681,7 +614,7 @@ async function submitCustomQuotes() {
         return;
     }
 
-    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vương";
+    const selectedCharacter = localStorage.getItem("selectedCharacter") || "Vuong";
     const inputField = document.getElementById("custom-quote");
     const quoteText = inputField.value.trim();
 
@@ -695,65 +628,46 @@ async function submitCustomQuotes() {
         const docSnapshot = await docRef.get();
 
         let existingUserQuotes = docSnapshot.exists ? docSnapshot.data().userQuotes || {} : {};
-        
-        // 🔥 Ghi đè câu mới, giữ mỗi câu mới nhất
         existingUserQuotes[username] = [quoteText];
 
-        // ✅ Lưu vào Firestore
         await docRef.set({ userQuotes: existingUserQuotes }, { merge: true });
-
-        console.log(`✅ Đã cập nhật thoại cho ${selectedCharacter}: "${quoteText}"`);
         alert("✅ Thoại đã được cập nhật thành công!");
-
-        // ✅ Cập nhật localStorage ngay lập tức
         localStorage.setItem(`dialogues_${selectedCharacter}`, JSON.stringify([quoteText]));
-
-        // Hiển thị lại thoại vừa lưu
         displayQuoteInputs([quoteText], Math.floor(localStorage.getItem("totalScore") / 1000));
     } catch (error) {
-        console.error("❌ Lỗi khi cập nhật thoại:", error);
+        console.error(error);
         alert("❌ Đã xảy ra lỗi khi cập nhật thoại, thử lại sau.");
     }
 }
 
 async function fetchUserQuotes(character, username) {
     try {
-        console.log(`📥 Đang lấy thoại của ${character} cho user ${username}...`);
-
         const docRef = db.collection("characterQuotes").doc(character);
         const doc = await docRef.get();
 
         if (doc.exists) {
             const data = doc.data();
-            const userQuotes = data.userQuotes?.[username] || [];  
-
-            console.log(`✅ Thoại user đã tải:`, userQuotes);
-            return Array.isArray(userQuotes) ? userQuotes : [userQuotes]; // Đảm bảo trả về mảng
-        } else {
-            console.log(`⚠️ Không tìm thấy thoại của ${character} trong database.`);
-            return [];
+            const userQuotes = data.userQuotes?.[username] || [];
+            return Array.isArray(userQuotes) ? userQuotes : [userQuotes];
         }
+        return [];
     } catch (error) {
-        console.error("❌ Lỗi khi lấy thoại user:", error);
+        console.error(error);
         return [];
     }
 }
 
 async function downloadCharacterData() {
-    const character = localStorage.getItem("selectedCharacter") || "Vương";
-
-    console.log(`📥 Đang tải dữ liệu cho nhân vật: ${character}`);
+    const character = localStorage.getItem("selectedCharacter") || "Vuong";
 
     if (character === "Khác") {
         alert("Bạn không thể tải nhân vật 'Khác', hãy liên hệ Phong.");
         return;
     }
 
-    // 🔥 Xóa dữ liệu nhân vật cũ trước khi tải dữ liệu mới
     localStorage.removeItem(`images_${character}`);
     localStorage.removeItem(`dialogues_${character}`);
 
-    // 🔄 Tải ảnh và thoại
     const images = await fetchCharacterImages(character);
     const dialogues = await fetchCharacterQuotes(character);
 
