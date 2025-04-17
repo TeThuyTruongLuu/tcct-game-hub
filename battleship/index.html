@@ -34,6 +34,27 @@
     <button id="start-game">Bắt đầu chơi</button>
   </div>
 
+  <div id="length-config-container">
+    <h2>Cấu hình độ dài tàu</h2>
+    <p>Chia 7 ô tàu cho tối đa 3 tàu. Mỗi tàu dài từ 2–7 ô.</p>
+    <div class="ship-length-inputs">
+      <div>
+        <label for="ship1">Tàu 1</label><br>
+        <input type="number" id="ship1" min="0" max="7" value="3">
+      </div>
+      <div>
+        <label for="ship2">Tàu 2</label><br>
+        <input type="number" id="ship2" min="0" max="7" value="2">
+      </div>
+      <div>
+        <label for="ship3">Tàu 3</label><br>
+        <input type="number" id="ship3" min="0" max="7" value="2">
+      </div>
+    </div>
+    <div class="remaining-info">Còn lại: <span id="remaining-count">0</span> ô</div>
+    <button id="confirm-ship-length">Xác nhận</button>
+  </div>
+
   <div id="game-container" style="display:none;">
     <h2>Đặt tàu</h2>
     <div class="board" id="board"></div>
@@ -72,6 +93,11 @@
       });
     });
 
+    function togglePassword() {
+      const pwField = document.getElementById('player-password');
+      pwField.type = pwField.type === 'password' ? 'text' : 'password';
+    }
+
     async function checkUserAndStart() {
       const password = document.getElementById('player-password').value;
       if (!selectedChar || !password) {
@@ -89,15 +115,11 @@
             return;
           }
         } else {
-          await userRef.set({
-            username,
-            password,
-            char: selectedChar
-          });
+          await userRef.set({ username, password, char: selectedChar });
         }
 
         document.getElementById("setup-container").style.display = "none";
-        document.getElementById("game-container").style.display = "block";
+        document.getElementById("length-config-container").style.display = "block";
 
       } catch (e) {
         console.error(e);
@@ -107,10 +129,45 @@
 
     document.getElementById('start-game').addEventListener('click', checkUserAndStart);
 
-    function togglePassword() {
-      const pwField = document.getElementById('player-password');
-      pwField.type = pwField.type === 'password' ? 'text' : 'password';
+    const shipInputs = [
+      document.getElementById('ship1'),
+      document.getElementById('ship2'),
+      document.getElementById('ship3')
+    ];
+    const remainingDisplay = document.getElementById('remaining-count');
+    const confirmBtn = document.getElementById('confirm-ship-length');
+    const maxTotal = 7;
+
+    function updateRemaining() {
+      let total = 0;
+      shipInputs.forEach(input => {
+        const val = parseInt(input.value) || 0;
+        total += val;
+      });
+      const remaining = maxTotal - total;
+      remainingDisplay.textContent = remaining;
+
+      shipInputs.forEach(input => {
+        const otherTotal = total - parseInt(input.value || 0);
+        input.max = Math.min(7, maxTotal - otherTotal);
+        input.min = 0;
+      });
+
+      const validShips = shipInputs.map(i => parseInt(i.value)).filter(x => x >= 2);
+      confirmBtn.disabled = !(total === maxTotal && validShips.length >= 1);
     }
+
+    shipInputs.forEach(input => input.addEventListener('input', updateRemaining));
+    updateRemaining();
+
+    confirmBtn.addEventListener('click', () => {
+      const lengths = shipInputs.map(i => parseInt(i.value)).filter(x => x >= 2);
+      localStorage.setItem('shipLengths', JSON.stringify(lengths));
+
+      document.getElementById('length-config-container').style.display = 'none';
+      document.getElementById('game-container').style.display = 'block';
+      console.log('Độ dài tàu đã chọn:', lengths);
+    });
 
     const board = document.getElementById("board");
     for (let i = 0; i < BOARD_COLS * BOARD_ROWS; i++) {

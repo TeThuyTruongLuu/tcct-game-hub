@@ -13,7 +13,7 @@ h1 {
   margin-bottom: 10px;
 }
 
-#setup-container, #game-container {
+#setup-container, #game-container, #length-config-container {
   width: 70%;
   max-width: 850px;
   margin: 0 auto;
@@ -120,9 +120,36 @@ button {
   cursor: pointer;
 }
 
+.ship-length-inputs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px auto;
+  flex-wrap: wrap;
+}
+
+.ship-length-inputs input {
+  width: 60px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.remaining-info {
+  font-size: 14px;
+  margin-top: 10px;
+  color: #555;
+}
+
+/* New Section: Ship Length Config UI */
+#length-config-container {
+  display: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-  #setup-container, #game-container {
+  #setup-container, #game-container, #length-config-container {
     width: 90%;
   }
   .board {
@@ -140,5 +167,8 @@ button {
   button {
     width: 90%;
     max-width: 280px;
+  }
+  .ship-length-inputs input {
+    width: 50px;
   }
 }
