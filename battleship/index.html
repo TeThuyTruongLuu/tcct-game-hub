@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bắn Tàu</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body>
+  <h1>BẮN TÀU</h1>
+
+  <div id="setup-container">
+    <h2>Chọn Nhân Vật</h2>
+    <div class="char-list">
+      <div class="char-option" data-char="Vuong" data-img="../2048/images/Vuong_3.jpg">
+        <img src="../2048/images/Vuong_3.jpg" alt="Vuong">
+      </div>
+      <div class="char-option" data-char="Lac" data-img="../2048/images/Lac_6.jpg">
+        <img src="../2048/images/Lac_6.jpg" alt="Lac">
+      </div>
+      <div class="char-option" data-char="Khuu" data-img="../2048/images/Khuu_2.jpg">
+        <img src="../2048/images/Khuu_2.jpg" alt="Khuu">
+      </div>
+    </div>
+
+    <h2>Thông Tin Người Chơi</h2>
+    <p id="greeting"></p>
+    <div class="input-group">
+      <input type="password" id="player-password" placeholder="Nhập mật khẩu">
+      <img src="eye-icon.svg" alt="Hiện mật khẩu" class="toggle-password" onclick="togglePassword()">
+    </div>
+    <button id="start-game">Bắt đầu chơi</button>
+  </div>
+
+  <div id="game-container" style="display:none;">
+    <h2>Đặt Tàu</h2>
+    <div class="board" id="board"></div>
+    <button id="save-board">Lưu bảng</button>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
+      authDomain: "tcct-minigames.firebaseapp.com",
+      projectId: "tcct-minigames",
+      storageBucket: "tcct-minigames.appspot.com",
+      messagingSenderId: "604780847536",
+      appId: "1:604780847536:web:f8015bde5ef469b04c7675"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const BOARD_COLS = 20;
+    const BOARD_ROWS = 15;
+    const MAX_SHIPS = 4;
+    let placedShips = 0;
+    let selectedChar = null;
+    let selectedImg = '';
+    let username = localStorage.getItem("username") || prompt("Nhập username của bạn:");
+
+    localStorage.setItem("username", username);
+    document.getElementById("greeting").innerText = `Xin chào ${username}!`;
+
+    document.querySelectorAll('.char-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('.char-option').forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+        selectedChar = option.dataset.char;
+        selectedImg = option.dataset.img;
+      });
+    });
+
+    async function checkUserAndStart() {
+      const password = document.getElementById('player-password').value;
+      if (!selectedChar || !password) {
+        alert('Vui lòng chọn nhân vật và nhập mật khẩu.');
+        return;
+      }
+      try {
+        const userRef = db.collection("users").doc(username);
+        const doc = await userRef.get();
+
+        if (doc.exists) {
+          const savedPassword = doc.data().password;
+          if (password !== savedPassword) {
+            alert("Sai mật khẩu. Hãy thử lại.");
+            return;
+          }
+        } else {
+          await userRef.set({
+            username,
+            password,
+            char: selectedChar
+          });
+        }
+
+        document.getElementById("setup-container").style.display = "none";
+        document.getElementById("game-container").style.display = "block";
+
+      } catch (e) {
+        console.error(e);
+        alert("Lỗi khi kiểm tra tài khoản.");
+      }
+    }
+
+    document.getElementById('start-game').addEventListener('click', checkUserAndStart);
+
+    function togglePassword() {
+      const pwField = document.getElementById('player-password');
+      pwField.type = pwField.type === 'password' ? 'text' : 'password';
+    }
+
+    const board = document.getElementById("board");
+    for (let i = 0; i < BOARD_COLS * BOARD_ROWS; i++) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      cell.dataset.index = i;
+      cell.addEventListener("click", () => {
+        if (cell.classList.contains("occupied")) {
+          cell.classList.remove("occupied");
+          cell.style.backgroundImage = "";
+          placedShips--;
+        } else {
+          if (placedShips < MAX_SHIPS) {
+            cell.classList.add("occupied");
+            cell.style.backgroundImage = `url('${selectedImg}')`;
+            placedShips++;
+          } else {
+            alert("Bạn đã đặt đủ tàu!");
+          }
+        }
+      });
+      board.appendChild(cell);
+    }
+
+    document.getElementById("save-board").addEventListener("click", () => {
+      alert("Bảng đã được lưu! Chia sẻ đường dẫn để bạn bè cùng chơi nhé.");
+    });
+  </script>
+</body>
+</html>
