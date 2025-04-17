@@ -167,6 +167,54 @@
       document.getElementById('length-config-container').style.display = 'none';
       document.getElementById('game-container').style.display = 'block';
       console.log('Độ dài tàu đã chọn:', lengths);
+
+      // Auto-generate ship positions
+      const totalCells = BOARD_COLS * BOARD_ROWS;
+      const occupied = new Set();
+      const directions = ['H', 'V'];
+      const positions = [];
+
+      function isValid(start, length, dir) {
+        for (let i = 0; i < length; i++) {
+          let idx = dir === 'H' ? start + i : start + i * BOARD_COLS;
+          if (
+            idx >= totalCells ||
+            (dir === 'H' && Math.floor(idx / BOARD_COLS) !== Math.floor(start / BOARD_COLS)) ||
+            occupied.has(idx)
+          ) return false;
+        }
+        return true;
+      }
+
+      function placeShip(length) {
+        let tries = 100;
+        while (tries--) {
+          let dir = directions[Math.floor(Math.random() * directions.length)];
+          let maxStart = dir === 'H' ? totalCells - length : totalCells - length * BOARD_COLS;
+          let start = Math.floor(Math.random() * maxStart);
+          if (isValid(start, length, dir)) {
+            for (let i = 0; i < length; i++) {
+              let idx = dir === 'H' ? start + i : start + i * BOARD_COLS;
+              occupied.add(idx);
+              positions.push(idx);
+              const cell = document.querySelector(`[data-index='${idx}']`);
+              cell.classList.add('occupied');
+              cell.style.backgroundImage = `url('${selectedImg}')`;
+            }
+            return;
+          }
+        }
+        console.warn('Không thể đặt tàu với chiều dài:', length);
+      }
+
+      lengths.forEach(placeShip);
+
+      // Lưu lên Firestore
+      db.collection("users").doc(username).set({
+        shipConfig: lengths,
+        shipPositions: positions,
+        char: selectedChar
+      }, { merge: true });
     });
 
     const board = document.getElementById("board");
