@@ -285,5 +285,104 @@ document.getElementById("save-board").addEventListener("click", () => {
   alert("Bảng đã được lưu! Chia sẻ đường dẫn để bạn bè cùng chơi nhé.");
 });
   </script>
+
+<!-- Fire Board Screen -->
+<div id="fire-container" style="display:none;">
+  <h2>Bắn tàu mỗi ngày</h2>
+  <p>Chọn tối đa 5 ô để bắn mỗi ngày.</p>
+  <div class="board" id="fire-board"></div>
+  <button id="save-fire-shots">💣 Lưu lượt bắn</button>
+</div>
+
+<script>
+function initFireBoard() {
+  const fireContainer = document.getElementById('fire-container');
+  const fireBoard = document.getElementById('fire-board');
+  const saveFireBtn = document.getElementById('save-fire-shots');
+  let fireSelected = [];
+  fireBoard.innerHTML = '';
+  fireSelected = [];
+
+  for (let i = 0; i < BOARD_COLS * BOARD_ROWS; i++) {
+    const cell = document.createElement('div');
+    cell.classList.add('cell');
+    cell.dataset.index = i;
+    cell.addEventListener('click', () => {
+      if (cell.classList.contains('fired')) return;
+      const index = parseInt(cell.dataset.index);
+      if (fireSelected.includes(index)) {
+        cell.style.backgroundColor = '';
+        fireSelected = fireSelected.filter(x => x !== index);
+      } else {
+        if (fireSelected.length < 5) {
+          fireSelected.push(index);
+          cell.style.backgroundColor = '#87ceeb'; // xanh biển
+        } else {
+          alert('Chỉ được bắn tối đa 5 ô/ngày!');
+        }
+      }
+    });
+    fireBoard.appendChild(cell);
+  }
+
+  fireContainer.style.display = 'block';
+
+  saveFireBtn.addEventListener('click', async () => {
+    if (fireSelected.length === 0) {
+      alert('Bạn chưa chọn ô nào để bắn.');
+      return;
+    }
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    const result = {};
+
+    const allUsers = await db.collection('users').get();
+    const otherShips = [];
+    let selfShips = [];
+
+    allUsers.forEach(doc => {
+      const data = doc.data();
+      if (data.shipPositions && data.shipPositions.length > 0) {
+        if (doc.id === username) selfShips = data.shipPositions;
+        else otherShips.push(...data.shipPositions);
+      }
+    });
+
+    fireSelected.forEach(idx => {
+      if (selfShips.includes(idx)) {
+        result[idx] = 'self';
+      } else if (otherShips.includes(idx)) {
+        result[idx] = 'hit';
+      } else {
+        result[idx] = 'miss';
+      }
+    });
+
+    await db.collection('fireShots').doc(username).set({
+      [dateStr]: {
+        shots: fireSelected,
+        result,
+      }
+    }, { merge: true });
+
+    fireSelected.forEach(idx => {
+      const cell = document.querySelector(`#fire-board .cell[data-index='${idx}']`);
+      const type = result[idx];
+      if (type === 'self') {
+        cell.style.backgroundColor = '#cc99ff';
+      } else if (type === 'hit') {
+        cell.style.backgroundColor = '#ff6666';
+      } else {
+        cell.style.backgroundColor = '#aaa';
+      }
+      cell.classList.add('fired');
+    });
+
+    fireSelected = [];
+    alert('Lượt bắn đã được lưu!');
+  });
+}
+</script>
+
 </body>
 </html>
