@@ -56,7 +56,7 @@
   </div>
 
   <div id="game-container" style="display:none;">
-    <h2>Đặt tàu</h2>
+    <h2>Thông tin tàu của bạn</h2>
     <div class="board" id="board"></div>
     <button id="save-board">Lưu bảng</button>
   </div>
@@ -119,7 +119,28 @@
         }
 
         document.getElementById("setup-container").style.display = "none";
-        document.getElementById("length-config-container").style.display = "block";
+
+if (doc.exists && doc.data().shipPositions) {
+  document.getElementById("game-container").style.display = "block";
+  const positions = doc.data().shipPositions || [];
+  positions.forEach(idx => {
+    const cell = document.querySelector(`[data-index='${idx}']`);
+    cell.classList.add("occupied");
+    cell.style.backgroundImage = `url('${selectedImg}')`;
+  });
+
+  document.getElementById("save-board").style.display = "none";
+  document.getElementById("board").insertAdjacentHTML("afterend", `
+    <button id="start-battle" style="margin-top: 20px">🚀 Bắt đầu bắn tàu</button>
+  `);
+  document.getElementById("start-battle").addEventListener("click", () => {
+    document.getElementById("game-container").style.display = "none";
+    initFireBoard();
+  });
+
+} else {
+  document.getElementById("length-config-container").style.display = "block";
+}
 
       } catch (e) {
         console.error(e);
@@ -240,9 +261,29 @@
       board.appendChild(cell);
     }
 
-    document.getElementById("save-board").addEventListener("click", () => {
-      alert("Bảng đã được lưu! Chia sẻ đường dẫn để bạn bè cùng chơi nhé.");
-    });
+    
+
+function saveShipDataAnd(next) {
+  const shipConfig = JSON.parse(localStorage.getItem('shipLengths'));
+  const shipPositions = Array.from(document.querySelectorAll('.cell.occupied'))
+    .map(cell => parseInt(cell.dataset.index));
+  db.collection("users").doc(username).set({
+    shipConfig,
+    shipPositions,
+    char: selectedChar
+  }, { merge: true }).then(() => {
+    alert("Đã lưu thông tin tàu thành công!");
+    if (next === 'menu') location.reload();
+    else if (next === 'play') alert("Chuyển sang chế độ bắn tàu... (đang phát triển)");
+  });
+}
+
+document.getElementById("save-and-back").addEventListener("click", () => saveShipDataAnd('menu'));
+document.getElementById("save-and-play").addEventListener("click", () => saveShipDataAnd('play'));
+
+document.getElementById("save-board").addEventListener("click", () => {
+  alert("Bảng đã được lưu! Chia sẻ đường dẫn để bạn bè cùng chơi nhé.");
+});
   </script>
 </body>
 </html>
