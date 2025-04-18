@@ -5,90 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bắn tàu</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
-function highlightSunkShips(resultMap, selfShips) {
-  const shipConfig = selfShips || [];
-  const sunkShips = [];
-
-  // Group ship cells from stored shipConfig
-  const shipCells = shipConfig.reduce((acc, len, idx) => {
-    acc[idx] = [];
-    return acc;
-  }, {});
-
-  // Create lookup of all ship positions to check hits
-  for (const idx in resultMap) {
-    if (resultMap[idx] === 'self') {
-      document.querySelector(`#fire-board .cell[data-index='${idx}']`).classList.add('fired');
-    }
-  }
-
-  // Visuals: draw ship face & border when fully hit
-  const cellEls = document.querySelectorAll('#fire-board .cell');
-  const hitSet = new Set(Object.keys(resultMap).filter(k => resultMap[k] === 'hit'));
-
-  db.collection("users").get().then(snapshot => {
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const ship = data.shipPositions || [];
-      const face = data.char;
-      if (ship.length > 0 && ship.every(pos => hitSet.has(pos.toString()))) {
-        ship.forEach(pos => {
-          const el = document.querySelector(`#fire-board .cell[data-index='${pos}']`);
-          if (el) {
-            el.style.backgroundImage = `url('../2048/images/${face}_3.jpg')`;
-            el.style.border = '2px solid black';
-            el.style.backgroundSize = 'cover';
-          }
-        });
-      }
-    });
-  });
-}
-
-</script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js">
-function highlightSunkShips(resultMap, selfShips) {
-  const shipConfig = selfShips || [];
-  const sunkShips = [];
-
-  // Group ship cells from stored shipConfig
-  const shipCells = shipConfig.reduce((acc, len, idx) => {
-    acc[idx] = [];
-    return acc;
-  }, {});
-
-  // Create lookup of all ship positions to check hits
-  for (const idx in resultMap) {
-    if (resultMap[idx] === 'self') {
-      document.querySelector(`#fire-board .cell[data-index='${idx}']`).classList.add('fired');
-    }
-  }
-
-  // Visuals: draw ship face & border when fully hit
-  const cellEls = document.querySelectorAll('#fire-board .cell');
-  const hitSet = new Set(Object.keys(resultMap).filter(k => resultMap[k] === 'hit'));
-
-  db.collection("users").get().then(snapshot => {
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const ship = data.shipPositions || [];
-      const face = data.char;
-      if (ship.length > 0 && ship.every(pos => hitSet.has(pos.toString()))) {
-        ship.forEach(pos => {
-          const el = document.querySelector(`#fire-board .cell[data-index='${pos}']`);
-          if (el) {
-            el.style.backgroundImage = `url('../2048/images/${face}_3.jpg')`;
-            el.style.border = '2px solid black';
-            el.style.backgroundSize = 'cover';
-          }
-        });
-      }
-    });
-  });
-}
-
-</script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
   <h1>Bắn tàu chíu chíu</h1>
@@ -143,6 +61,15 @@ function highlightSunkShips(resultMap, selfShips) {
     <button id="save-board">Lưu bảng</button>
   </div>
 
+  <!-- Fire Board Screen -->
+  <div id="fire-container" style="display:none;">
+    <h2>Bắn tàu mỗi ngày</h2>
+    <p>Chọn tối đa 5 ô để bắn mỗi ngày.</p>
+    <div class="board" id="fire-board"></div>
+    <div id="shot-result" style="margin-top: 20px; font-size: 16px; color: #333;"></div>
+    <button id="save-fire-shots">💣 Lưu lượt bắn</button>
+  </div>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
@@ -180,32 +107,31 @@ function highlightSunkShips(resultMap, selfShips) {
       pwField.type = pwField.type === 'password' ? 'text' : 'password';
     }
 
-	async function checkUserAndStart() {
-	  const password = document.getElementById('player-password').value;
-	  if (!selectedChar || !password) {
-		alert('Vui lòng chọn nhân vật và nhập mật khẩu.');
-		return;
-	  }
+    async function checkUserAndStart() {
+      const password = document.getElementById('player-password').value;
+      if (!selectedChar || !password) {
+        alert('Vui lòng chọn nhân vật và nhập mật khẩu.');
+        return;
+      }
 
-	  try {
-		const userRef = db.collection("users").doc(username);
-		const doc = await userRef.get();
+      try {
+        const userRef = db.collection("users").doc(username);
+        const doc = await userRef.get();
 
-		if (doc.exists) {
-		  const savedPassword = doc.data().password;
-		  if (savedPassword) {
-			if (password !== savedPassword) {
-			  alert("Sai mật khẩu. Hãy thử lại.");
-			  return;
-			}
-		  } else {
-			await userRef.set({ password, char: selectedChar }, { merge: true });
-		  }
-		} else {
-		  await userRef.set({ username, password, char: selectedChar });
-		}
+        if (doc.exists) {
+          const savedPassword = doc.data().password;
+          if (savedPassword) {
+            if (password !== savedPassword) {
+              alert("Sai mật khẩu. Hãy thử lại.");
+              return;
+            }
+          } else {
+            await userRef.set({ password, char: selectedChar }, { merge: true });
+          }
+        } else {
+          await userRef.set({ username, password, char: selectedChar });
+        }
 
-		
         const savedChar = doc.data().char;
         if (savedChar) {
           document.querySelectorAll('.char-option').forEach(opt => {
@@ -222,46 +148,42 @@ function highlightSunkShips(resultMap, selfShips) {
 
         document.getElementById("setup-container").style.display = "none";
 
-		if (doc.exists && doc.data().shipPositions) {
-		  document.getElementById("game-container").style.display = "block";
-		  const positions = doc.data().shipPositions || [];
-		  positions.forEach(idx => {
-			const cell = document.querySelector(`[data-index='${idx}']`);
-			cell.classList.add("occupied");
-			cell.style.backgroundImage = `url('${selectedImg}')`;
-		  });
-		  document.querySelectorAll(".cell").forEach(cell => {
-		    const newCell = cell.cloneNode(true);
-		    cell.parentNode.replaceChild(newCell, cell);
-		  });
-		  document.getElementById("save-board").style.display = "none";
-		  document.getElementById("board").insertAdjacentHTML("afterend", `
-			<button id="start-battle" style="margin-top: 20px">🚀 Bắt đầu bắn tàu</button>
-		  `);
-		  document.getElementById("start-battle").addEventListener("click", () => {
-			document.getElementById("game-container").style.display = "none";
-			initFireBoard();
-		  });
-
-		} else {
-		  document.getElementById("length-config-container").style.display = "block";
-		}
-
-	  } catch (e) {
-		console.error(e);
-		alert("Lỗi khi kiểm tra tài khoản.");
-	  }
-	}
-
+        if (doc.exists && doc.data().shipPositions) {
+          document.getElementById("game-container").style.display = "block";
+          const positions = doc.data().shipPositions || [];
+          positions.forEach(idx => {
+            const cell = document.querySelector(`[data-index='${idx}']`);
+            cell.classList.add("occupied");
+            cell.style.backgroundImage = `url('${selectedImg}')`;
+          });
+          document.querySelectorAll(".cell").forEach(cell => {
+            const newCell = cell.cloneNode(true);
+            cell.parentNode.replaceChild(newCell, cell);
+          });
+          document.getElementById("save-board").style.display = "none";
+          document.getElementById("board").insertAdjacentHTML("afterend", `
+            <button id="start-battle" style="margin-top: 20px">🚀 Bắt đầu bắn tàu</button>
+          `);
+          document.getElementById("start-battle").addEventListener("click", () => {
+            document.getElementById("game-container").style.display = "none";
+            initFireBoard();
+          });
+        } else {
+          document.getElementById("length-config-container").style.display = "block";
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Lỗi khi kiểm tra tài khoản.");
+      }
+    }
 
     document.getElementById('start-game').addEventListener('click', checkUserAndStart);
 
-document.getElementById('player-password').addEventListener('keyup', (e) => {
-  if (e.key === 'Enter') {
-    document.getElementById('start-game').click();
-  }
-});
-
+    document.getElementById('player-password').addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('start-game').click();
+      }
+    });
 
     const shipInputs = [
       document.getElementById('ship1'),
@@ -302,7 +224,6 @@ document.getElementById('player-password').addEventListener('keyup', (e) => {
       document.getElementById('game-container').style.display = 'block';
       console.log('Độ dài tàu đã chọn:', lengths);
 
-      // Auto-generate ship positions
       const totalCells = BOARD_COLS * BOARD_ROWS;
       const occupied = new Set();
       const directions = ['H', 'V'];
@@ -343,7 +264,6 @@ document.getElementById('player-password').addEventListener('keyup', (e) => {
 
       lengths.forEach(placeShip);
 
-      // Lưu lên Firestore
       db.collection("users").doc(username).set({
         shipConfig: lengths,
         shipPositions: positions,
@@ -374,228 +294,256 @@ document.getElementById('player-password').addEventListener('keyup', (e) => {
       board.appendChild(cell);
     }
 
-    
-
-function saveShipDataAnd(next) {
-  const shipConfig = JSON.parse(localStorage.getItem('shipLengths'));
-  const shipPositions = Array.from(document.querySelectorAll('.cell.occupied'))
-    .map(cell => parseInt(cell.dataset.index));
-  db.collection("users").doc(username).set({
-    shipConfig,
-    shipPositions,
-    char: selectedChar
-  }, { merge: true }).then(() => {
-    alert("Đã lưu thông tin tàu thành công!");
-    if (next === 'menu') location.reload();
-    else if (next === 'play') alert("Chuyển sang chế độ bắn tàu... (đang phát triển)");
-  });
-}
-
-document.getElementById("save-and-back").addEventListener("click", () => saveShipDataAnd('menu'));
-document.getElementById("save-and-play").addEventListener("click", () => saveShipDataAnd('play'));
-
-document.getElementById("save-board").addEventListener("click", () => {
-  alert("Bảng đã được lưu! Chia sẻ đường dẫn để bạn bè cùng chơi nhé.");
-});
-  
-function highlightSunkShips(resultMap, selfShips) {
-  const shipConfig = selfShips || [];
-  const sunkShips = [];
-
-  // Group ship cells from stored shipConfig
-  const shipCells = shipConfig.reduce((acc, len, idx) => {
-    acc[idx] = [];
-    return acc;
-  }, {});
-
-  // Create lookup of all ship positions to check hits
-  for (const idx in resultMap) {
-    if (resultMap[idx] === 'self') {
-      document.querySelector(`#fire-board .cell[data-index='${idx}']`).classList.add('fired');
-    }
-  }
-
-  // Visuals: draw ship face & border when fully hit
-  const cellEls = document.querySelectorAll('#fire-board .cell');
-  const hitSet = new Set(Object.keys(resultMap).filter(k => resultMap[k] === 'hit'));
-
-  db.collection("users").get().then(snapshot => {
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const ship = data.shipPositions || [];
-      const face = data.char;
-      if (ship.length > 0 && ship.every(pos => hitSet.has(pos.toString()))) {
-        ship.forEach(pos => {
-          const el = document.querySelector(`#fire-board .cell[data-index='${pos}']`);
-          if (el) {
-            el.style.backgroundImage = `url('../2048/images/${face}_3.jpg')`;
-            el.style.border = '2px solid black';
-            el.style.backgroundSize = 'cover';
-          }
-        });
-      }
-    });
-  });
-}
-
-</script>
-
-<!-- Fire Board Screen -->
-<div id="fire-container" style="display:none;">
-  <h2>Bắn tàu mỗi ngày</h2>
-  <p>Chọn tối đa 5 ô để bắn mỗi ngày.</p>
-  <div class="board" id="fire-board"></div>
-  <button id="save-fire-shots">💣 Lưu lượt bắn</button>
-</div>
-
-<script>
-
-async function initFireBoard() {
-  const fireContainer = document.getElementById('fire-container');
-  const fireBoard = document.getElementById('fire-board');
-  const saveFireBtn = document.getElementById('save-fire-shots');
-  fireBoard.innerHTML = '';
-  let fireSelected = [];
-
-  const dateStr = new Date().toISOString().split('T')[0];
-  const allHistory = await db.collection('fireShots').doc(username).get();
-  const pastShots = {};
-  let totalShotCount = 0;
-
-  if (allHistory.exists) {
-    const data = allHistory.data();
-    for (let key in data) {
-      const shots = data[key].result || {};
-      for (let idx in shots) {
-        pastShots[idx] = shots[idx];
-        totalShotCount++;
-      }
-    }
-  }
-
-  for (let i = 0; i < BOARD_COLS * BOARD_ROWS; i++) {
-    const cell = document.createElement('div');
-    cell.classList.add('cell');
-    cell.dataset.index = i;
-
-    if (pastShots[i]) {
-      cell.classList.add('fired');
-      if (pastShots[i] === 'hit') {
-        cell.style.backgroundColor = '#ff6666';
-      } else if (pastShots[i] === 'self') {
-        cell.style.backgroundColor = '#cc99ff';
-      } else {
-        cell.style.backgroundColor = '#aaa';
-      }
-    } else {
-      cell.addEventListener('click', () => {
-        const index = parseInt(cell.dataset.index);
-        if (fireSelected.includes(index)) {
-          cell.style.backgroundColor = '';
-          fireSelected = fireSelected.filter(x => x !== index);
-        } else {
-          if (fireSelected.length + totalShotCount < 5) {
-            fireSelected.push(index);
-            cell.style.backgroundColor = '#87ceeb'; // xanh biển
-          } else {
-            alert('Tối đa 5 ô/ngày. Bạn đã bắn đủ!');
-          }
-        }
+    function saveShipDataAnd(next) {
+      const shipConfig = JSON.parse(localStorage.getItem('shipLengths'));
+      const shipPositions = Array.from(document.querySelectorAll('.cell.occupied'))
+        .map(cell => parseInt(cell.dataset.index));
+      db.collection("users").doc(username).set({
+        shipConfig,
+        shipPositions,
+        char: selectedChar
+      }, { merge: true }).then(() => {
+        alert("Đã lưu thông tin tàu thành công!");
+        if (next === 'menu') location.reload();
+        else if (next === 'play') alert("Chuyển sang chế độ bắn tàu... (đang phát triển)");
       });
     }
 
-    fireBoard.appendChild(cell);
-  }
+    document.getElementById("save-board").addEventListener("click", () => {
+      alert("Bảng đã được lưu! Chia sẻ đường dẫn để bạn bè cùng chơi nhé.");
+    });
 
-  fireContainer.style.display = 'block';
+    async function initFireBoard() {
+      const fireContainer = document.getElementById('fire-container');
+      const fireBoard = document.getElementById('fire-board');
+      const saveFireBtn = document.getElementById('save-fire-shots');
+      const resultDisplay = document.getElementById('shot-result');
+      fireBoard.innerHTML = '';
+      let fireSelected = [];
 
-  saveFireBtn.onclick = async () => {
-    if (fireSelected.length === 0) {
-      alert('Bạn chưa chọn ô nào để bắn.');
-      return;
-    }
-
-    const result = {};
-    const allUsers = await db.collection('users').get();
-    const otherShips = [];
-    let selfShips = [];
-
-    allUsers.forEach(doc => {
-      const data = doc.data();
-      if (data.shipPositions && data.shipPositions.length > 0) {
-        if (doc.id === username) selfShips = data.shipPositions;
-        else otherShips.push(...data.shipPositions);
+      // Load previous shot result if available
+      const lastResult = JSON.parse(localStorage.getItem('lastShotResult') || '{}');
+      if (lastResult.date === new Date().toISOString().split('T')[0]) {
+        resultDisplay.innerHTML = `
+          <p>Kết quả lượt bắn hôm nay:</p>
+          <ul>
+            <li>Trúng tàu đối thủ: ${lastResult.hit} ô</li>
+            <li>Tự bắn tàu mình: ${lastResult.self} ô</li>
+            <li>Bắn trượt: ${lastResult.miss} ô</li>
+          </ul>
+        `;
+      } else {
+        resultDisplay.innerHTML = '';
       }
-    });
 
-    fireSelected.forEach(idx => {
-      if (selfShips.includes(idx)) result[idx] = 'self';
-      else if (otherShips.includes(idx)) result[idx] = 'hit';
-      else result[idx] = 'miss';
-    });
+      const dateStr = new Date().toISOString().split('T')[0];
+      const allHistory = await db.collection('fireShots').doc(username).get();
+      const pastShots = {};
+      let totalShotCount = 0;
 
-    await db.collection('fireShots').doc(username).set({
-      [dateStr]: {
-        shots: fireSelected,
-        result,
+      if (allHistory.exists) {
+        const data = allHistory.data();
+        if (data[dateStr]) {
+          const shots = data[dateStr].result || {};
+          for (let idx in shots) {
+            pastShots[idx] = shots[idx];
+            totalShotCount++;
+          }
+        }
       }
-    }, { merge: true });
 
-    fireSelected.forEach(idx => {
-      const cell = document.querySelector(`#fire-board .cell[data-index='${idx}']`);
-      const type = result[idx];
-      if (type === 'self') cell.style.backgroundColor = '#cc99ff';
-      else if (type === 'hit') cell.style.backgroundColor = '#ff6666';
-      else cell.style.backgroundColor = '#aaa';
-      cell.classList.add('fired');
-    });
+      if (totalShotCount >= 5) {
+        saveFireBtn.disabled = true;
+        saveFireBtn.textContent = 'Đã bắn đủ hôm nay';
+      }
 
-    fireSelected = [];
-    alert('Lượt bắn đã được lưu!');
-  };
-}
+      for (let i = 0; i < BOARD_COLS * BOARD_ROWS; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.dataset.index = i;
 
-function highlightSunkShips(resultMap, selfShips) {
-  const shipConfig = selfShips || [];
-  const sunkShips = [];
+        if (pastShots[i]) {
+          cell.classList.add('fired');
+          if (pastShots[i] === 'hit') {
+            cell.style.backgroundColor = '#ff6666';
+          } else if (pastShots[i] === 'self') {
+            cell.style.backgroundColor = '#cc99ff';
+          } else {
+            cell.style.backgroundColor = '#aaa';
+          }
+        } else {
+          cell.addEventListener('click', () => {
+            const index = parseInt(cell.dataset.index);
+            if (cell.classList.contains('fired')) {
+              return;
+            }
+            if (fireSelected.includes(index)) {
+              cell.style.backgroundColor = '';
+              fireSelected = fireSelected.filter(x => x !== index);
+            } else {
+              if (fireSelected.length + totalShotCount < 5) {
+                fireSelected.push(index);
+                cell.style.backgroundColor = '#87ceeb';
+              } else {
+                alert('Tối đa 5 ô/ngày. Bạn đã bắn đủ!');
+              }
+            }
+          });
+        }
 
-  // Group ship cells from stored shipConfig
-  const shipCells = shipConfig.reduce((acc, len, idx) => {
-    acc[idx] = [];
-    return acc;
-  }, {});
+        fireBoard.appendChild(cell);
+      }
 
-  // Create lookup of all ship positions to check hits
-  for (const idx in resultMap) {
-    if (resultMap[idx] === 'self') {
-      document.querySelector(`#fire-board .cell[data-index='${idx}']`).classList.add('fired');
-    }
-  }
+      fireContainer.style.display = 'block';
 
-  // Visuals: draw ship face & border when fully hit
-  const cellEls = document.querySelectorAll('#fire-board .cell');
-  const hitSet = new Set(Object.keys(resultMap).filter(k => resultMap[k] === 'hit'));
+      saveFireBtn.onclick = async () => {
+        if (fireSelected.length === 0) {
+          alert('Bạn chưa chọn ô nào để bắn.');
+          return;
+        }
 
-  db.collection("users").get().then(snapshot => {
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const ship = data.shipPositions || [];
-      const face = data.char;
-      if (ship.length > 0 && ship.every(pos => hitSet.has(pos.toString()))) {
-        ship.forEach(pos => {
-          const el = document.querySelector(`#fire-board .cell[data-index='${pos}']`);
-          if (el) {
-            el.style.backgroundImage = `url('../2048/images/${face}_3.jpg')`;
-            el.style.border = '2px solid black';
-            el.style.backgroundSize = 'cover';
+        const result = {};
+        const allUsers = await db.collection('users').get();
+        const otherShips = [];
+        let selfShips = [];
+
+        allUsers.forEach(doc => {
+          const data = doc.data();
+          if (data.shipPositions && data.shipPositions.length > 0) {
+            if (doc.id === username) selfShips = data.shipPositions;
+            else otherShips.push(...data.shipPositions);
           }
         });
+
+        fireSelected.forEach(idx => {
+          if (selfShips.includes(idx)) result[idx] = 'self';
+          else if (otherShips.includes(idx)) result[idx] = 'hit';
+          else result[idx] = 'miss';
+        });
+
+        await db.collection('fireShots').doc(username).set({
+          [dateStr]: {
+            shots: fireSelected,
+            result,
+          }
+        }, { merge: true });
+
+        fireSelected.forEach(idx => {
+          const cell = document.querySelector(`#fire-board .cell[data-index='${idx}']`);
+          const type = result[idx];
+          if (type === 'self') cell.style.backgroundColor = '#cc99ff';
+          else if (type === 'hit') cell.style.backgroundColor = '#ff6666';
+          else cell.style.backgroundColor = '#aaa';
+          cell.classList.add('fired');
+        });
+
+        // Calculate and display shot results
+        const hitCount = Object.values(result).filter(v => v === 'hit').length;
+        const selfCount = Object.values(result).filter(v => v === 'self').length;
+        const missCount = Object.values(result).filter(v => v === 'miss').length;
+        
+        // Save result to localStorage for persistence
+        localStorage.setItem('lastShotResult', JSON.stringify({
+          date: dateStr,
+          hit: hitCount,
+          self: selfCount,
+          miss: missCount
+        }));
+
+        // Display result on screen
+        resultDisplay.innerHTML = `
+          <p>Kết quả lượt bắn hôm nay:</p>
+          <ul>
+            <li>Trúng tàu đối thủ: ${hitCount} ô</li>
+            <li>Tự bắn tàu mình: ${selfCount} ô</li>
+            <li>Bắn trượt: ${missCount} ô</li>
+          </ul>
+        `;
+
+        // Show alert with summary
+        alert(`Lượt bắn đã được lưu!\nKết quả:\n- Trúng: ${hitCount} ô\n- Tự bắn: ${selfCount} ô\n- Trượt: ${missCount} ô`);
+
+        totalShotCount += fireSelected.length;
+        fireSelected = [];
+
+        if (totalShotCount >= 5) {
+          saveFireBtn.disabled = true;
+          saveFireBtn.textContent = 'Đã bắn đủ hôm nay';
+        }
+
+        await initFireBoard();
+      };
+    }
+
+    function highlightSunkShips(resultMap, selfShips) {
+      const shipConfig = selfShips || [];
+      const sunkShips = [];
+
+      const shipCells = shipConfig.reduce((acc, len, idx) => {
+        acc[idx] = [];
+        return acc;
+      }, {});
+
+      for (const idx in resultMap) {
+        if (resultMap[idx] === 'self') {
+          document.querySelector(`#fire-board .cell[data-index='${idx}']`).classList.add('fired');
+        }
       }
-    });
-  });
-}
 
-</script>
+      const cellEls = document.querySelectorAll('#fire-board .cell');
+      const hitSet = new Set(Object.keys(resultMap).filter(k => resultMap[k] === 'hit'));
 
+      db.collection("users").get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const ship = data.shipPositions || [];
+          const face = data.char;
+          if (ship.length > 0 && ship.every(pos => hitSet.has(pos.toString()))) {
+            ship.forEach(pos => {
+              const el = document.querySelector(`#fire-board .cell[data-index='${pos}']`);
+              if (el) {
+                el.style.backgroundImage = `url('../2048/images/${face}_3.jpg')`;
+                el.style.border = '2px solid black';
+                el.style.backgroundSize = 'cover';
+              }
+            });
+          }
+        });
+      });
+    }
+  </script>
+
+  <script>
+    (function(){
+      function c(){
+        var b = a.contentDocument || a.contentWindow.document;
+        if (b) {
+          var d = b.createElement('script');
+          d.innerHTML = "window.__CF$cv$params={r:'9322d8c4ad40bcfb',t:'MTc0NDk2NTUxNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+          b.getElementsByTagName('head')[0].appendChild(d);
+        }
+      }
+      if (document.body) {
+        var a = document.createElement('iframe');
+        a.height = 1;
+        a.width = 1;
+        a.style.position = 'absolute';
+        a.style.top = 0;
+        a.style.left = 0;
+        a.style.border = 'none';
+        a.style.visibility = 'hidden';
+        document.body.appendChild(a);
+        if ('loading' !== document.readyState) c();
+        else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c);
+        else {
+          var e = document.onreadystatechange || function(){};
+          document.onreadystatechange = function(b) {
+            e(b);
+            'loading' !== document.readyState && (document.onreadystatechange = e, c());
+          };
+        }
+      }
+    })();
+  </script>
 </body>
 </html>
