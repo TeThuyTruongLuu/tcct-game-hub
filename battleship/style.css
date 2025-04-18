@@ -172,3 +172,10 @@ button {
     width: 50px;
   }
 }
+
+
+/* Highlight when ship is fully sunk */
+.cell.sunk {
+  border: 2px solid black !important;
+  background-size: cover !important;
+}
