@@ -160,7 +160,35 @@
             const newCell = cell.cloneNode(true);
             cell.parentNode.replaceChild(newCell, cell);
           });
-          document.getElementById("save-board").style.display = "none";
+          
+        // Đếm số lần bị bắn vào tàu của mình
+        const fireDoc = await db.collection('fireShots').get();
+        const myHits = {};
+
+        fireDoc.forEach(docSnap => {
+          const shots = docSnap.data();
+          for (let day in shots) {
+            const result = shots[day].result || {};
+            for (let idx in result) {
+              if (result[idx] === 'hit' && positions.includes(parseInt(idx))) {
+                myHits[idx] = (myHits[idx] || 0) + 1;
+              }
+            }
+          }
+        });
+
+        positions.forEach(idx => {
+          const cell = document.querySelector(`[data-index='${idx}']`);
+          cell.classList.add("relative");
+          if (myHits[idx]) {
+            const tag = document.createElement("div");
+            tag.className = "hit-count";
+            tag.innerText = "x" + myHits[idx];
+            cell.appendChild(tag);
+          }
+        });
+
+        document.getElementById("save-board").style.display = "none";
           document.getElementById("board").insertAdjacentHTML("afterend", `
             <button id="start-battle" style="margin-top: 20px">🚀 Bắt đầu bắn tàu</button>
           `);

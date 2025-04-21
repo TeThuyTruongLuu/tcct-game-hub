@@ -196,3 +196,24 @@ button {
   border: 2px solid black !important;
   background-size: cover !important;
 }
+
+
+.cell .hit-count {
+  position: absolute;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  background: red;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 2px;
+  right: 2px;
+  z-index: 10;
+}
+.cell.relative {
+  position: relative;
+}
