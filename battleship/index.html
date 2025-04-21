@@ -61,7 +61,6 @@
     <button id="save-board">Lưu bảng</button>
   </div>
 
-  <!-- Fire Board Screen -->
   <div id="fire-container" style="display:none;">
     <h2>Bắn tàu mỗi ngày</h2>
     <p>Chọn tối đa 5 ô để bắn mỗi ngày.</p>
@@ -120,6 +119,15 @@
 
         if (doc.exists) {
           const savedPassword = doc.data().password;
+        const savedChar = doc.data().char;
+
+        if (savedPassword && savedChar) {
+          if (password !== savedPassword || selectedChar !== savedChar) {
+            alert("Sai mật khẩu hoặc sai nhân vật đã chọn!");
+            return;
+          }
+        }
+
           if (savedPassword) {
             if (password !== savedPassword) {
               alert("Sai mật khẩu. Hãy thử lại.");
@@ -160,8 +168,7 @@
             const newCell = cell.cloneNode(true);
             cell.parentNode.replaceChild(newCell, cell);
           });
-          
-        // Đếm số lần bị bắn vào tàu của mình
+
         const fireDoc = await db.collection('fireShots').get();
         const myHits = {};
 
@@ -349,7 +356,6 @@
       fireBoard.innerHTML = '';
       let fireSelected = [];
 
-      // Load previous shot result if available
       const lastResult = JSON.parse(localStorage.getItem('lastShotResult') || '{}');
       if (lastResult.date === new Date().toISOString().split('T')[0]) {
         resultDisplay.innerHTML = `
@@ -465,12 +471,10 @@
           cell.classList.add('fired');
         });
 
-        // Calculate and display shot results
         const hitCount = Object.values(result).filter(v => v === 'hit').length;
         const selfCount = Object.values(result).filter(v => v === 'self').length;
         const missCount = Object.values(result).filter(v => v === 'miss').length;
         
-        // Save result to localStorage for persistence
         localStorage.setItem('lastShotResult', JSON.stringify({
           date: dateStr,
           hit: hitCount,
@@ -478,7 +482,6 @@
           miss: missCount
         }));
 
-        // Display result on screen
         resultDisplay.innerHTML = `
           <p>Kết quả lượt bắn hôm nay:</p>
           <ul>
@@ -488,7 +491,6 @@
           </ul>
         `;
 
-        // Show alert with summary
         alert(`Lượt bắn đã được lưu!\nKết quả:\n- Trúng: ${hitCount} ô\n- Tự bắn: ${selfCount} ô\n- Trượt: ${missCount} ô`);
 
         totalShotCount += fireSelected.length;
