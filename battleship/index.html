@@ -64,8 +64,33 @@
   <div id="fire-container" style="display:none;">
     <h2>Bắn tàu mỗi ngày</h2>
     <p>Chọn tối đa 5 ô để bắn mỗi ngày.</p>
+    
+    <div class="score-display">
+      <div class="score-card">
+        <span class="score-icon">🎯</span>
+        <div>
+          <p>Điểm hôm nay</p>
+          <span id="today-score">0</span>
+        </div>
+      </div>
+      <div class="score-card">
+        <span class="score-icon">🏆</span>
+        <div>
+          <p>Tổng điểm</p>
+          <span id="total-score">0</span>
+        </div>
+      </div>
+    </div>
+
     <div class="board" id="fire-board"></div>
-    <div id="shot-result" style="margin-top: 20px; font-size: 16px; color: #333;"></div>
+
+    <div id="fire-recap" style="margin-top: 16px;">
+      <p><strong>Kết quả lượt bắn hôm nay:</strong></p>
+      <p>🎯 Trúng tàu đối thủ: <span id="recap-hit">0</span> ô</p>
+      <p>💥 Tự bắn tàu mình: <span id="recap-self">0</span> ô</p>
+      <p>💨 Bắn trượt: <span id="recap-miss">0</span> ô</p>
+    </div>
+
     <button id="save-fire-shots">💣 Lưu lượt bắn</button>
   </div>
 
@@ -119,18 +144,15 @@
 
         if (doc.exists) {
           const savedPassword = doc.data().password;
-        const savedChar = doc.data().char;
+          const savedChar = doc.data().char;
 
-        if (savedPassword && savedChar) {
-          if (password !== savedPassword || selectedChar !== savedChar) {
-            alert("Sai mật khẩu hoặc sai nhân vật đã chọn!");
-            return;
-          }
-        }
-
-          if (savedPassword) {
+          if (savedPassword && savedChar) {
             if (password !== savedPassword) {
               alert("Sai mật khẩu. Hãy thử lại.");
+              return;
+            }
+            if (selectedChar !== savedChar) {
+              alert("Bạn đã chọn nhân vật " + savedChar + " trước đó. Vui lòng chọn đúng nhân vật hoặc tạo tài khoản mới.");
               return;
             }
           } else {
@@ -140,19 +162,12 @@
           await userRef.set({ username, password, char: selectedChar });
         }
 
-        const savedChar = doc.data().char;
-        if (savedChar) {
-          document.querySelectorAll('.char-option').forEach(opt => {
-            if (opt.dataset.char === savedChar) {
-              opt.classList.add('selected');
-              selectedChar = opt.dataset.char;
-              selectedImg = opt.dataset.img;
-            } else {
-              opt.style.pointerEvents = 'none';
-              opt.style.opacity = '0.4';
-            }
-          });
-        }
+        document.querySelectorAll('.char-option').forEach(opt => {
+          if (opt.dataset.char !== selectedChar) {
+            opt.style.pointerEvents = 'none';
+            opt.style.opacity = '0.4';
+          }
+        });
 
         document.getElementById("setup-container").style.display = "none";
 
@@ -169,33 +184,33 @@
             cell.parentNode.replaceChild(newCell, cell);
           });
 
-        const fireDoc = await db.collection('fireShots').get();
-        const myHits = {};
+          const fireDoc = await db.collection('fireShots').get();
+          const myHits = {};
 
-        fireDoc.forEach(docSnap => {
-          const shots = docSnap.data();
-          for (let day in shots) {
-            const result = shots[day].result || {};
-            for (let idx in result) {
-              if (result[idx] === 'hit' && positions.includes(parseInt(idx))) {
-                myHits[idx] = (myHits[idx] || 0) + 1;
+          fireDoc.forEach(docSnap => {
+            const shots = docSnap.data();
+            for (let day in shots) {
+              const result = shots[day].result || {};
+              for (let idx in result) {
+                if (result[idx] === 'hit' && positions.includes(parseInt(idx))) {
+                  myHits[idx] = (myHits[idx] || 0) + 1;
+                }
               }
             }
-          }
-        });
+          });
 
-        positions.forEach(idx => {
-          const cell = document.querySelector(`[data-index='${idx}']`);
-          cell.classList.add("relative");
-          if (myHits[idx]) {
-            const tag = document.createElement("div");
-            tag.className = "hit-count";
-            tag.innerText = "x" + myHits[idx];
-            cell.appendChild(tag);
-          }
-        });
+          positions.forEach(idx => {
+            const cell = document.querySelector(`[data-index='${idx}']`);
+            cell.classList.add("relative");
+            if (myHits[idx]) {
+              const tag = document.createElement("div");
+              tag.className = "hit-count";
+              tag.innerText = "x" + myHits[idx];
+              cell.appendChild(tag);
+            }
+          });
 
-        document.getElementById("save-board").style.display = "none";
+          document.getElementById("save-board").style.display = "none";
           document.getElementById("board").insertAdjacentHTML("afterend", `
             <button id="start-battle" style="margin-top: 20px">🚀 Bắt đầu bắn tàu</button>
           `);
@@ -208,7 +223,7 @@
         }
       } catch (e) {
         console.error(e);
-        alert("Lỗi khi kiểm tra tài khoản.");
+        alert("Lỗi khi kiểm tra tài khoản: " + e.message);
       }
     }
 
@@ -257,7 +272,6 @@
 
       document.getElementById('length-config-container').style.display = 'none';
       document.getElementById('game-container').style.display = 'block';
-      console.log('Độ dài tàu đã chọn:', lengths);
 
       const totalCells = BOARD_COLS * BOARD_ROWS;
       const occupied = new Set();
@@ -329,64 +343,116 @@
       board.appendChild(cell);
     }
 
-    function saveShipDataAnd(next) {
-      const shipConfig = JSON.parse(localStorage.getItem('shipLengths'));
-      const shipPositions = Array.from(document.querySelectorAll('.cell.occupied'))
-        .map(cell => parseInt(cell.dataset.index));
-      db.collection("users").doc(username).set({
-        shipConfig,
-        shipPositions,
-        char: selectedChar
-      }, { merge: true }).then(() => {
-        alert("Đã lưu thông tin tàu thành công!");
-        if (next === 'menu') location.reload();
-        else if (next === 'play') alert("Chuyển sang chế độ bắn tàu... (đang phát triển)");
-      });
-    }
-
     document.getElementById("save-board").addEventListener("click", () => {
       alert("Bảng đã được lưu! Chia sẻ đường dẫn để bạn bè cùng chơi nhé.");
     });
+
+    async function updateTotalScore() {
+      const allShots = await db.collection('fireShots').doc(username).get();
+      const allUsers = await db.collection('users').get();
+      let totalScore = 0;
+
+      const otherShips = [];
+      let selfShips = [];
+      allUsers.forEach(doc => {
+        const data = doc.data();
+        if (data.shipPositions && data.shipPositions.length > 0) {
+          if (doc.id === username) selfShips = data.shipPositions;
+          else otherShips.push(...data.shipPositions);
+        }
+      });
+
+      const hitTracker = {};
+      if (allShots.exists) {
+        const data = allShots.data();
+        for (let day in data) {
+          const result = data[day].result || {};
+          for (let idx in result) {
+            if (result[idx] === 'hit') {
+              hitTracker[idx] = (hitTracker[idx] || 0) + 1;
+              totalScore += 1;
+            } else if (result[idx] === 'self') {
+              totalScore -= 5;
+            }
+          }
+        }
+      }
+
+      const allShipStates = {};
+      allUsers.forEach(doc => {
+        const data = doc.data();
+        if (data.shipPositions && data.shipPositions.length > 0) {
+          allShipStates[doc.id] = data.shipPositions;
+        }
+      });
+
+      let sunkPoints = 0;
+      Object.entries(allShipStates).forEach(([user, ship]) => {
+        if (user === username) return;
+        const grouped = {};
+        ship.forEach(pos => {
+          const shipId = Math.floor(pos / 1000) || 0;
+          grouped[shipId] = grouped[shipId] || [];
+          grouped[shipId].push(pos);
+        });
+
+        Object.values(grouped).forEach(boat => {
+          if (boat.every(pos => hitTracker[pos] > 0)) {
+            sunkPoints += 2;
+          }
+        });
+      });
+
+      totalScore += sunkPoints;
+
+      await db.collection("userScores").doc(`${username}-battleship`).set({
+        username,
+        game: "battleship",
+        updatedAt: new Date().toISOString(),
+        score: totalScore
+      }, { merge: true });
+
+      document.getElementById("total-score").textContent = totalScore;
+    }
 
     async function initFireBoard() {
       const fireContainer = document.getElementById('fire-container');
       const fireBoard = document.getElementById('fire-board');
       const saveFireBtn = document.getElementById('save-fire-shots');
-      const resultDisplay = document.getElementById('shot-result');
+      const recapHit = document.getElementById('recap-hit');
+      const recapSelf = document.getElementById('recap-self');
+      const recapMiss = document.getElementById('recap-miss');
       fireBoard.innerHTML = '';
       let fireSelected = [];
 
-      const lastResult = JSON.parse(localStorage.getItem('lastShotResult') || '{}');
-      if (lastResult.date === new Date().toISOString().split('T')[0]) {
-        resultDisplay.innerHTML = `
-          <p>Kết quả lượt bắn hôm nay:</p>
-          <ul>
-            <li>Trúng tàu đối thủ: ${lastResult.hit} ô</li>
-            <li>Tự bắn tàu mình: ${lastResult.self} ô</li>
-            <li>Bắn trượt: ${lastResult.miss} ô</li>
-          </ul>
-        `;
-      } else {
-        resultDisplay.innerHTML = '';
-      }
+      await updateTotalScore();
 
-      const dateStr = new Date().toISOString().split('T')[0];
       const allHistory = await db.collection('fireShots').doc(username).get();
       const pastShots = {};
-      let totalShotCount = 0;
+      let todayShotCount = 0;
+      let todayHits = 0, todaySelf = 0, todayMiss = 0;
 
       if (allHistory.exists) {
         const data = allHistory.data();
-        if (data[dateStr]) {
-          const shots = data[dateStr].result || {};
+        for (let day in data) {
+          const shots = data[day].result || {};
           for (let idx in shots) {
             pastShots[idx] = shots[idx];
-            totalShotCount++;
+            if (day === new Date().toISOString().split('T')[0]) {
+              todayShotCount++;
+              if (shots[idx] === 'hit') todayHits++;
+              else if (shots[idx] === 'self') todaySelf++;
+              else todayMiss++;
+            }
           }
         }
       }
 
-      if (totalShotCount >= 5) {
+      recapHit.textContent = todayHits;
+      recapSelf.textContent = todaySelf;
+      recapMiss.textContent = todayMiss;
+
+      if (todayShotCount >= 5) {
         saveFireBtn.disabled = true;
         saveFireBtn.textContent = 'Đã bắn đủ hôm nay';
       }
@@ -415,7 +481,7 @@
               cell.style.backgroundColor = '';
               fireSelected = fireSelected.filter(x => x !== index);
             } else {
-              if (fireSelected.length + totalShotCount < 5) {
+              if (fireSelected.length + todayShotCount < 5) {
                 fireSelected.push(index);
                 cell.style.backgroundColor = '#87ceeb';
               } else {
@@ -430,12 +496,16 @@
 
       fireContainer.style.display = 'block';
 
+      let scoreToday = todayHits * 1 - todaySelf * 5;
+      document.getElementById("today-score").textContent = scoreToday;
+
       saveFireBtn.onclick = async () => {
         if (fireSelected.length === 0) {
           alert('Bạn chưa chọn ô nào để bắn.');
           return;
         }
 
+        const dateStr = new Date().toISOString().split('T')[0];
         const result = {};
         const allUsers = await db.collection('users').get();
         const otherShips = [];
@@ -474,72 +544,84 @@
         const hitCount = Object.values(result).filter(v => v === 'hit').length;
         const selfCount = Object.values(result).filter(v => v === 'self').length;
         const missCount = Object.values(result).filter(v => v === 'miss').length;
-        
-        localStorage.setItem('lastShotResult', JSON.stringify({
-          date: dateStr,
-          hit: hitCount,
-          self: selfCount,
-          miss: missCount
-        }));
 
-        resultDisplay.innerHTML = `
-          <p>Kết quả lượt bắn hôm nay:</p>
-          <ul>
-            <li>Trúng tàu đối thủ: ${hitCount} ô</li>
-            <li>Tự bắn tàu mình: ${selfCount} ô</li>
-            <li>Bắn trượt: ${missCount} ô</li>
-          </ul>
-        `;
+        todayHits += hitCount;
+        todaySelf += selfCount;
+        todayMiss += missCount;
+
+        recapHit.textContent = todayHits;
+        recapSelf.textContent = todaySelf;
+        recapMiss.textContent = todayMiss;
+
+        let pointHit = 0, pointSelf = 0, pointSunk = 0;
+
+        const allShipStates = {};
+        allUsers.forEach(doc => {
+          const data = doc.data();
+          if (data.shipPositions && data.shipPositions.length > 0) {
+            allShipStates[doc.id] = data.shipPositions;
+          }
+        });
+
+        const allShots = await db.collection('fireShots').get();
+        const hitTracker = {};
+        allShots.forEach(doc => {
+          const data = doc.data();
+          Object.values(data).forEach(entry => {
+            const res = entry.result || {};
+            for (let i in res) {
+              if (res[i] === 'hit') {
+                hitTracker[i] = (hitTracker[i] || 0) + 1;
+              }
+            }
+          });
+        });
+
+        Object.entries(allShipStates).forEach(([user, ship]) => {
+          const grouped = {};
+          ship.forEach((pos, idx) => {
+            grouped[idx] = grouped[idx] || [];
+            grouped[idx].push(pos);
+          });
+
+          Object.values(grouped).forEach(boat => {
+            if (boat.every(pos => hitTracker[pos] > 0)) {
+              pointSunk += 1;
+            }
+          });
+        });
+
+        pointHit = Object.values(result).filter(v => v === 'hit').length;
+        pointSelf = Object.values(result).filter(v => v === 'self').length;
+        let totalPoint = pointHit * 1 - pointSelf * 5 + pointSunk * 2;
+
+        await db.collection("userScores").doc(`${username}-battleship`).set({
+          username,
+          game: "battleship",
+          updatedAt: new Date().toISOString(),
+          score: firebase.firestore.FieldValue.increment(totalPoint)
+        }, { merge: true });
+
+        const updatedPointRef = await db.collection("userScores").doc(`${username}-battleship`).get();
+        if (updatedPointRef.exists) {
+          document.getElementById("total-score").textContent = updatedPointRef.data().score || 0;
+        }
+
+        let scoreToday = todayHits * 1 - todaySelf * 5 + pointSunk * 2;
+        document.getElementById("today-score").textContent = scoreToday;
 
         alert(`Lượt bắn đã được lưu!\nKết quả:\n- Trúng: ${hitCount} ô\n- Tự bắn: ${selfCount} ô\n- Trượt: ${missCount} ô`);
 
-        totalShotCount += fireSelected.length;
+        todayShotCount += fireSelected.length;
         fireSelected = [];
 
-        if (totalShotCount >= 5) {
+        if (todayShotCount >= 5) {
           saveFireBtn.disabled = true;
           saveFireBtn.textContent = 'Đã bắn đủ hôm nay';
         }
 
         await initFireBoard();
       };
-    }
-
-    function highlightSunkShips(resultMap, selfShips) {
-      const shipConfig = selfShips || [];
-      const sunkShips = [];
-
-      const shipCells = shipConfig.reduce((acc, len, idx) => {
-        acc[idx] = [];
-        return acc;
-      }, {});
-
-      for (const idx in resultMap) {
-        if (resultMap[idx] === 'self') {
-          document.querySelector(`#fire-board .cell[data-index='${idx}']`).classList.add('fired');
-        }
-      }
-
-      const cellEls = document.querySelectorAll('#fire-board .cell');
-      const hitSet = new Set(Object.keys(resultMap).filter(k => resultMap[k] === 'hit'));
-
-      db.collection("users").get().then(snapshot => {
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const ship = data.shipPositions || [];
-          const face = data.char;
-          if (ship.length > 0 && ship.every(pos => hitSet.has(pos.toString()))) {
-            ship.forEach(pos => {
-              const el = document.querySelector(`#fire-board .cell[data-index='${pos}']`);
-              if (el) {
-                el.style.backgroundImage = `url('../2048/images/${face}_3.jpg')`;
-                el.style.border = '2px solid black';
-                el.style.backgroundSize = 'cover';
-              }
-            });
-          }
-        });
-      });
     }
   </script>
 </body>
