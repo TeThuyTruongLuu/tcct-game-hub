@@ -237,7 +237,7 @@ function checkMatch(shelfIndex) {
     const validItems = shelves[shelfIndex].front.filter(item => item != null);
     if (validItems.length === 3) {
         let [a, b, c] = validItems;
-        if (a.split(" ")[0] === b.split(" ")[0] && b.split(" ")[0] === c.split(" ")[0]) {
+        if (a.split("_")[0] === b.split("_")[0] && b.split("_")[0] === c.split("_")[0]) {
             setTimeout(() => removeItems(shelfIndex), 400);
         }
     }
