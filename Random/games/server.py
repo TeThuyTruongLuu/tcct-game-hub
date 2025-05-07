@@ -1,46 +1,57 @@
-from flask import Flask, request, send_file
-from ebooklib import epub
-import requests
-from bs4 import BeautifulSoup
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
-from io import BytesIO
 
 app = Flask(__name__)
+CORS(app)  # Cho phép CORS toàn bộ API
 
 @app.route('/')
 def home():
-    return 'Server chạy OK!'
+    return "✅ Server chạy ngon!"
 
-@app.route('/download_epub', methods=['POST'])
-def download_epub():
-    data = request.get_json()
-    url = data.get('url')
-    extra_content = data.get('extra_content', '')
+@app.route('/api/epub', methods=['POST'])
+def generate_epub():
+    try:
+        data = request.json
+        title = data.get('title', 'Truyen Khong Ten')
+        chapters = data.get('chapters', [])
 
-    res = requests.get(url)
-    soup = BeautifulSoup(res.text, 'html.parser')
+        if not chapters:
+            return jsonify({'error': 'Không có chương nào'}), 400
 
-    title = soup.title.text if soup.title else 'Truyen'
+        from ebooklib import epub
 
-    book = epub.EpubBook()
-    book.set_identifier('id123456')
-    book.set_title(title)
-    book.set_language('vi')
-    book.add_author('Unknown')
+        book = epub.EpubBook()
+        book.set_title(title)
+        book.set_language('vi')
 
-    c1 = epub.EpubHtml(title='Nội dung', file_name='chap1.xhtml', lang='vi')
-    c1.content = f'<h1>{title}</h1><p>{extra_content}</p><p>{soup.get_text()}</p>'
+        epub_chapters = []
+        for idx, chapter in enumerate(chapters, 1):
+            chap_title = chapter.get('title', f'Chương {idx}')
+            chap_content = chapter.get('content', '')
 
-    book.add_item(c1)
-    book.toc = (epub.Link('chap1.xhtml', 'Nội dung', 'chap1'),)
-    book.add_item(epub.EpubNcx())
-    book.add_item(epub.EpubNav())
-    book.spine = ['nav', c1]
+            c = epub.EpubHtml(title=chap_title, file_name=f'chap_{idx}.xhtml', lang='vi')
+            c.content = f'<h1>{chap_title}</h1><p>{chap_content.replace("\n", "<br/>")}</p>'
+            book.add_item(c)
+            epub_chapters.append(c)
 
-    buf = BytesIO()
-    epub.write_epub(buf, book)
-    buf.seek(0)
-    return send_file(buf, as_attachment=True, download_name=f"{title}.epub", mimetype='application/epub+zip')
+        book.toc = tuple(epub_chapters)
+        book.add_item(epub.EpubNavi())
+        book.add_item(epub.EpubNCX())
+        book.spine = ['nav'] + epub_chapters
+
+        output_path = os.path.join('/tmp', f'{title}.epub')
+        epub.write_epub(output_path, book)
+
+        return jsonify({'download_url': f'/download/{title}.epub'})
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/download/<filename>')
+def download_file(filename):
+    return app.send_static_file(os.path.join('..', 'tmp', filename))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
