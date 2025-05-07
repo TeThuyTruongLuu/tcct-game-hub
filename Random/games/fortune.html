@@ -391,7 +391,8 @@
             }
             logMessage('🔍 Bắt đầu tải: ' + url);
             try {
-                const res = await fetch('/download_epub', {
+				const apiBaseUrl = location.hostname === "localhost" ? "http://localhost:5000" : "https://tcct-game-hub-production.up.railway.app";
+				const res = await fetch(`${apiBaseUrl}/download_epub`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url, extra_content: extraContent })
