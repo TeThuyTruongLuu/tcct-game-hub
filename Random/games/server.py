@@ -48,9 +48,12 @@ def generate_epub():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+from flask import send_from_directory
+
 @app.route('/download/<filename>')
 def download_file(filename):
-    return app.send_static_file(os.path.join('..', 'tmp', filename))
+    return send_from_directory('/tmp', filename, as_attachment=True)
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
