@@ -10,41 +10,31 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
-
-@app.after_request
-def apply_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    response.headers['Access-Control-Max-Age'] = '3600'
-    return response
+# Configure CORS: Allow all origins for /api/* routes, no credentials needed
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 @app.errorhandler(Exception)
 def handle_exception(e):
     app.logger.error(f"Global error: {str(e)}")
     response = jsonify({'error': 'Lỗi server nội bộ'})
     response.status_code = 500
-    return apply_cors_headers(response)
+    return response
 
 @app.route("/")
 def hello():
     return "✅ API running ngon lành!"
 
-@app.route('/api/epub', methods=['OPTIONS', 'POST'])
+@app.route('/api/epub', methods=['POST'])
 def epub_handler():
-    if request.method == 'OPTIONS':
-        return apply_cors_headers(make_response('', 204))
-
     try:
         data = request.get_json()
         if not data:
-            return apply_cors_headers(jsonify({'error': 'Không có dữ liệu JSON'})), 400
+            return jsonify({'error': 'Không có dữ liệu JSON'}), 400
         
         title = data.get('title', 'Truyen Khong Ten')
         chapters = data.get('chapters', [])
         if not chapters:
-            return apply_cors_headers(jsonify({'error': 'Không có chương nào'})), 400
+            return jsonify({'error': 'Không có chương nào'}), 400
 
         book = epub.EpubBook()
         book.set_title(title)
@@ -67,17 +57,15 @@ def epub_handler():
         output_path = os.path.join('/tmp', f'{title}.epub')
         epub.write_epub(output_path, book)
 
-        return apply_cors_headers(jsonify({'download_url': f'/download/{title}.epub'}))
+        return jsonify({'download_url': f'/download/{title}.epub'})
 
     except Exception as e:
         app.logger.error(f"Lỗi tạo EPUB: {str(e)}")
-        return apply_cors_headers(jsonify({'error': str(e)})), 500
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/download/<filename>')
 def download_file(filename):
-    return apply_cors_headers(
-        send_from_directory('/tmp', filename, as_attachment=True)
-    )
+    return send_from_directory('/tmp', filename, as_attachment=True)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
