@@ -1,9 +1,16 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
+from ebooklib import epub
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# Cho phép cả local, file:// (null), mọi nguồn - có thể thu hẹp sau khi dev xong
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["*", "null", "http://localhost:5500", "http://127.0.0.1:5500"]
+    }
+}, supports_credentials=True)
 
 @app.route('/')
 def home():
@@ -18,8 +25,6 @@ def generate_epub():
 
         if not chapters:
             return jsonify({'error': 'Không có chương nào'}), 400
-
-        from ebooklib import epub
 
         book = epub.EpubBook()
         book.set_title(title)
@@ -48,12 +53,9 @@ def generate_epub():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-from flask import send_from_directory
-
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_from_directory('/tmp', filename, as_attachment=True)
-
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
