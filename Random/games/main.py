@@ -15,27 +15,30 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# CORS logging (giữ để debug nếu cần)
 @app.after_request
 def apply_cors_headers(response):
     print("RESPONSE HEADERS", response.headers)
     return response
 
-# Xử lý lỗi toàn cục
 @app.errorhandler(Exception)
 def handle_exception(e):
     app.logger.error(f"Global error: {str(e)}")
     return jsonify({'error': 'Lỗi server nội bộ', 'details': str(e)}), 500
 
-# --------------------------
-# ✅ HÀM ĐẶT TÊN FILE EPUB
-# --------------------------
 def convert_title_to_filename(title):
+    # Nếu có tag [..] thì cắt bỏ
+    title = re.sub(r'\[.*?\]', '', title).strip()
+    
+    # Normalize tiếng Việt
     nfkd_form = unicodedata.normalize('NFKD', title)
     ascii_form = nfkd_form.encode('ASCII', 'ignore').decode('utf-8')
-    ascii_form = re.sub(r"[^\w\s]", '', ascii_form)
-    ascii_form = re.sub(r"\s+", '_', ascii_form.strip())
-    return ascii_form.lower() + '.epub'
+    
+    # Chuyển thành snake_case
+    ascii_form = re.sub(r'[^\w\s]', '', ascii_form)
+    ascii_form = re.sub(r'\s+', '_', ascii_form.strip())
+    
+    return ascii_form + '.epub'
+
 
 @app.route("/")
 def hello():
