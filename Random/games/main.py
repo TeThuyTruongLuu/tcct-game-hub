@@ -9,6 +9,7 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Giới hạn 16MB
 
 # Áp dụng CORS
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
@@ -16,14 +17,22 @@ CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 # Middleware để thêm header CORS
 @app.after_request
 def apply_cors_headers(response):
-    app.logger.debug(f"Response status: {response.status}")
-    app.logger.debug(f"Response headers before: {response.headers}")
+    app.logger.debug(f"Applying CORS to response with status: {response.status}")
+    app.logger.debug(f"Headers before: {dict(response.headers)}")
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     response.headers['Access-Control-Max-Age'] = '3600'
-    app.logger.debug(f"Response headers after: {response.headers}")
+    app.logger.debug(f"Headers after: {dict(response.headers)}")
     return response
+
+# Xử lý lỗi toàn cục
+@app.errorhandler(Exception)
+def handle_exception(e):
+    app.logger.error(f"Global error: {str(e)}")
+    response = jsonify({'error': 'Lỗi server nội bộ'})
+    response.status_code = 500
+    return apply_cors_headers(response)
 
 @app.route("/")
 def helloWorld():
@@ -70,6 +79,11 @@ def epub_handler():
 
             output_path = os.path.join(os.getcwd(), 'tmp', f'{title}.epub')
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            if not os.access(os.path.dirname(output_path), os.W_OK):
+                app.logger.error(f"No write permission for {os.path.dirname(output_path)}")
+                response = jsonify({'error': 'Không có quyền ghi file'})
+                return apply_cors_headers(response), 500
+
             try:
                 with open(output_path, 'w') as f:
                     pass
@@ -79,9 +93,9 @@ def epub_handler():
                 return apply_cors_headers(response), 500
 
             try:
-                epub.write_epub(output_path, book)
+                epub.write_epub(output_path, book, options={'encoding': 'utf-8'})
             except Exception as e:
-                app.logger.error(f"Error writing EPUB: {str(e)}")
+                app.logger.error(f"EPUB write error: {str(e)}")
                 response = jsonify({'error': f'Lỗi tạo EPUB: {str(e)}'})
                 return apply_cors_headers(response), 500
 
@@ -98,5 +112,4 @@ def download_file(filename):
     return apply_cors_headers(response)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    port
