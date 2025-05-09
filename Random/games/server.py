@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, make_response, request, send_from_directory
 from flask_cors import CORS
 import os
-from ebooklib import epub
+import epub
 import logging
 
 # Cấu hình logging
@@ -10,19 +10,19 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-# Áp dụng CORS với điều kiện
+# Áp dụng CORS
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
-# Middleware để thêm header có điều kiện
+# Middleware để thêm header CORS
 @app.after_request
 def apply_cors_headers(response):
-    app.logger.debug(f"Applying CORS to response: {response.status}")
-    # Chỉ thêm header nếu là yêu cầu từ domain khác
-    if request.method in ['OPTIONS', 'POST', 'GET'] and 'Origin' in request.headers:
-        response.headers['Access-Control-Allow-Origin'] = request.headers['Origin']
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-        response.headers['Access-Control-Max-Age'] = '3600'
+    app.logger.debug(f"Response status: {response.status}")
+    app.logger.debug(f"Response headers before: {response.headers}")
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Max-Age'] = '3600'
+    app.logger.debug(f"Response headers after: {response.headers}")
     return response
 
 @app.route("/")
@@ -46,7 +46,6 @@ def epub_handler():
             
             title = data.get('title', 'Truyen Khong Ten')
             chapters = data.get('chapters', [])
-
             if not chapters:
                 response = jsonify({'error': 'Không có chương nào'})
                 return apply_cors_headers(response), 400
@@ -69,8 +68,22 @@ def epub_handler():
             book.add_item(epub.EpubNCX())
             book.spine = ['nav'] + epub_chapters
 
-            output_path = os.path.join('/tmp', f'{title}.epub')
-            epub.write_epub(output_path, book)
+            output_path = os.path.join(os.getcwd(), 'tmp', f'{title}.epub')
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            try:
+                with open(output_path, 'w') as f:
+                    pass
+            except Exception as e:
+                app.logger.error(f"Cannot write to {output_path}: {str(e)}")
+                response = jsonify({'error': f'Không thể ghi file: {str(e)}'})
+                return apply_cors_headers(response), 500
+
+            try:
+                epub.write_epub(output_path, book)
+            except Exception as e:
+                app.logger.error(f"Error writing EPUB: {str(e)}")
+                response = jsonify({'error': f'Lỗi tạo EPUB: {str(e)}'})
+                return apply_cors_headers(response), 500
 
             response = jsonify({'download_url': f'/download/{title}.epub'})
             return apply_cors_headers(response)
@@ -81,9 +94,9 @@ def epub_handler():
 
 @app.route('/download/<filename>')
 def download_file(filename):
-    response = send_from_directory('/tmp', filename, as_attachment=True)
+    response = send_from_directory(os.path.join(os.getcwd(), 'tmp'), filename, as_attachment=True)
     return apply_cors_headers(response)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)
