@@ -56,10 +56,13 @@ def crawl_thread():
                 'content': content_html
             })
 
-        return jsonify({
+        response = jsonify({
             'title': title,
             'chapters': chapters
         })
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        return response
+
 
     except Exception as e:
         app.logger.error(f"Lỗi crawl thread: {str(e)}")
