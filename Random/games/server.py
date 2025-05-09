@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify, send_from_directory, make_response
+from flask_cors import CORS
 import os
 from ebooklib import epub
 
 app = Flask(__name__)
+CORS(app)
 
 # Middleware để thêm header CORS cho mọi yêu cầu
 @app.after_request
