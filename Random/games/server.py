@@ -2,51 +2,54 @@ from flask import Flask, jsonify, make_response, request, send_from_directory
 from flask_cors import CORS
 import os
 import epub
+import logging
 
+# Cấu hình logging
+logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 app.config['CORS_HEADERS'] = 'Content-Type'
-CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)  # Cho phép tất cả origin và hỗ trợ credentials
 
-@app.before_request
-def handle_preflight():
-    if request.method == 'OPTIONS':
-        response = make_response('', 204)
-        response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+# Áp dụng CORS với điều kiện
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+
+# Middleware để thêm header có điều kiện
+@app.after_request
+def apply_cors_headers(response):
+    app.logger.debug(f"Applying CORS to response: {response.status}")
+    # Chỉ thêm header nếu là yêu cầu từ domain khác
+    if request.method in ['OPTIONS', 'POST', 'GET'] and 'Origin' in request.headers:
+        response.headers['Access-Control-Allow-Origin'] = request.headers['Origin']
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-        return response
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        response.headers['Access-Control-Max-Age'] = '3600'
+    return response
 
 @app.route("/")
 def helloWorld():
-    print(app.config['SECRET_KEY'])  # Kiểm tra SECRET_KEY
+    app.logger.debug(f"SECRET_KEY: {app.config['SECRET_KEY']}")
     return "Hello, cross-origin-world!"
 
 @app.route('/api/epub', methods=['OPTIONS', 'POST'])
 def epub_handler():
-    print("Received request:", request.method, request.url, request.headers)  # Log để debug
+    app.logger.debug(f"Received request: {request.method} {request.url} {request.headers}")
     if request.method == 'OPTIONS':
         response = make_response('', 204)
-        response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-        return response
+        return apply_cors_headers(response)
     
     if request.method == 'POST':
         try:
-            data = request.get_json()  # Sử dụng get_json thay vì request.json
+            data = request.get_json()
             if not data:
                 response = jsonify({'error': 'Không có dữ liệu JSON'})
-                response.headers['Access-Control-Allow-Origin'] = '*'
-                return response, 400
+                return apply_cors_headers(response), 400
             
             title = data.get('title', 'Truyen Khong Ten')
             chapters = data.get('chapters', [])
 
             if not chapters:
                 response = jsonify({'error': 'Không có chương nào'})
-                response.headers['Access-Control-Allow-Origin'] = '*'
-                return response, 400
+                return apply_cors_headers(response), 400
 
             book = epub.EpubBook()
             book.set_title(title)
@@ -70,19 +73,16 @@ def epub_handler():
             epub.write_epub(output_path, book)
 
             response = jsonify({'download_url': f'/download/{title}.epub'})
-            response.headers['Access-Control-Allow-Origin'] = '*'
-            return response
+            return apply_cors_headers(response)
         except Exception as e:
-            print("Error:", str(e))  # Log lỗi
+            app.logger.error(f"Error: {str(e)}")
             response = jsonify({'error': str(e)})
-            response.headers['Access-Control-Allow-Origin'] = '*'
-            return response, 500
+            return apply_cors_headers(response), 500
 
 @app.route('/download/<filename>')
 def download_file(filename):
     response = send_from_directory('/tmp', filename, as_attachment=True)
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    return response
+    return apply_cors_headers(response)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
