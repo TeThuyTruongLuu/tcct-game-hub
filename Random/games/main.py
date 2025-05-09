@@ -72,7 +72,9 @@ def download_file(filename):
     if request.method == 'OPTIONS':
         return '', 204
     try:
-        return send_from_directory(tempfile.gettempdir(), filename, as_attachment=True)
+        response = send_from_directory(tempfile.gettempdir(), filename, as_attachment=True)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        return response
     except Exception as e:
         app.logger.error(f"Lỗi tải file: {str(e)}")
         return jsonify({'error': 'Không tìm thấy file'}), 404
