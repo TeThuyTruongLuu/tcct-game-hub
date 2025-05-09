@@ -55,7 +55,6 @@ def epub_handler():
 
         book.toc = tuple(epub_chapters)
         book.add_item(epub.EpubNav())
-        book.add_item(epub.EpubNCX())
         book.spine = ['nav'] + epub_chapters
 
         with tempfile.NamedTemporaryFile(delete=False, suffix='.epub') as temp_file:
