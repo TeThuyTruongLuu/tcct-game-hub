@@ -381,6 +381,10 @@
             logBox.value += msg + '\n';
             logBox.scrollTop = logBox.scrollHeight;
         }
+		
+		const apiBaseUrl = location.hostname.includes("localhost") 
+		  ? "http://localhost:5000" 
+		  : "https://tcct-game-hub-production.up.railway.app";
 
 		async function handleEpubDownload() {
 		  const url = document.querySelector('#epubUrl').value.trim();
