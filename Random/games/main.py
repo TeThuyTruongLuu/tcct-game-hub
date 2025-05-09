@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
+import re
+import unicodedata
 from ebooklib import epub
 import logging
 import tempfile
@@ -70,8 +72,6 @@ def crawl_thread():
 
 
 @app.route('/api/epub', methods=['POST', 'OPTIONS'])
-import re
-import unicodedata
 
 def convert_title_to_filename(title):
     nfkd_form = unicodedata.normalize('NFKD', title)
