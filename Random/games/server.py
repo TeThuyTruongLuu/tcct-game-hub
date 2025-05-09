@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 
 app = Flask(__name__)
-CORS(app)  # Cho phép CORS toàn bộ API
+CORS(app)
 
 @app.route('/')
 def home():
