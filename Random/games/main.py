@@ -70,6 +70,16 @@ def crawl_thread():
 
 
 @app.route('/api/epub', methods=['POST', 'OPTIONS'])
+import re
+import unicodedata
+
+def convert_title_to_filename(title):
+    nfkd_form = unicodedata.normalize('NFKD', title)
+    ascii_form = nfkd_form.encode('ASCII', 'ignore').decode('utf-8')
+    ascii_form = re.sub(r"[^\w\s]", '', ascii_form)
+    ascii_form = re.sub(r"\s+", '_', ascii_form.strip())
+    return ascii_form.lower() + '.epub'
+
 def epub_handler():
     if request.method == 'OPTIONS':
         return '', 204
@@ -101,9 +111,8 @@ def epub_handler():
         book.add_item(epub.EpubNav())
         book.spine = ['nav'] + epub_chapters
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.epub') as temp_file:
-            output_path = temp_file.name
-            epub.write_epub(output_path, book)
+        safe_filename = convert_title_to_filename(title)
+        output_path = os.path.join(tempfile.gettempdir(), safe_filename)
 
         return jsonify({'download_url': f'/download/{os.path.basename(output_path)}'})
 

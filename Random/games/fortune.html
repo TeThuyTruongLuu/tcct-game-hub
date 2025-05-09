@@ -422,7 +422,7 @@
 			  chapters = [{ title: 'Chương 1', content: extraContent.replace(/\n/g, '<br>') }];
 			}
 
-			log(`📦 Gửi yêu cầu tạo EPUB với ${chapters.length} chương...`);
+			log(`📦 Gửi yêu cầu tạo EPUB với ${chapters.length} thread...`);
 
 			const epubRes = await fetch(apiBaseUrl + '/api/epub', {
 			  method: 'POST',
