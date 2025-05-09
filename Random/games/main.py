@@ -5,6 +5,9 @@ from ebooklib import epub
 import logging
 import tempfile
 
+import requests
+from bs4 import BeautifulSoup
+
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
@@ -24,6 +27,44 @@ def handle_exception(e):
 @app.route("/")
 def hello():
     return "✅ API running ngon lành!"
+    
+@app.route('/api/crawl', methods=['POST'])
+def crawl_thread():
+    try:
+        data = request.get_json()
+        url = data.get('url')
+        if not url:
+            return jsonify({'error': 'Thiếu URL'}), 400
+
+        res = requests.get(url)
+        res.encoding = 'utf-8'
+        soup = BeautifulSoup(res.text, 'html.parser')
+
+        title_tag = soup.find('title')
+        title = title_tag.get_text(strip=True) if title_tag else 'Không rõ tiêu đề'
+
+        articles = soup.select('article[data-author]')
+        chapters = []
+        for idx, article in enumerate(articles, 1):
+            author = article.get('data-author', f'Tác giả {idx}')
+            content_div = article.select_one('div.bbWrapper')
+            if not content_div:
+                continue
+            content_html = str(content_div)
+            chapters.append({
+                'title': f'Reply {idx}: {author}',
+                'content': content_html
+            })
+
+        return jsonify({
+            'title': title,
+            'chapters': chapters
+        })
+
+    except Exception as e:
+        app.logger.error(f"Lỗi crawl thread: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/epub', methods=['POST', 'OPTIONS'])
 def epub_handler():

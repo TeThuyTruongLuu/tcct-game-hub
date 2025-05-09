@@ -268,7 +268,7 @@
             <h3>Tải Truyện EPUB</h3>
             <input type="text" id="epubUrl" placeholder="Dán link truyện vô đây nha">
             <textarea id="extra_content" placeholder="Ghi chú chương..."></textarea>
-            <button onclick="downloadEpub()">Tải EPUB</button>
+            <button onclick="crawlAndGenEpub()">Tải EPUB</button>
             <textarea id="log" rows="10" cols="50" readonly></textarea>
         </div>
 
@@ -435,6 +435,48 @@
 			}
 		}
 		window.downloadEpub = downloadEpub;
+
+		async function crawlAndGenEpub() {
+		  const url = document.querySelector('#epubUrl').value.trim();
+		  const note = document.querySelector('#input-note').value.trim();
+
+		  if (!url) return alert('Nhập link thread hợp lệ!');
+
+		  log(`🔎 Đang lấy nội dung từ: ${url}`);
+
+		  try {
+			// 1. Gửi tới API crawl
+			const crawlRes = await fetch(apiBase + '/crawl', {
+			  method: 'POST',
+			  headers: { 'Content-Type': 'application/json' },
+			  body: JSON.stringify({ url })
+			});
+			const crawlData = await crawlRes.json();
+			if (!crawlRes.ok) throw crawlData;
+
+			const { title, chapters } = crawlData;
+			log(`📘 Đã lấy được ${chapters.length} chương từ thread!`);
+
+			// 2. Gửi tới API EPUB
+			const epubRes = await fetch(apiBase + '/epub', {
+			  method: 'POST',
+			  headers: { 'Content-Type': 'application/json' },
+			  body: JSON.stringify({ title: note || title, chapters })
+			});
+			const epubData = await epubRes.json();
+			if (!epubRes.ok) throw epubData;
+
+			const { download_url } = epubData;
+			log(`✅ Tạo EPUB thành công: ${download_url}`);
+
+			// 3. Tự động mở link tải
+			window.open(apiBase + download_url, '_blank');
+		  } catch (err) {
+			console.error(err);
+			alert(`Có lỗi xảy ra: ${err?.error || 'Không rõ'}`);
+		  }
+		}
+		window.crawlAndGenEpub = crawlAndGenEpub;
 
         function openDatabase() {
             let request = indexedDB.open(dbName, 2);
