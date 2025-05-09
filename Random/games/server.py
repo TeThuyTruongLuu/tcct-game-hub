@@ -1,15 +1,14 @@
-from flask import Flask, request, jsonify, send_from_directory, make_response
-from flask_cors import CORS, cross_origin
-import os
-from ebooklib import epub
+from flask import Flask
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy   dog'
 app.config['CORS_HEADERS'] = 'Content-Type'
+CORS(app)
 
-@app.route('/')
-def home():
-    return "✅ Server chạy ngon!"
+@app.route("/")
+def helloWorld():
+   return "Hello, cross-origin-world!"
 
 @app.route('/api/epub', methods=['OPTIONS'])
 def epub_options():
