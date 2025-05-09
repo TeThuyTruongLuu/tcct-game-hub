@@ -4,13 +4,13 @@ from ebooklib import epub
 
 app = Flask(__name__)
 
+# Middleware để thêm header CORS cho mọi yêu cầu
 @app.after_request
 def apply_cors_headers(response):
-    print(">> CORS headers injected") 
     response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
-    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
-    response.headers["Access-Control-Allow-Credentials"] = "true"  # Nếu cần
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
     return response
 
 @app.route('/')
@@ -24,7 +24,10 @@ def epub_options():
 @app.route('/api/epub', methods=['POST'])
 def generate_epub():
     try:
-        data = request.json
+        data = request.get_json()  # Lấy dữ liệu JSON từ request
+        if not data:
+            return jsonify({'error': 'Không có dữ liệu JSON'}), 400
+
         title = data.get('title', 'Truyen Khong Ten')
         chapters = data.get('chapters', [])
 
@@ -39,7 +42,6 @@ def generate_epub():
         for idx, chapter in enumerate(chapters, 1):
             chap_title = chapter.get('title', f'Chương {idx}')
             chap_content = chapter.get('content', '')
-
             c = epub.EpubHtml(title=chap_title, file_name=f'chap_{idx}.xhtml', lang='vi')
             c.content = f'<h1>{chap_title}</h1><p>{chap_content.replace("\n", "<br/>")}</p>'
             book.add_item(c)
@@ -50,6 +52,8 @@ def generate_epub():
         book.add_item(epub.EpubNCX())
         book.spine = ['nav'] + epub_chapters
 
+        # Đảm bảo thư mục /tmp tồn tại
+        os.makedirs('/tmp', exist_ok=True)
         output_path = os.path.join('/tmp', f'{title}.epub')
         epub.write_epub(output_path, book)
 
@@ -60,7 +64,10 @@ def generate_epub():
 
 @app.route('/download/<filename>')
 def download_file(filename):
-    return send_from_directory('/tmp', filename, as_attachment=True)
+    try:
+        return send_from_directory('/tmp', filename, as_attachment=True)
+    except FileNotFoundError:
+        return jsonify({'error': 'File không tồn tại'}), 404
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

@@ -382,15 +382,15 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        async function downloadEpub() {
-            const url = document.getElementById('epubUrl').value.trim();
-            const extraContent = document.getElementById('extra_content').value.trim();
-            if (!url) {
-                alert('Nhập link đi bồ ơi!');
-                return;
-            }
-            logMessage('🔍 Bắt đầu tải: ' + url);
-            try {
+		async function downloadEpub() {
+			const url = document.getElementById('epubUrl').value.trim();
+			const extraContent = document.getElementById('extra_content').value.trim();
+			if (!url) {
+				alert('Nhập link đi bồ ơi!');
+				return;
+			}
+			logMessage('🔍 Bắt đầu tải: ' + url);
+			try {
 				const apiBaseUrl = location.hostname === "localhost" ? "http://localhost:5000" : "https://tcct-game-hub-production.up.railway.app";
 				const res = await fetch(`${apiBaseUrl}/api/epub`, {
 					method: 'POST',
@@ -400,29 +400,32 @@
 						chapters: [{ title: 'Chapter 1', content: extraContent || 'No content' }]
 					})
 				});
-                if (!res.ok) throw new Error('Lỗi khi tải EPUB');
-                const blob = await res.blob();
-                const downloadUrl = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = 'truyen.epub';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(downloadUrl);
-                logMessage('✅ Tải xong rồi bồ!');
-                
-                // Save to downloaded stories
-                const story = await fetchStoryFromFirestore(url);
-                if (story) {
-                    await saveDownloadedStory(story);
-                    loadDownloadedStories();
-                }
-            } catch (e) {
-                logMessage('❌ Lỗi khi tải: ' + e.message);
-                alert('Có lỗi khi tải truyện: ' + e.message);
-            }
-        }
+				if (!res.ok) {
+					const errorText = await res.text();
+					throw new Error(`Lỗi server: ${res.status} - ${errorText}`);
+				}
+				const blob = await res.blob();
+				const downloadUrl = URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = downloadUrl;
+				a.download = 'truyen.epub';
+				document.body.appendChild(a);
+				a.click();
+				a.remove();
+				URL.revokeObjectURL(downloadUrl);
+				logMessage('✅ Tải xong rồi bồ!');
+				
+				// Save to downloaded stories
+				const story = await fetchStoryFromFirestore(url);
+				if (story) {
+					await saveDownloadedStory(story);
+					loadDownloadedStories();
+				}
+			} catch (e) {
+				logMessage('❌ Lỗi khi tải: ' + e.message);
+				alert('Có lỗi khi tải truyện: ' + e.message);
+			}
+		}
 		window.downloadEpub = downloadEpub;
 
         function openDatabase() {
