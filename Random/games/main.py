@@ -16,6 +16,14 @@ app = Flask(__name__)
 
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+
+def convert_title_to_filename(title):
+    nfkd_form = unicodedata.normalize('NFKD', title)
+    ascii_form = nfkd_form.encode('ASCII', 'ignore').decode('utf-8')
+    ascii_form = re.sub(r"[^\w\s]", '', ascii_form)
+    ascii_form = re.sub(r"\s+", '_', ascii_form.strip())
+    return ascii_form.lower() + '.epub'
+
 @app.after_request
 def apply_cors_headers(response):
     print("RESPONSE HEADERS", response.headers)
@@ -72,14 +80,6 @@ def crawl_thread():
 
 
 @app.route('/api/epub', methods=['POST', 'OPTIONS'])
-
-def convert_title_to_filename(title):
-    nfkd_form = unicodedata.normalize('NFKD', title)
-    ascii_form = nfkd_form.encode('ASCII', 'ignore').decode('utf-8')
-    ascii_form = re.sub(r"[^\w\s]", '', ascii_form)
-    ascii_form = re.sub(r"\s+", '_', ascii_form.strip())
-    return ascii_form.lower() + '.epub'
-
 def epub_handler():
     if request.method == 'OPTIONS':
         return '', 204
