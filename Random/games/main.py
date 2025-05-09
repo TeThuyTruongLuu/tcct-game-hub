@@ -1,8 +1,9 @@
-from flask import Flask, jsonify, make_response, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
 from ebooklib import epub
 import logging
+import tempfile
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -10,13 +11,13 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-# Configure CORS: Allow all origins for /api/* routes, no credentials needed
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+# Configure CORS: Allow all origins for /api/* routes
+CORS(app, resources={r"/api/*": {"origins": "*", "allow_headers": ["Content-Type", "Authorization"]}})
 
 @app.errorhandler(Exception)
 def handle_exception(e):
     app.logger.error(f"Global error: {str(e)}")
-    response = jsonify({'error': 'Lỗi server nội bộ'})
+    response = jsonify({'error': 'Lỗi server nội bộ', 'details': str(e)})
     response.status_code = 500
     return response
 
@@ -24,8 +25,11 @@ def handle_exception(e):
 def hello():
     return "✅ API running ngon lành!"
 
-@app.route('/api/epub', methods=['POST'])
+@app.route('/api/epub', methods=['POST', 'OPTIONS'])
 def epub_handler():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 204
+
     try:
         data = request.get_json()
         if not data:
@@ -54,10 +58,12 @@ def epub_handler():
         book.add_item(epub.EpubNCX())
         book.spine = ['nav'] + epub_chapters
 
-        output_path = os.path.join('/tmp', f'{title}.epub')
-        epub.write_epub(output_path, book)
+        # Use tempfile to ensure a writable location
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.epub') as temp_file:
+            output_path = temp_file.name
+            epub.write_epub(output_path, book)
 
-        return jsonify({'download_url': f'/download/{title}.epub'})
+        return jsonify({'download_url': f'/download/{os.path.basename(output_path)}'})
 
     except Exception as e:
         app.logger.error(f"Lỗi tạo EPUB: {str(e)}")
@@ -65,7 +71,11 @@ def epub_handler():
 
 @app.route('/download/<filename>')
 def download_file(filename):
-    return send_from_directory('/tmp', filename, as_attachment=True)
+    try:
+        return send_from_directory(tempfile.gettempdir(), filename, as_attachment=True)
+    except Exception as e:
+        app.logger.error(f"Lỗi tải file: {str(e)}")
+        return jsonify({'error': 'Không tìm thấy file'}), 404
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
