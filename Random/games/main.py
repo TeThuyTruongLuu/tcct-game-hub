@@ -1,14 +1,13 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
-import re
-import unicodedata
 from ebooklib import epub
 import logging
 import tempfile
-
 import requests
 from bs4 import BeautifulSoup
+import re
+import unicodedata
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -25,24 +24,16 @@ def handle_exception(e):
     app.logger.error(f"Global error: {str(e)}")
     return jsonify({'error': 'Lỗi server nội bộ', 'details': str(e)}), 500
 
-def convert_title_to_filename(title):
-    # Nếu có tag [..] thì cắt bỏ
-    title = re.sub(r'\[.*?\]', '', title).strip()
-    
-    # Normalize tiếng Việt
-    nfkd_form = unicodedata.normalize('NFKD', title)
-    ascii_form = nfkd_form.encode('ASCII', 'ignore').decode('utf-8')
-    
-    # Chuyển thành snake_case
-    ascii_form = re.sub(r'[^\w\s]', '', ascii_form)
-    ascii_form = re.sub(r'\s+', '_', ascii_form.strip())
-    
-    return ascii_form + '.epub'
-
-
 @app.route("/")
 def hello():
     return "✅ API running ngon lành!"
+
+def convert_title_to_filename(title):
+    nfkd_form = unicodedata.normalize('NFKD', title)
+    ascii_form = nfkd_form.encode('ASCII', 'ignore').decode('utf-8')
+    ascii_form = re.sub(r"[^\w\s]", '', ascii_form)
+    ascii_form = re.sub(r"\s+", '_', ascii_form.strip())
+    return ascii_form.lower() + '.epub'
 
 @app.route('/api/crawl', methods=['POST'])
 def crawl_thread():
@@ -51,14 +42,11 @@ def crawl_thread():
         url = data.get('url')
         if not url:
             return jsonify({'error': 'Thiếu URL'}), 400
-
         res = requests.get(url)
         res.encoding = 'utf-8'
         soup = BeautifulSoup(res.text, 'html.parser')
-
         title_tag = soup.find('title')
         title = title_tag.get_text(strip=True) if title_tag else 'Không rõ tiêu đề'
-
         articles = soup.select('article[data-author]')
         chapters = []
         for idx, article in enumerate(articles, 1):
@@ -71,14 +59,12 @@ def crawl_thread():
                 'title': f'Reply {idx}: {author}',
                 'content': content_html
             })
-
         response = jsonify({
             'title': title,
             'chapters': chapters
         })
         response.headers['Access-Control-Allow-Origin'] = '*'
         return response
-
     except Exception as e:
         app.logger.error(f"Lỗi crawl thread: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -87,21 +73,17 @@ def crawl_thread():
 def epub_handler():
     if request.method == 'OPTIONS':
         return '', 204
-
     try:
         data = request.get_json()
         if not data:
             return jsonify({'error': 'Không có dữ liệu JSON'}), 400
-
         title = data.get('title', 'Truyen Khong Ten')
         chapters = data.get('chapters', [])
         if not chapters:
             return jsonify({'error': 'Không có chương nào'}), 400
-
         book = epub.EpubBook()
         book.set_title(title)
         book.set_language('vi')
-
         epub_chapters = []
         for idx, chapter in enumerate(chapters, 1):
             chap_title = chapter.get('title', f'Chương {idx}')
@@ -110,18 +92,13 @@ def epub_handler():
             c.content = f'<h1>{chap_title}</h1><p>{chap_content.replace("\n", "<br/>")}</p>'
             book.add_item(c)
             epub_chapters.append(c)
-
         book.toc = tuple(epub_chapters)
         book.add_item(epub.EpubNav())
         book.spine = ['nav'] + epub_chapters
-
-        # ✅ Đổi tên file cho đẹp
-        safe_filename = convert_title_to_filename(title)
-        output_path = os.path.join(tempfile.gettempdir(), safe_filename)
+        clean_filename = convert_title_to_filename(title)
+        output_path = os.path.join(tempfile.gettempdir(), clean_filename)
         epub.write_epub(output_path, book)
-
-        return jsonify({'download_url': f'/download/{safe_filename}'})
-
+        return jsonify({'download_url': f'/download/{clean_filename}'})
     except Exception as e:
         app.logger.error(f"Lỗi tạo EPUB: {str(e)}")
         return jsonify({'error': str(e)}), 500
