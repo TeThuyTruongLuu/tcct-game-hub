@@ -268,7 +268,7 @@
             <h3>Tải Truyện EPUB</h3>
             <input type="text" id="epubUrl" placeholder="Dán link truyện vô đây nha">
             <textarea id="extra_content" placeholder="Ghi chú chương..."></textarea>
-            <button onclick="crawlAndGenEpub()">Tải EPUB</button>
+            <button onclick="handleEpubDownload()">Tải EPUB</button>
             <textarea id="log" rows="10" cols="50" readonly></textarea>
         </div>
 
@@ -382,101 +382,61 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-		async function downloadEpub() {
-			const url = document.getElementById('epubUrl').value.trim();
-			const extraContent = document.getElementById('extra_content').value.trim();
-			if (!url) {
-				alert('Nhập link đi bồ ơi!');
-				return;
-			}
-			logMessage('🔍 Bắt đầu tải: ' + url);
-			try {
-				const apiBaseUrl = location.hostname === "localhost" ? "http://localhost:5000" : "https://tcct-game-hub-production.up.railway.app";
-				const res = await fetch(`${apiBaseUrl}/api/epub`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'Accept': 'application/json'
-					},
-					body: JSON.stringify({
-						title: 'Truyen Tu Dong',
-						chapters: [{ title: 'Chapter 1', content: extraContent || 'No content' }]
-					})
-				});
-				logMessage(`Response status: ${res.status}`);
-				if (!res.ok) {
-					const errorText = await res.text();
-					throw new Error(`Lỗi server: ${res.status} - ${errorText}`);
-				}
-				const data = await res.json();  // Đảm bảo parse JSON
-				if (data.download_url) {
-					const downloadRes = await fetch(`${apiBaseUrl}${data.download_url}`, {
-						method: 'GET',
-						headers: {
-							'Accept': '*/*'
-						}
-					});
-					const blob = await downloadRes.blob();
-					const downloadUrl = URL.createObjectURL(blob);
-					const a = document.createElement('a');
-					a.href = downloadUrl;
-					a.download = 'truyen.epub';
-					document.body.appendChild(a);
-					a.click();
-					a.remove();
-					URL.revokeObjectURL(downloadUrl);
-					logMessage('✅ Tải xong rồi bồ!');
-				} else {
-					throw new Error('Không nhận được URL tải xuống');
-				}
-			} catch (e) {
-				logMessage('❌ Lỗi khi tải: ' + e.message);
-				alert('Có lỗi khi tải truyện: ' + e.message);
-			}
-		}
-		window.downloadEpub = downloadEpub;
-
-		async function crawlAndGenEpub() {
+		async function handleEpubDownload() {
 		  const url = document.querySelector('#epubUrl').value.trim();
-		  const note = document.querySelector('#input-note').value.trim();
+		  const note = document.querySelector('#input-note')?.value.trim();
+		  const isForumThread = url.includes('toanchuccaothu.com');
 
-		  if (!url) return alert('Nhập link thread hợp lệ!');
+		  const log = (msg) => {
+			const logBox = document.getElementById('log');
+			logBox.value += msg + '\n';
+			logBox.scrollTop = logBox.scrollHeight;
+		  };
 
-		  log(`🔎 Đang lấy nội dung từ: ${url}`);
+		  if (!url) return alert('Nhập link hoặc nội dung!');
 
 		  try {
-			// 1. Gửi tới API crawl
-			const crawlRes = await fetch(apiBase + '/crawl', {
+			log(`🔍 Bắt đầu xử lý...`);
+
+			let title = note || 'Truyện Tự Động';
+			let chapters = [];
+
+			if (isForumThread) {
+			  log(`🧲 Đang lấy nội dung từ thread: ${url}`);
+			  const res = await fetch(apiBaseUrl + '/api/crawl', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ url })
+			  });
+			  const data = await res.json();
+			  if (!res.ok) throw data;
+			  title = note || data.title;
+			  chapters = data.chapters;
+			} else {
+			  const extraContent = document.getElementById('extra_content').value.trim();
+			  if (!extraContent) return alert('Nội dung rỗng!');
+			  chapters = [{ title: 'Chương 1', content: extraContent.replace(/\n/g, '<br>') }];
+			}
+
+			log(`📦 Gửi yêu cầu tạo EPUB với ${chapters.length} chương...`);
+
+			const epubRes = await fetch(apiBaseUrl + '/api/epub', {
 			  method: 'POST',
 			  headers: { 'Content-Type': 'application/json' },
-			  body: JSON.stringify({ url })
-			});
-			const crawlData = await crawlRes.json();
-			if (!crawlRes.ok) throw crawlData;
-
-			const { title, chapters } = crawlData;
-			log(`📘 Đã lấy được ${chapters.length} chương từ thread!`);
-
-			// 2. Gửi tới API EPUB
-			const epubRes = await fetch(apiBase + '/epub', {
-			  method: 'POST',
-			  headers: { 'Content-Type': 'application/json' },
-			  body: JSON.stringify({ title: note || title, chapters })
+			  body: JSON.stringify({ title, chapters })
 			});
 			const epubData = await epubRes.json();
 			if (!epubRes.ok) throw epubData;
 
 			const { download_url } = epubData;
-			log(`✅ Tạo EPUB thành công: ${download_url}`);
-
-			// 3. Tự động mở link tải
-			window.open(apiBase + download_url, '_blank');
-		  } catch (err) {
-			console.error(err);
-			alert(`Có lỗi xảy ra: ${err?.error || 'Không rõ'}`);
+			log(`✅ EPUB sẵn sàng: ${download_url}`);
+			window.open(apiBaseUrl + download_url, '_blank');
+		  } catch (e) {
+			console.error(e);
+			alert(`Lỗi: ${e?.error || 'Không rõ'}`);
 		  }
 		}
-		window.crawlAndGenEpub = crawlAndGenEpub;
+		window.handleEpubDownload = handleEpubDownload;
 
         function openDatabase() {
             let request = indexedDB.open(dbName, 2);
