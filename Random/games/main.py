@@ -54,7 +54,7 @@ def epub_handler():
             epub_chapters.append(c)
 
         book.toc = tuple(epub_chapters)
-        book.add_item(epub.EpubNavi())
+        book.add_item(epub.EpubNav())
         book.add_item(epub.EpubNCX())
         book.spine = ['nav'] + epub_chapters
 
