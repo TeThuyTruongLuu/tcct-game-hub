@@ -6,10 +6,12 @@ app = Flask(__name__)
 
 @app.after_request
 def apply_cors_headers(response):
+    print(">> CORS headers injected")  # Bắt buộc để kiểm tra có chạy không
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
     response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
     return response
+
 
 @app.route('/')
 def home():
