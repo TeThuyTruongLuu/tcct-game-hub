@@ -394,7 +394,10 @@
 				const apiBaseUrl = location.hostname === "localhost" ? "http://localhost:5000" : "https://tcct-game-hub-production.up.railway.app";
 				const res = await fetch(`${apiBaseUrl}/api/epub`, {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
+					headers: {
+						'Content-Type': 'application/json',
+						'Accept': 'application/json'
+					},
 					body: JSON.stringify({
 						title: 'Truyen Tu Dong',
 						chapters: [{ title: 'Chapter 1', content: extraContent || 'No content' }]
@@ -405,21 +408,26 @@
 					const errorText = await res.text();
 					throw new Error(`Lỗi server: ${res.status} - ${errorText}`);
 				}
-				const blob = await res.blob();
-				const downloadUrl = URL.createObjectURL(blob);
-				const a = document.createElement('a');
-				a.href = downloadUrl;
-				a.download = 'truyen.epub';
-				document.body.appendChild(a);
-				a.click();
-				a.remove();
-				URL.revokeObjectURL(downloadUrl);
-				logMessage('✅ Tải xong rồi bồ!');
-				
-				const story = await fetchStoryFromFirestore(url);
-				if (story) {
-					await saveDownloadedStory(story);
-					loadDownloadedStories();
+				const data = await res.json();  // Đảm bảo parse JSON
+				if (data.download_url) {
+					const downloadRes = await fetch(`${apiBaseUrl}${data.download_url}`, {
+						method: 'GET',
+						headers: {
+							'Accept': '*/*'
+						}
+					});
+					const blob = await downloadRes.blob();
+					const downloadUrl = URL.createObjectURL(blob);
+					const a = document.createElement('a');
+					a.href = downloadUrl;
+					a.download = 'truyen.epub';
+					document.body.appendChild(a);
+					a.click();
+					a.remove();
+					URL.revokeObjectURL(downloadUrl);
+					logMessage('✅ Tải xong rồi bồ!');
+				} else {
+					throw new Error('Không nhận được URL tải xuống');
 				}
 			} catch (e) {
 				logMessage('❌ Lỗi khi tải: ' + e.message);
@@ -427,6 +435,7 @@
 			}
 		}
 		window.downloadEpub = downloadEpub;
+
         function openDatabase() {
             let request = indexedDB.open(dbName, 2);
             request.onupgradeneeded = function (event) {
