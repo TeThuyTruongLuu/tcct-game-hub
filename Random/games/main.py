@@ -8,11 +8,13 @@ import tempfile
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-# Kích hoạt CORS đầy đủ cho /api/*
 CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+@app.after_request
+def apply_cors_headers(response):
+    print("RESPONSE HEADERS", response.headers)
+    return response
 
 @app.errorhandler(Exception)
 def handle_exception(e):
