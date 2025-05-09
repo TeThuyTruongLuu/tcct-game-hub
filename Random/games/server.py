@@ -1,20 +1,23 @@
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
+from flask import Flask, request, jsonify, send_from_directory, make_response
 import os
 from ebooklib import epub
 
 app = Flask(__name__)
 
-# Cho phép cả local, file:// (null), mọi nguồn - có thể thu hẹp sau khi dev xong
-CORS(app, resources={
-    r"/api/*": {
-        "origins": ["*", "null", "http://localhost:5500", "http://127.0.0.1:5500"]
-    }
-}, supports_credentials=True)
+@app.after_request
+def apply_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
+    return response
 
 @app.route('/')
 def home():
     return "✅ Server chạy ngon!"
+
+@app.route('/api/epub', methods=['OPTIONS'])
+def epub_options():
+    return make_response('', 204)
 
 @app.route('/api/epub', methods=['POST'])
 def generate_epub():
