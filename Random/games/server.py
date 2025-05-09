@@ -52,9 +52,10 @@ def generate_epub():
         book.add_item(epub.EpubNCX())
         book.spine = ['nav'] + epub_chapters
 
-        # Đảm bảo thư mục /tmp tồn tại
-        os.makedirs('/tmp', exist_ok=True)
-        output_path = os.path.join('/tmp', f'{title}.epub')
+        # Sử dụng thư mục tạm thời của hệ thống
+        output_dir = '/tmp' if os.path.exists('/tmp') else os.getcwd()
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, f'{title}.epub')
         epub.write_epub(output_path, book)
 
         return jsonify({'download_url': f'/download/{title}.epub'})
@@ -65,7 +66,8 @@ def generate_epub():
 @app.route('/download/<filename>')
 def download_file(filename):
     try:
-        return send_from_directory('/tmp', filename, as_attachment=True)
+        output_dir = '/tmp' if os.path.exists('/tmp') else os.getcwd()
+        return send_from_directory(output_dir, filename, as_attachment=True)
     except FileNotFoundError:
         return jsonify({'error': 'File không tồn tại'}), 404
 

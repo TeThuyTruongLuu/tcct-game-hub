@@ -396,10 +396,11 @@
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
-						title: 'Truyen Tu Dong', // Giá trị mặc định
+						title: 'Truyen Tu Dong',
 						chapters: [{ title: 'Chapter 1', content: extraContent || 'No content' }]
 					})
 				});
+				logMessage(`Response status: ${res.status}`);
 				if (!res.ok) {
 					const errorText = await res.text();
 					throw new Error(`Lỗi server: ${res.status} - ${errorText}`);
@@ -415,7 +416,6 @@
 				URL.revokeObjectURL(downloadUrl);
 				logMessage('✅ Tải xong rồi bồ!');
 				
-				// Save to downloaded stories
 				const story = await fetchStoryFromFirestore(url);
 				if (story) {
 					await saveDownloadedStory(story);
@@ -427,7 +427,6 @@
 			}
 		}
 		window.downloadEpub = downloadEpub;
-
         function openDatabase() {
             let request = indexedDB.open(dbName, 2);
             request.onupgradeneeded = function (event) {
