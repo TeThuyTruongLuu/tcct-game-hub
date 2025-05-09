@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, make_response, request, send_from_directory
 from flask_cors import CORS
 import os
-import epub
+from ebooklib import epub
 import logging
 
 # Cấu hình logging
