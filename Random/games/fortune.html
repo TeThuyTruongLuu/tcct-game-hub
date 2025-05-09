@@ -393,10 +393,13 @@
             try {
 				const apiBaseUrl = location.hostname === "localhost" ? "http://localhost:5000" : "https://tcct-game-hub-production.up.railway.app";
 				const res = await fetch(`${apiBaseUrl}/api/epub`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url, extra_content: extraContent })
-                });
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						title: 'Truyen Tu Dong', // Giá trị mặc định
+						chapters: [{ title: 'Chapter 1', content: extraContent || 'No content' }]
+					})
+				});
                 if (!res.ok) throw new Error('Lỗi khi tải EPUB');
                 const blob = await res.blob();
                 const downloadUrl = URL.createObjectURL(blob);
