@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, make_response
 from flask_cors import CORS
 import os
 from ebooklib import epub
@@ -11,8 +11,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-# Configure CORS: Allow all origins for /api/* routes
-CORS(app, resources={r"/api/*": {"origins": "*", "allow_headers": ["Content-Type", "Authorization"]}})
+# Cấu hình CORS: Cho phép tất cả origin cho /api/*
+CORS(app, resources={r"/api/*": {"origins": "*", "allow_headers": ["Content-Type", "Authorization"], "methods": ["GET", "POST", "OPTIONS"]}})
 
 @app.errorhandler(Exception)
 def handle_exception(e):
@@ -28,7 +28,13 @@ def hello():
 @app.route('/api/epub', methods=['POST', 'OPTIONS'])
 def epub_handler():
     if request.method == 'OPTIONS':
-        return jsonify({}), 204
+        # Tạo phản hồi cho yêu cầu OPTIONS với các header CORS cần thiết
+        response = make_response()
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        response.status_code = 204
+        return response
 
     try:
         data = request.get_json()
@@ -58,7 +64,7 @@ def epub_handler():
         book.add_item(epub.EpubNCX())
         book.spine = ['nav'] + epub_chapters
 
-        # Use tempfile to ensure a writable location
+        # Sử dụng tempfile để đảm bảo vị trí ghi file hợp lệ
         with tempfile.NamedTemporaryFile(delete=False, suffix='.epub') as temp_file:
             output_path = temp_file.name
             epub.write_epub(output_path, book)
