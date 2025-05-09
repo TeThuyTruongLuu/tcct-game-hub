@@ -434,7 +434,18 @@
 
 			const { download_url } = epubData;
 			log(`✅ EPUB sẵn sàng: ${download_url}`);
-			window.open(apiBaseUrl + download_url, '_blank');
+			//window.open(apiBaseUrl + download_url, '_blank');
+			const fileRes = await fetch(apiBaseUrl + download_url);
+			const blob = await fileRes.blob();
+			const tempUrl = URL.createObjectURL(blob);
+
+			const a = document.createElement('a');
+			a.href = tempUrl;
+			a.download = download_url.split('/').pop();
+			a.style.display = 'none';
+			document.body.appendChild(a);
+			a.click();
+			URL.revokeObjectURL(tempUrl);
 		  } catch (e) {
 			console.error(e);
 			alert(`Lỗi: ${e?.error || 'Không rõ'}`);
