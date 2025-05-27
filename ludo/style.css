@@ -1,114 +1,79 @@
 body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-	background-color: #fceff5;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #fef8e7;
 }
-
-#roll-btn {
-    background-color: #ffb6c1; /* Hồng pastel */
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-#roll-btn:hover {
-    background-color: #ff91a4;
-}
-
-#dice-result {
-    display: inline-block;
-    font-size: 18px;
-    font-weight: bold;
-    margin-left: 15px;
-    padding: 8px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-}
-
 
 #board {
-    display: grid;
-    grid-template-columns: repeat(15, 40px);
-    grid-template-rows: repeat(15, 40px);
-    gap: 1px;
-    margin: 20px auto;
-    border: 5px solid black;
-    background-color: white;
-    width: fit-content;
+  display: grid;
+  grid-template-columns: repeat(15, 40px);
+  grid-template-rows: repeat(15, 40px);
+  gap: 1px;
+  background-color: transparent;
 }
 
 .cell {
-    width: 40px;
-    height: 40px;
-    border: 1px solid black;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  background-color: #fff;
+  border: 1px solid #ccc;
 }
 
 .home {
-    grid-column: span 6;
-    grid-row: span 6;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+  grid-column: span 5;
+  grid-row: span 5;
+  position: relative;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-
-/* Vùng nhà (6x6) */
-.home-red { background-image: url('img/Vương 2.png'); background-size: cover; }
-.home-blue { background-image: url('img/Dụ 2.png'); background-size: cover; }
-.home-green { background-image: url('img/Cao.png'); background-size: cover; }
-.home-yellow { background-image: url('img/Chu.png'); background-size: cover; }
-
-/* Đường đi vào đích */
-.path-red { background-color: lightcoral; }
-.path-blue { background-color: lightblue; }
-.path-green { background-color: lightgreen; }
-.path-yellow { background-color: lightyellow; }
-
-/* Vùng đích (3x3 trung tâm) */
-.center {
-    background-image: url('center-goal.png');
-    background-size: cover;
+.home-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
 }
 
-/* Định dạng quân cờ */
-.token {
-    width: 35px;
-    height: 35px;
-    position: absolute;
-    border-radius: 50%;
-    border: 3px solid white;
-    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
-    transition: transform 0.3s ease-in-out;
+.path {
+  background-color: #fff;
+  border: 1px solid #999;
 }
 
-/* Quân cờ nằm trong vùng nhà đúng góc */
-.token-red:nth-child(1) { top: 30px; left: 30px; }
-.token-red:nth-child(2) { top: 30px; left: 70px; }
-.token-red:nth-child(3) { top: 70px; left: 30px; }
-.token-red:nth-child(4) { top: 70px; left: 70px; }
+.safe.red { background-color: #f99; }
+.safe.green { background-color: #9f9; }
+.safe.yellow { background-color: #ff9; }
+.safe.blue { background-color: #99f; }
 
-.token-blue:nth-child(1) { top: 30px; right: 30px; }
-.token-blue:nth-child(2) { top: 30px; right: 70px; }
-.token-blue:nth-child(3) { top: 70px; right: 30px; }
-.token-blue:nth-child(4) { top: 70px; right: 70px; }
+.start.red { background-color: #f44336; color: #fff; }
+.start.green { background-color: #4caf50; color: #fff; }
+.start.yellow { background-color: #fdd835; color: #000; }
+.start.blue { background-color: #2196f3; color: #fff; }
 
-.token-green:nth-child(1) { bottom: 30px; left: 30px; }
-.token-green:nth-child(2) { bottom: 30px; left: 70px; }
-.token-green:nth-child(3) { bottom: 70px; left: 30px; }
-.token-green:nth-child(4) { bottom: 70px; left: 70px; }
+.piece {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: black;
+}
 
-.token-yellow:nth-child(1) { bottom: 30px; right: 30px; }
-.token-yellow:nth-child(2) { bottom: 30px; right: 70px; }
-.token-yellow:nth-child(3) { bottom: 70px; right: 30px; }
-.token-yellow:nth-child(4) { bottom: 70px; right: 70px; }
-
-
-/* Khi quân cờ di chuyển */
-.token.move {
-    transform: translate(50px, 50px);
+#center {
+  grid-column: 8;
+  grid-row: 8;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #000;
+  font-size: 24px;
+  font-weight: bold;
+  z-index: 1;
 }

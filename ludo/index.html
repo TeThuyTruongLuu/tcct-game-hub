@@ -1,74 +1,139 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Cờ Cá Ngựa Online</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Ludo Board Redesign</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Game Cờ Cá Ngựa</h1>
+  <div id="board">
+    <!-- Home Areas with Images -->
+    <div class="home red" style="grid-column: 1 / span 5; grid-row: 1 / span 5;">
+      <img src="img/Vuong_2.png" class="home-img" alt="Red House">
+    </div>
+    <div class="home green" style="grid-column: 11 / span 5; grid-row: 1 / span 5;">
+      <img src="img/Dvu.png" class="home-img" alt="Green House">
+    </div>
+    <div class="home yellow" style="grid-column: 1 / span 5; grid-row: 11 / span 5;">
+      <img src="img/Chu.png" class="home-img" alt="Yellow House">
+    </div>
+    <div class="home blue" style="grid-column: 11 / span 5; grid-row: 11 / span 5;">
+      <img src="img/Cao.png" class="home-img" alt="Blue House">
+    </div>
 
-    <div id="board">
-		<!-- Quân cờ của đội đỏ -->
-		<img class="token token-red" id="red1" src="img/Dụ 2.png">
-		<img class="token token-red" id="red2" src="img/Dụ 2.png">
-		<img class="token token-red" id="red3" src="img/Dụ 2.png">
-		<img class="token token-red" id="red4" src="img/Dụ 2.png">
+    <!-- Start Positions -->
+    <div class="cell start red" style="grid-column: 6; grid-row: 1;">R</div>
+    <div class="cell start blue" style="grid-column: 1; grid-row: 10;">B</div>
+    <div class="cell start green" style="grid-column: 15; grid-row: 6;">G</div>
+    <div class="cell start yellow" style="grid-column: 10; grid-row: 15;">Y</div>
 
-		<!-- Quân cờ của đội xanh dương -->
-		<img class="token token-blue" id="blue1" src="img/Dụ 2.png">
-		<img class="token token-blue" id="blue2" src="img/Dụ 2.png">
-		<img class="token token-blue" id="blue3" src="img/Dụ 2.png">
-		<img class="token token-blue" id="blue4" src="img/Dụ 2.png">
+    <!-- Dice in the center -->
+    <div id="center">🎲</div>
 
-		<!-- Quân cờ của đội xanh lá -->
-		<img class="token token-green" id="green1" src="img/Dụ 2.png">
-		<img class="token token-green" id="green2" src="img/Dụ 2.png">
-		<img class="token token-green" id="green3" src="img/Dụ 2.png">
-		<img class="token token-green" id="green4" src="img/Dụ 2.png">
+    <!-- Path: Full clockwise layout including middle links -->
+    <!-- Top vertical -->
+    <div class="cell path" style="grid-column: 6; grid-row: 2;"></div>
+    <div class="cell path" style="grid-column: 6; grid-row: 3;"></div>
+    <div class="cell path" style="grid-column: 6; grid-row: 4;"></div>
+    <div class="cell path" style="grid-column: 6; grid-row: 5;"></div>
+	<div class="cell path" style="grid-column: 6; grid-row: 6;"></div>
+    <!-- Horizontal to right -->
+    <div class="cell path" style="grid-column: 7; grid-row: 6;"></div>
+    <div class="cell path" style="grid-column: 8; grid-row: 6;"></div>
+    <div class="cell path" style="grid-column: 9; grid-row: 6;"></div>
+    <div class="cell path" style="grid-column: 10; grid-row: 6;"></div>
+    <!-- Vertical up right -->
+    <div class="cell path" style="grid-column: 10; grid-row: 5;"></div>
+    <div class="cell path" style="grid-column: 10; grid-row: 4;"></div>
+    <div class="cell path" style="grid-column: 10; grid-row: 3;"></div>
+    <div class="cell path" style="grid-column: 10; grid-row: 2;"></div>
+    <!-- Horizontal right -->
+    <div class="cell path" style="grid-column: 11; grid-row: 2;"></div>
+    <div class="cell path" style="grid-column: 12; grid-row: 2;"></div>
+    <div class="cell path" style="grid-column: 13; grid-row: 2;"></div>
+    <div class="cell path" style="grid-column: 14; grid-row: 2;"></div>
+    <div class="cell path" style="grid-column: 15; grid-row: 2;"></div>
+    <!-- Vertical down -->
+    <div class="cell path" style="grid-column: 15; grid-row: 3;"></div>
+    <div class="cell path" style="grid-column: 15; grid-row: 4;"></div>
+    <div class="cell path" style="grid-column: 15; grid-row: 5;"></div>
+    <div class="cell path" style="grid-column: 15; grid-row: 6;"></div>
+    <!-- Horizontal left -->
+    <div class="cell path" style="grid-column: 14; grid-row: 6;"></div>
+    <div class="cell path" style="grid-column: 13; grid-row: 6;"></div>
+    <div class="cell path" style="grid-column: 12; grid-row: 6;"></div>
+    <div class="cell path" style="grid-column: 11; grid-row: 6;"></div>
+    <!-- Vertical down -->
+    <div class="cell path" style="grid-column: 11; grid-row: 7;"></div>
+    <div class="cell path" style="grid-column: 11; grid-row: 8;"></div>
+    <div class="cell path" style="grid-column: 11; grid-row: 9;"></div>
+    <div class="cell path" style="grid-column: 11; grid-row: 10;"></div>
+    <!-- Horizontal left -->
+    <div class="cell path" style="grid-column: 10; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 9; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 8; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 7; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 6; grid-row: 10;"></div>
+    <!-- Vertical down -->
+    <div class="cell path" style="grid-column: 6; grid-row: 11;"></div>
+    <div class="cell path" style="grid-column: 6; grid-row: 12;"></div>
+    <div class="cell path" style="grid-column: 6; grid-row: 13;"></div>
+    <div class="cell path" style="grid-column: 6; grid-row: 14;"></div>
+    <!-- Horizontal left -->
+    <div class="cell path" style="grid-column: 5; grid-row: 15;"></div>
+    <div class="cell path" style="grid-column: 4; grid-row: 15;"></div>
+    <div class="cell path" style="grid-column: 3; grid-row: 15;"></div>
+    <div class="cell path" style="grid-column: 2; grid-row: 15;"></div>
+    <div class="cell path" style="grid-column: 1; grid-row: 15;"></div>
+    <!-- Vertical up -->
+    <div class="cell path" style="grid-column: 1; grid-row: 14;"></div>
+    <div class="cell path" style="grid-column: 1; grid-row: 13;"></div>
+    <div class="cell path" style="grid-column: 1; grid-row: 12;"></div>
+    <div class="cell path" style="grid-column: 1; grid-row: 11;"></div>
+    <!-- Horizontal right -->
+    <div class="cell path" style="grid-column: 2; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 3; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 4; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 5; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 1; grid-row: 6;"></div>
+    <div class="cell path" style="grid-column: 2; grid-row: 6;"></div>
+    <div class="cell path" style="grid-column: 3; grid-row: 6;"></div>
+    <div class="cell path" style="grid-column: 4; grid-row: 6;"></div>
+    <div class="cell path" style="grid-column: 5; grid-row: 6;"></div>
 
-		<!-- Quân cờ của đội vàng -->
-		<img class="token token-yellow" id="yellow1" src="img/Dụ 2.png">
-		<img class="token token-yellow" id="yellow2" src="img/Dụ 2.png">
-		<img class="token token-yellow" id="yellow3" src="img/Dụ 2.png">
-		<img class="token token-yellow" id="yellow4" src="img/Dụ 2.png">
-	</div>
+    <div class="cell path" style="grid-column: 6; grid-row: 15;"></div>
+    <div class="cell path" style="grid-column: 7; grid-row: 15;"></div>
+    <div class="cell path" style="grid-column: 8; grid-row: 15;"></div>
+    <div class="cell path" style="grid-column: 9; grid-row: 15;"></div>
 
-    <button id="roll-btn">Roll Dice</button>
-    <p id="dice-result">🎲 Kết quả: -</p>
+    <div class="cell path" style="grid-column: 10; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 10; grid-row: 11;"></div>
+    <div class="cell path" style="grid-column: 10; grid-row: 12;"></div>
+    <div class="cell path" style="grid-column: 10; grid-row: 13;"></div>
+    <div class="cell path" style="grid-column: 10; grid-row: 14;"></div>
 
-    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
-    <script src="game.js"></script>
-    <script>
-        // Khởi tạo bàn cờ 15x15
-        const board = document.getElementById("board");
+    <div class="cell path" style="grid-column: 11; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 12; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 13; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 14; grid-row: 10;"></div>
+    <div class="cell path" style="grid-column: 15; grid-row: 10;"></div>
 
-        for (let row = 0; row < 15; row++) {
-            for (let col = 0; col < 15; col++) {
-                let cell = document.createElement("div");
-                cell.classList.add("cell");
+    <!-- Safe Paths 3 blocks each -->
+    <div class="cell safe red" style="grid-column: 7; grid-row: 6;"></div>
+    <div class="cell safe red" style="grid-column: 8; grid-row: 6;"></div>
+    <div class="cell safe red" style="grid-column: 9; grid-row: 6;"></div>
 
-                // Vùng nhà (6x6 ở 4 góc)
-                if ((row < 6 && col < 6)) cell.classList.add("home-red");
-                if ((row < 6 && col > 8)) cell.classList.add("home-blue");
-                if ((row > 8 && col < 6)) cell.classList.add("home-green");
-                if ((row > 8 && col > 8)) cell.classList.add("home-yellow");
+    <div class="cell safe green" style="grid-column: 10; grid-row: 7;"></div>
+    <div class="cell safe green" style="grid-column: 10; grid-row: 8;"></div>
+    <div class="cell safe green" style="grid-column: 10; grid-row: 9;"></div>
 
-                // Vùng đích (3x3 ở trung tâm)
-                if (row >= 6 && row <= 8 && col >= 6 && col <= 8) {
-                    cell.classList.add("center");
-                }
+    <div class="cell safe blue" style="grid-column: 7; grid-row: 10;"></div>
+    <div class="cell safe blue" style="grid-column: 8; grid-row: 10;"></div>
+    <div class="cell safe blue" style="grid-column: 9; grid-row: 10;"></div>
 
-                // Đường đi vào đích
-                if (col === 7 && row >= 1 && row <= 5) cell.classList.add("path-red");
-                if (col === 7 && row >= 9 && row <= 13) cell.classList.add("path-green");
-                if (row === 7 && col >= 1 && col <= 5) cell.classList.add("path-blue");
-                if (row === 7 && col >= 9 && col <= 13) cell.classList.add("path-yellow");
-
-                board.appendChild(cell);
-            }
-        }
-    </script>
+    <div class="cell safe yellow" style="grid-column: 6; grid-row: 7;"></div>
+    <div class="cell safe yellow" style="grid-column: 6; grid-row: 8;"></div>
+    <div class="cell safe yellow" style="grid-column: 6; grid-row: 9;"></div>
+  </div>
 </body>
 </html>
