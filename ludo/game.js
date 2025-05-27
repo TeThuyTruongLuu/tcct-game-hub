@@ -84,10 +84,10 @@ function initDice(canvasId, onRollDone) {
 
     world = new CANNON.World({ gravity: new CANNON.Vec3(0, 0, -9.82) });
 
-    const diceGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const diceMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    diceMesh1 = new THREE.Mesh(diceGeometry, diceMaterial);
-    diceMesh2 = new THREE.Mesh(diceGeometry, diceMaterial);
+    diceMesh1 = createDice();
+    diceMesh2 = createDice();
+    diceMesh1.position.set(-0.7, 0, 0);
+    diceMesh2.position.set(0.7, 0, 0);
     scene.add(diceMesh1, diceMesh2);
 
     const light = new THREE.PointLight(0xffffff, 1);
@@ -96,6 +96,43 @@ function initDice(canvasId, onRollDone) {
 
     animate();
 }
+
+
+function createDice() {
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const dice = new THREE.Mesh(geometry, material);
+
+    const dotMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    const dotGeo = new THREE.SphereGeometry(0.08, 16, 16);
+
+    const positions = [
+        // Face 1 (z+)
+        [[0, 0, 0.51]],
+        // Face 2 (z-)
+        [[-0.2, -0.2, -0.51], [0.2, 0.2, -0.51]],
+        // Face 3 (x+)
+        [[-0.25, 0.25, 0.51], [0, 0, 0.51], [0.25, -0.25, 0.51]],
+        // Face 4 (x-)
+        [[-0.25, 0.25, -0.51], [-0.25, -0.25, -0.51], [0.25, 0.25, -0.51], [0.25, -0.25, -0.51]],
+        // Face 5 (y+)
+        [[-0.25, -0.25, 0.51], [-0.25, 0.25, 0.51], [0, 0, 0.51], [0.25, -0.25, 0.51], [0.25, 0.25, 0.51]],
+        // Face 6 (y-)
+        [[-0.25, -0.3, -0.51], [-0.25, 0, -0.51], [-0.25, 0.3, -0.51],
+         [0.25, -0.3, -0.51], [0.25, 0, -0.51], [0.25, 0.3, -0.51]],
+    ];
+
+    positions.forEach(face => {
+        face.forEach(pos => {
+            const dot = new THREE.Mesh(dotGeo, dotMaterial);
+            dot.position.set(pos[0], pos[1], pos[2]);
+            dice.add(dot);
+        });
+    });
+
+    return dice;
+}
+
 
 function animate() {
     requestAnimationFrame(animate);
@@ -111,13 +148,28 @@ function rollDice() {
 
     // animation placeholder
     setTimeout(() => {
-        diceMesh1.rotation.set(Math.random() * 2, Math.random() * 2, Math.random() * 2);
-        diceMesh2.rotation.set(Math.random() * 2, Math.random() * 2, Math.random() * 2);
+        setFinalRotation(diceMesh1, result1);
+        setFinalRotation(diceMesh2, result2);
 
         rolling = false;
         if (callback) callback(result1, result2);
     }, 1000);
 }
+
+
+function setFinalRotation(dice, value) {
+    const rotations = {
+        1: [0, 0, 0],
+        2: [0, Math.PI / 2, 0],
+        3: [Math.PI / 2, 0, 0],
+        4: [-Math.PI / 2, 0, 0],
+        5: [0, -Math.PI / 2, 0],
+        6: [Math.PI, 0, 0]
+    };
+    const r = rotations[value];
+    dice.rotation.set(r[0], r[1], r[2]);
+}
+
 
 window.initDice = initDice;
 window.rollDice = rollDice;
