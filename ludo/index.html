@@ -8,128 +8,85 @@
 <body>
   <div id="board">
     <!-- Home Areas with Images -->
-    <div class="home red" style="grid-column: 1 / span 5; grid-row: 1 / span 5;">
+    <div class="home red" style="grid-column: 6 / span 5; grid-row: 6 / span 5;">
       <img src="img/Vuong_2.png" class="home-img" alt="Red House">
     </div>
-    <div class="home green" style="grid-column: 11 / span 5; grid-row: 1 / span 5;">
+    <div class="home green" style="grid-column: 66 / span 5; grid-row: 6 / span 5;">
       <img src="img/Dvu.png" class="home-img" alt="Green House">
     </div>
-    <div class="home yellow" style="grid-column: 1 / span 5; grid-row: 11 / span 5;">
+    <div class="home yellow" style="grid-column: 6 / span 5; grid-row: 66 / span 5;">
       <img src="img/Chu.png" class="home-img" alt="Yellow House">
     </div>
-    <div class="home blue" style="grid-column: 11 / span 5; grid-row: 11 / span 5;">
+    <div class="home blue" style="grid-column: 66 / span 5; grid-row: 66 / span 5;">
       <img src="img/Cao.png" class="home-img" alt="Blue House">
     </div>
 
     <!-- Start Positions -->
-    <div class="cell start red" style="grid-column: 6; grid-row: 1;">R</div>
-    <div class="cell start blue" style="grid-column: 1; grid-row: 10;">B</div>
-    <div class="cell start green" style="grid-column: 15; grid-row: 6;">G</div>
-    <div class="cell start yellow" style="grid-column: 10; grid-row: 15;">Y</div>
+    <div class="cell start red" style="grid-column: 6; grid-row: 6;">R</div>
+    <div class="cell start blue" style="grid-column: 6; grid-row: 60;">B</div>
+    <div class="cell start green" style="grid-column: 65; grid-row: 6;">G</div>
+    <div class="cell start yellow" style="grid-column: 60; grid-row: 65;">Y</div>
 
     <!-- Dice in the center -->
     <div id="center">🎲</div>
 
     <!-- Path: Full clockwise layout including middle links -->
-    <!-- Top vertical -->
+    <!-- Trên xuống -->
     <div class="cell path" style="grid-column: 6; grid-row: 2;"></div>
     <div class="cell path" style="grid-column: 6; grid-row: 3;"></div>
     <div class="cell path" style="grid-column: 6; grid-row: 4;"></div>
     <div class="cell path" style="grid-column: 6; grid-row: 5;"></div>
 	<div class="cell path" style="grid-column: 6; grid-row: 6;"></div>
-    <!-- Horizontal to right -->
-    <div class="cell path" style="grid-column: 7; grid-row: 6;"></div>
-    <div class="cell path" style="grid-column: 8; grid-row: 6;"></div>
-    <div class="cell path" style="grid-column: 9; grid-row: 6;"></div>
-    <div class="cell path" style="grid-column: 10; grid-row: 6;"></div>
-    <!-- Vertical up right -->
-    <div class="cell path" style="grid-column: 10; grid-row: 5;"></div>
-    <div class="cell path" style="grid-column: 10; grid-row: 4;"></div>
-    <div class="cell path" style="grid-column: 10; grid-row: 3;"></div>
-    <div class="cell path" style="grid-column: 10; grid-row: 2;"></div>
-    <!-- Horizontal right -->
-    <div class="cell path" style="grid-column: 11; grid-row: 2;"></div>
-    <div class="cell path" style="grid-column: 12; grid-row: 2;"></div>
-    <div class="cell path" style="grid-column: 13; grid-row: 2;"></div>
-    <div class="cell path" style="grid-column: 14; grid-row: 2;"></div>
-    <div class="cell path" style="grid-column: 15; grid-row: 2;"></div>
-    <!-- Vertical down -->
-    <div class="cell path" style="grid-column: 15; grid-row: 3;"></div>
-    <div class="cell path" style="grid-column: 15; grid-row: 4;"></div>
-    <div class="cell path" style="grid-column: 15; grid-row: 5;"></div>
-    <div class="cell path" style="grid-column: 15; grid-row: 6;"></div>
-    <!-- Horizontal left -->
-    <div class="cell path" style="grid-column: 14; grid-row: 6;"></div>
-    <div class="cell path" style="grid-column: 13; grid-row: 6;"></div>
-    <div class="cell path" style="grid-column: 12; grid-row: 6;"></div>
-    <div class="cell path" style="grid-column: 11; grid-row: 6;"></div>
-    <!-- Vertical down -->
-    <div class="cell path" style="grid-column: 11; grid-row: 7;"></div>
-    <div class="cell path" style="grid-column: 11; grid-row: 8;"></div>
-    <div class="cell path" style="grid-column: 11; grid-row: 9;"></div>
-    <div class="cell path" style="grid-column: 11; grid-row: 10;"></div>
-    <!-- Horizontal left -->
-    <div class="cell path" style="grid-column: 10; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 9; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 8; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 7; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 6; grid-row: 10;"></div>
-    <!-- Vertical down -->
-    <div class="cell path" style="grid-column: 6; grid-row: 11;"></div>
-    <div class="cell path" style="grid-column: 6; grid-row: 12;"></div>
-    <div class="cell path" style="grid-column: 6; grid-row: 13;"></div>
-    <div class="cell path" style="grid-column: 6; grid-row: 14;"></div>
-    <!-- Horizontal left -->
-    <div class="cell path" style="grid-column: 5; grid-row: 15;"></div>
-    <div class="cell path" style="grid-column: 4; grid-row: 15;"></div>
-    <div class="cell path" style="grid-column: 3; grid-row: 15;"></div>
-    <div class="cell path" style="grid-column: 2; grid-row: 15;"></div>
-    <div class="cell path" style="grid-column: 1; grid-row: 15;"></div>
-    <!-- Vertical up -->
-    <div class="cell path" style="grid-column: 1; grid-row: 14;"></div>
-    <div class="cell path" style="grid-column: 1; grid-row: 13;"></div>
-    <div class="cell path" style="grid-column: 1; grid-row: 12;"></div>
-    <div class="cell path" style="grid-column: 1; grid-row: 11;"></div>
-    <!-- Horizontal right -->
-    <div class="cell path" style="grid-column: 2; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 3; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 4; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 5; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 1; grid-row: 6;"></div>
-    <div class="cell path" style="grid-column: 2; grid-row: 6;"></div>
-    <div class="cell path" style="grid-column: 3; grid-row: 6;"></div>
-    <div class="cell path" style="grid-column: 4; grid-row: 6;"></div>
-    <div class="cell path" style="grid-column: 5; grid-row: 6;"></div>
 
-    <div class="cell path" style="grid-column: 6; grid-row: 15;"></div>
-    <div class="cell path" style="grid-column: 7; grid-row: 15;"></div>
-    <div class="cell path" style="grid-column: 8; grid-row: 15;"></div>
-    <div class="cell path" style="grid-column: 9; grid-row: 15;"></div>
+    <div class="cell path" style="grid-column: 6; grid-row: 66;"></div>
+    <div class="cell path" style="grid-column: 6; grid-row: 62;"></div>
+    <div class="cell path" style="grid-column: 6; grid-row: 63;"></div>
+    <div class="cell path" style="grid-column: 6; grid-row: 64;"></div>
+	<div class="cell path" style="grid-column: 6; grid-row: 65;"></div>
 
-    <div class="cell path" style="grid-column: 10; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 10; grid-row: 11;"></div>
-    <div class="cell path" style="grid-column: 10; grid-row: 12;"></div>
-    <div class="cell path" style="grid-column: 10; grid-row: 13;"></div>
-    <div class="cell path" style="grid-column: 10; grid-row: 14;"></div>
+	<div class="cell path" style="grid-column: 6; grid-row: 7;"></div>
+	<div class="cell path" style="grid-column: 6; grid-row: 8;"></div>
+	<div class="cell path" style="grid-column: 6; grid-row: 9;"></div>
+	
+	<div class="cell path" style="grid-column: 60; grid-row: 6;"></div>
+	<div class="cell path" style="grid-column: 60; grid-row: 2;"></div>
+	<div class="cell path" style="grid-column: 60; grid-row: 3;"></div>
+	<div class="cell path" style="grid-column: 60; grid-row: 4;"></div>
+	<div class="cell path" style="grid-column: 60; grid-row: 5;"></div>
+	
+	<div class="cell path" style="grid-column: 60; grid-row: 66;"></div>
+	<div class="cell path" style="grid-column: 60; grid-row: 62;"></div>
+	<div class="cell path" style="grid-column: 60; grid-row: 63;"></div>
+	<div class="cell path" style="grid-column: 60; grid-row: 64;"></div>
+	<div class="cell path" style="grid-column: 60; grid-row: 65;"></div>
+	
+	<div class="cell path" style="grid-column: 65; grid-row: 7;"></div>
+	<div class="cell path" style="grid-column: 65; grid-row: 8;"></div>
+	<div class="cell path" style="grid-column: 65; grid-row: 9;"></div>
+	
+    <!-- Trái qua phải -->
+	<div class="cell path" style="grid-column: 7; grid-row: 6;"></div>
+	<div class="cell path" style="grid-column: 8; grid-row: 6;"></div>
+	<div class="cell path" style="grid-column: 9; grid-row: 6;"></div>
+	<div class="cell path" style="grid-column: 60; grid-row: 6;"></div>
 
-    <div class="cell path" style="grid-column: 11; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 12; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 13; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 14; grid-row: 10;"></div>
-    <div class="cell path" style="grid-column: 15; grid-row: 10;"></div>
+	<div class="cell path" style="grid-column: 1; grid-row: 6;"></div>
+	<div class="cell path" style="grid-column: 2; grid-row: 6;"></div>
+	<div class="cell path" style="grid-column: 3; grid-row: 6;"></div>
+	<div class="cell path" style="grid-column: 4; grid-row: 6;"></div>
 
     <!-- Safe Paths 3 blocks each -->
     <div class="cell safe red" style="grid-column: 7; grid-row: 6;"></div>
     <div class="cell safe red" style="grid-column: 8; grid-row: 6;"></div>
     <div class="cell safe red" style="grid-column: 9; grid-row: 6;"></div>
 
-    <div class="cell safe green" style="grid-column: 10; grid-row: 7;"></div>
-    <div class="cell safe green" style="grid-column: 10; grid-row: 8;"></div>
-    <div class="cell safe green" style="grid-column: 10; grid-row: 9;"></div>
+    <div class="cell safe green" style="grid-column: 60; grid-row: 7;"></div>
+    <div class="cell safe green" style="grid-column: 60; grid-row: 8;"></div>
+    <div class="cell safe green" style="grid-column: 60; grid-row: 9;"></div>
 
-    <div class="cell safe blue" style="grid-column: 7; grid-row: 10;"></div>
-    <div class="cell safe blue" style="grid-column: 8; grid-row: 10;"></div>
-    <div class="cell safe blue" style="grid-column: 9; grid-row: 10;"></div>
+    <div class="cell safe blue" style="grid-column: 7; grid-row: 60;"></div>
+    <div class="cell safe blue" style="grid-column: 8; grid-row: 60;"></div>
+    <div class="cell safe blue" style="grid-column: 9; grid-row: 60;"></div>
 
     <div class="cell safe yellow" style="grid-column: 6; grid-row: 7;"></div>
     <div class="cell safe yellow" style="grid-column: 6; grid-row: 8;"></div>
