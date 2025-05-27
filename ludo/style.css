@@ -77,3 +77,47 @@ body {
   font-weight: bold;
   z-index: 1;
 }
+
+.piece {
+  width: 2.5vw;
+  height: 2.5vw;
+  border-radius: 50%;
+  border: 2px solid #000;
+}
+
+.piece.red { background-color: #f44336; }
+.piece.green { background-color: #4caf50; }
+.piece.yellow { background-color: #fdd835; }
+.piece.blue { background-color: #2196f3; }
+
+.piece-wrapper {
+  display: grid;
+  grid-template-columns: repeat(2, 2.5vw);
+  grid-template-rows: repeat(2, 2.5vw);
+  gap: 4vw;
+  justify-content: center;
+  align-content: center;
+  position: absolute;
+}
+
+#dice-box {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+
+#dice-canvas canvas {
+  width: 150px !important;
+  height: 150px !important;
+}
+
