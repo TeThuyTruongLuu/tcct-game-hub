@@ -1,7 +1,7 @@
 const gameBoard = document.getElementById("gameBoard");
 const characterList = ["Du", "Khuu", "Lac", "Vuong"];
 let shelves = [];
-let playerName = "";
+let playerName = localStorage.getItem("username") || "";
 let timeLeft = 300;
 let timer;
 
