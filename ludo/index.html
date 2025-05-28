@@ -55,10 +55,10 @@
 
 
     <!-- Start Positions -->
-    <div class="cell start red" style="grid-column: 6; grid-row: 1;"></div>
-    <div class="cell start yellow" style="grid-column: 1; grid-row: 10;"></div>
-    <div class="cell start green" style="grid-column: 15; grid-row: 6;"></div>
-    <div class="cell start blue" style="grid-column: 10; grid-row: 15;"></div>
+    <div class="cell start red" id="cell-1-6" style="grid-column: 6; grid-row: 1;"></div>
+    <div class="cell start yellow" id="cell-10-1" style="grid-column: 1; grid-row: 10;"></div>
+    <div class="cell start green" id="cell-6-15" style="grid-column: 15; grid-row: 6;"></div>
+    <div class="cell start blue" id="cell-15-10" style="grid-column: 10; grid-row: 15;"></div>
 
 	<div id="dice-box">
 	  <div id="dice-canvas"></div>
@@ -70,6 +70,7 @@
 
 	<script>
 	  window.onload = function () {
+		updateHomeHighlight('red');
 		if (typeof initDice === 'function') {
 		  initDice("dice-canvas", onDiceRolled);
 		} else {
@@ -108,7 +109,6 @@
 	<div class="cell path" id="cell-1-7" style="grid-column: 7; grid-row: 1;"></div>
 	<div class="cell path" id="cell-1-8" style="grid-column: 8; grid-row: 1;"></div>
 	<div class="cell path" id="cell-1-9" style="grid-column: 9; grid-row: 1;"></div>
-	<div class="cell path" id="cell-1-10" style="grid-column: 10; grid-row: 1;"></div>
 	<div class="cell path" id="cell-6-1" style="grid-column: 1; grid-row: 6;"></div>
 	<div class="cell path" id="cell-6-2" style="grid-column: 2; grid-row: 6;"></div>
 	<div class="cell path" id="cell-6-3" style="grid-column: 3; grid-row: 6;"></div>
@@ -136,12 +136,12 @@
 
 
     <!-- Safe Paths 3 blocks each -->
-	<div class="cell safe red" style="grid-column: 8; grid-row: 2;"></div>
-    <div class="cell safe red" style="grid-column: 8; grid-row: 3;"></div>
-    <div class="cell safe red" style="grid-column: 8; grid-row: 4;"></div>
-    <div class="cell safe red" style="grid-column: 8; grid-row: 5;"></div>
-	<div class="cell safe red" style="grid-column: 8; grid-row: 6;"></div>
-	<div class="cell safe red" style="grid-column: 8; grid-row: 7;"></div>
+	<div class="cell safe red" id="cell-2-8" style="grid-column: 8; grid-row: 2;"></div>
+    <div class="cell safe red" id="cell-3-8" style="grid-column: 8; grid-row: 3;"></div>
+    <div class="cell safe red" id="cell-4-8" style="grid-column: 8; grid-row: 4;"></div>
+    <div class="cell safe red" id="cell-5-8" style="grid-column: 8; grid-row: 5;"></div>
+	<div class="cell safe red" id="cell-6-8" style="grid-column: 8; grid-row: 6;"></div>
+	<div class="cell safe red" id="cell-7-8" style="grid-column: 8; grid-row: 7;"></div>
 	
 	<div class="cell safe green" style="grid-column: 9; grid-row: 8;"></div>
     <div class="cell safe green" style="grid-column: 10; grid-row: 8;"></div>

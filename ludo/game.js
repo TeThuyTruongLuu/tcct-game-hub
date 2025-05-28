@@ -22,9 +22,9 @@ const path = ["cell-1-6", "cell-2-6", "cell-3-6", "cell-4-6", "cell-5-6", "cell-
 
 const startPositions = {
   red: 0,
-  blue: 11,
-  yellow: 23,
-  green: 36
+  blue: 28,
+  yellow: 14,
+  green: 42
 };
 
 
@@ -45,22 +45,38 @@ function onDiceRolled(val1, val2) {
     const canRelease = (val1 === val2) || (val1 === 6 && val2 === 1) || (val1 === 1 && val2 === 6);
     rolledDouble = (val1 === val2);
     selectedSteps = val1 + val2;
-    console.log("👉 selectedSteps set to", selectedSteps);
+
+    let moved = false;
 
     if (canRelease) {
-        highlightReleasablePieces(currentPlayer);
+        const canReleaseAny = highlightReleasablePieces(currentPlayer);
+        const canMoveAny = highlightMovablePieces(currentPlayer, selectedSteps);
+        moved = canReleaseAny || canMoveAny;
     } else {
-        highlightMovablePieces(currentPlayer, selectedSteps);
+        moved = highlightMovablePieces(currentPlayer, selectedSteps);
+    }
+
+    if (!moved) {
+        console.log("🔁 Không có quân nào đi được, chuyển lượt luôn");
+        nextPlayer();
     }
 }
 
-
 function highlightReleasablePieces(color) {
     const currentPieces = pieces[color];
-	const start = startPositions[color];
-    for (let j = 1; j <= 4; j++) {
-        if (currentPieces[j].position === start) return;
+    const start = startPositions[color];
+    let hasOption = false;
+
+    let blocked = false;
+    for (let i = 1; i <= 4; i++) {
+        if (currentPieces[i].position === start) {
+            blocked = true;
+            break;
+        }
     }
+
+    if (blocked) return false;
+
     for (let i = 1; i <= 4; i++) {
         const piece = currentPieces[i];
         if (piece.position === null) {
@@ -71,13 +87,18 @@ function highlightReleasablePieces(color) {
                 clearHighlights();
                 if (!rolledDouble) nextPlayer();
             };
+            hasOption = true;
         }
     }
+
+    return hasOption;
 }
 
+
 function highlightMovablePieces(color, steps) {
-	console.log(`🟢 Highlighting movable ${color} with ${steps} steps`);
     const currentPieces = pieces[color];
+    let hasOption = false;
+
     for (let i = 1; i <= 4; i++) {
         const piece = currentPieces[i];
         if (piece.position !== null && !piece.inHome) {
@@ -95,10 +116,14 @@ function highlightMovablePieces(color, steps) {
                         if (!rolledDouble) nextPlayer();
                     });
                 };
+                hasOption = true;
             }
         }
     }
+
+    return hasOption;
 }
+
 
 function releasePiece(color) {
     const currentPieces = pieces[color];
@@ -106,6 +131,7 @@ function releasePiece(color) {
         const piece = currentPieces[i];
         if (piece.position === null) {
             piece.position = startPositions[color];
+			piece.inHome = false;
             const pieceEl = document.getElementById(`${color}-${i}`);
             const startCell = document.querySelector(`.cell.start.${color}`);
             if (startCell && pieceEl) startCell.appendChild(pieceEl);
@@ -176,9 +202,10 @@ function clearHighlights() {
 }
 
 function nextPlayer() {
-    const players = ['red', 'green', 'yellow', 'blue'];
+    const players = ['red', 'green', 'blue', 'yellow'];
     const idx = players.indexOf(currentPlayer);
     currentPlayer = players[(idx + 1) % 4];
+	updateHomeHighlight(currentPlayer);
 	highlightMovablePieces(currentPlayer, selectedSteps);
 }
 
@@ -319,6 +346,7 @@ function animateMove(color, pieceId, from, to, callback) {
   function stepThrough(i) {
     if (i >= steps.length) {
       piece.position = to;
+	  piece.inHome = false;
       if (callback) callback();
       return;
     }
@@ -328,4 +356,12 @@ function animateMove(color, pieceId, from, to, callback) {
   }
 
   stepThrough(0);
+}
+
+function updateHomeHighlight(color) {
+    const homes = document.querySelectorAll('.home');
+    homes.forEach(home => home.classList.remove('home-turn'));
+
+    const home = document.querySelector(`.home.${color}`);
+    if (home) home.classList.add('home-turn');
 }

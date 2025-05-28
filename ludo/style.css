@@ -161,4 +161,10 @@ body {
   cursor: pointer;
 }
 
+.home-turn {
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.6);
+  transition: box-shadow 0.2s ease;
+}
+
+
 

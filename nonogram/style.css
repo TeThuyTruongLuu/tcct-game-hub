@@ -1,0 +1,76 @@
+body {
+  font-family: 'Quicksand', sans-serif;
+  background: #fefefe;
+  color: #333;
+  padding: 40px 20px;
+  max-width: 800px;
+  margin: auto;
+  text-align: center;
+}
+
+h1, h2 {
+  color: #4a4a4a;
+}
+
+nav {
+  margin-bottom: 30px;
+}
+nav button {
+  background: #ffe0ec;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin: 0 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+nav button:hover {
+  background: #ffd1e3;
+}
+
+#controls button, #export {
+  background: #bae8e8;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  margin: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+#controls button:hover, #export:hover {
+  background: #a0d8d8;
+}
+
+#grid {
+  display: grid;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 10px;
+}
+
+.cell {
+  width: 24px;
+  height: 24px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.color-picker {
+  justify-content: center;
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.color-option {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.color-option.selected {
+  outline: 2px solid #f18bb1;
+}
