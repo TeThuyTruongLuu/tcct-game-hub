@@ -1,15 +1,11 @@
 body {
   font-family: 'Quicksand', sans-serif;
-  background: #fefefe;
-  color: #333;
+  background: white;
+  color: black;
   padding: 40px 20px;
   max-width: 800px;
   margin: auto;
   text-align: center;
-}
-
-h1, h2 {
-  color: #4a4a4a;
 }
 
 nav {
@@ -42,22 +38,6 @@ nav button:hover {
   background: #a0d8d8;
 }
 
-#grid {
-  display: grid;
-  justify-content: center;
-  gap: 3px;
-  margin-top: 10px;
-}
-
-.cell {
-  width: 24px;
-  height: 24px;
-  background: #eee;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
 .color-picker {
   justify-content: center;
   display: flex;
@@ -73,4 +53,74 @@ nav button:hover {
 }
 .color-option.selected {
   outline: 2px solid #f18bb1;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 0 auto;
+  margin-top: 10px;
+}
+td {
+  border: 1px solid #ccc;
+}
+
+
+/* Style for preview and submit buttons */
+button {
+  font-family: 'Quicksand', sans-serif;
+}
+button.preview, button.submit {
+  background: #fcd34d;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  margin: 10px 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+button.preview:hover {
+  background: #fbbf24;
+}
+button.submit {
+  background: #60a5fa;
+}
+button.submit:hover {
+  background: #3b82f6;
+}
+
+.color-option {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #666;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#creatorName, #creatorMessage {
+  margin-top: 10px;
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-family: 'Quicksand', sans-serif;
+}
+
+.nonogram-table td {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #999;
+  border-radius: 6px;
+}
+
+.nonogram-table td.hint-cell {
+  font-size: 10px;
+  line-height: 1.2;
+  color: #444;
+  opacity: 0.6;
+}
+
+.nonogram-table td.solution-cell {
+  opacity: 1;
+  box-shadow: inset 0 0 3px #00000022;
 }
