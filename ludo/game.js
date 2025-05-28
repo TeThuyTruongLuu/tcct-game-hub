@@ -5,8 +5,28 @@ const pieces = {
     blue: { 1: { position: null, inHome: false }, 2: { position: null, inHome: false }, 3: { position: null, inHome: false }, 4: { position: null, inHome: false } }
 };
 
-const path = [...Array(52)].map((_, i) => 'path-' + (i + 1));
-const startPositions = { red: 0, green: 13, yellow: 26, blue: 39 };
+const path = ["cell-1-6", "cell-2-6", "cell-3-6", "cell-4-6", "cell-5-6", "cell-6-6", // ✅ RED START
+"cell-6-5", "cell-6-4", "cell-6-3", "cell-6-2", "cell-6-1", 
+"cell-7-1", "cell-8-1", "cell-9-1", "cell-10-1",
+"cell-10-2", "cell-10-3", "cell-10-4", "cell-10-5", "cell-10-6", // ✅ YELLOW START
+"cell-11-6", "cell-12-6", "cell-13-6", "cell-14-6", "cell-15-6",
+"cell-15-7", "cell-15-8", "cell-15-9", "cell-15-10", // ✅ BLUE START
+"cell-14-10", "cell-13-10", "cell-12-10", "cell-11-10", "cell-10-10",
+"cell-10-11", "cell-10-12", "cell-10-13", "cell-10-14", "cell-10-15",
+"cell-9-15", "cell-8-15", "cell-7-15", "cell-6-15", // ✅ GREEN START
+"cell-6-14", "cell-6-13", "cell-6-12", "cell-6-11", "cell-6-10",
+"cell-5-10", "cell-4-10", "cell-3-10", "cell-2-10", "cell-1-10",
+"cell-1-9", "cell-1-8", "cell-1-7"
+];
+
+
+const startPositions = {
+  red: 0,
+  blue: 11,
+  yellow: 23,
+  green: 36
+};
+
 
 let currentPlayer = 'red';
 let selectedSteps = 0;
@@ -18,12 +38,14 @@ const die2 = document.getElementById('dice2');
 const rollDiceBtn = document.getElementById('rollButton');
 
 function onDiceRolled(val1, val2) {
+    console.log("🎲 Dice rolled:", val1, "+", val2);
     const resultDiv = document.getElementById("dice-result");
     resultDiv.textContent = `🎲 ${val1} + ${val2}`;
 
     const canRelease = (val1 === val2) || (val1 === 6 && val2 === 1) || (val1 === 1 && val2 === 6);
     rolledDouble = (val1 === val2);
     selectedSteps = val1 + val2;
+    console.log("👉 selectedSteps set to", selectedSteps);
 
     if (canRelease) {
         highlightReleasablePieces(currentPlayer);
@@ -32,8 +54,13 @@ function onDiceRolled(val1, val2) {
     }
 }
 
+
 function highlightReleasablePieces(color) {
     const currentPieces = pieces[color];
+	const start = startPositions[color];
+    for (let j = 1; j <= 4; j++) {
+        if (currentPieces[j].position === start) return;
+    }
     for (let i = 1; i <= 4; i++) {
         const piece = currentPieces[i];
         if (piece.position === null) {
@@ -49,6 +76,7 @@ function highlightReleasablePieces(color) {
 }
 
 function highlightMovablePieces(color, steps) {
+	console.log(`🟢 Highlighting movable ${color} with ${steps} steps`);
     const currentPieces = pieces[color];
     for (let i = 1; i <= 4; i++) {
         const piece = currentPieces[i];
@@ -89,7 +117,6 @@ function releasePiece(color) {
 function movePieceTo(color, pieceId, dest) {
     const piece = pieces[color][pieceId];
 
-    // Check và đá nếu cần
     for (const otherColor in pieces) {
         for (let i = 1; i <= 4; i++) {
             const other = pieces[otherColor][i];
@@ -110,24 +137,33 @@ function movePieceTo(color, pieceId, dest) {
 
 function canMove(from, to, color) {
     let distance = (to - from + path.length) % path.length;
+    console.log(`⛳ Trying to move from ${from} (${path[from]}) to ${to} (${path[to]})`);
+
     for (let i = 1; i < distance; i++) {
         const step = (from + i) % path.length;
+        const stepId = path[step];
         for (const otherColor in pieces) {
             for (let j = 1; j <= 4; j++) {
                 const p = pieces[otherColor][j];
-                if (p.position === step) return false;
+                if (p.position === step) {
+                    console.warn(`🚫 Blocked at step ${stepId} by ${otherColor}-${j}`);
+                    return false;
+                }
             }
         }
     }
 
-    // Nếu đích có cùng màu thì không đi
     for (let j = 1; j <= 4; j++) {
         const p = pieces[color][j];
-        if (p.position === to) return false;
+        if (p.position === to) {
+            console.warn(`❌ Destination ${path[to]} already occupied by ${color}-${j}`);
+            return false;
+        }
     }
 
     return true;
 }
+
 
 function clearHighlights() {
     document.querySelectorAll(".piece.highlight").forEach(p => {
@@ -143,6 +179,7 @@ function nextPlayer() {
     const players = ['red', 'green', 'yellow', 'blue'];
     const idx = players.indexOf(currentPlayer);
     currentPlayer = players[(idx + 1) % 4];
+	highlightMovablePieces(currentPlayer, selectedSteps);
 }
 
 
@@ -251,29 +288,7 @@ function setFinalRotation(dice, value) {
 window.initDice = initDice;
 window.rollDice = rollDice;
 
-function animateMove(color, pieceId, from, to, callback) {
-    const steps = [];
-    const total = (to - from + path.length) % path.length;
-    for (let i = 1; i <= total; i++) {
-        steps.push((from + i) % path.length);
-    }
 
-    const piece = pieces[color][pieceId];
-    const el = document.getElementById(`${color}-${pieceId}`);
-
-    function stepThrough(i) {
-        if (i >= steps.length) {
-            piece.position = to;
-            if (callback) callback();
-            return;
-        }
-        const cell = document.getElementById(path[steps[i]]);
-        if (cell && el) cell.appendChild(el);
-        setTimeout(() => stepThrough(i + 1), 500);
-    }
-
-    stepThrough(0);
-}
 
 function kickEnemy(position, currentColor) {
     for (const otherColor in pieces) {
@@ -288,4 +303,29 @@ function kickEnemy(position, currentColor) {
             }
         }
     }
+}
+
+function animateMove(color, pieceId, from, to, callback) {
+  const piece = pieces[color][pieceId];
+  const el = document.getElementById(`${color}-${pieceId}`);
+  const steps = [];
+
+  let current = from;
+  while (current !== to) {
+    current = (current + 1) % path.length;
+    steps.push(current);
+  }
+
+  function stepThrough(i) {
+    if (i >= steps.length) {
+      piece.position = to;
+      if (callback) callback();
+      return;
+    }
+    const cell = document.getElementById(path[steps[i]]);
+    if (cell && el) cell.appendChild(el);
+    setTimeout(() => stepThrough(i + 1), 500);
+  }
+
+  stepThrough(0);
 }
