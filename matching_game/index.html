@@ -10,6 +10,7 @@
     <title>Tìm hình giống nhau</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 	<script src="https://www.youtube.com/iframe_api"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet" />
 <style>
 	@font-face {
 		font-family: 'AmpleSoft';
@@ -18,8 +19,8 @@
 		font-style: normal;
 	}
 	@font-face {
-		font-family: 'AmpleSoft Light';
-		src: url('../css/fonts/AmpleSoft Light.otf') format('truetype');
+		font-family: 'AmpleSoftLight';
+		src: url('../css/fonts/AmpleSoftLight.otf') format('truetype');
 	}
     body {
         display: flex;
@@ -35,7 +36,7 @@
 		margin-top: 50px;
     }
 	p {
-		font-family: AmpleSoft Light;
+		font-family: AmpleSoftLight;
 	}
     .score-board, .leaderboard-container {
         display: flex;
@@ -177,12 +178,12 @@
         border-radius: 8px;
     }
 	.card-front {
-		background-color: #f8c1c1; /* Màu hồng nhạt cho mặt thẻ */
+		background-color: #f8c1c1;
         justify-content: center;
         align-items: center;
         font-size: 2vw;
         font-weight: bold;
-		font-family: Roboto;
+		font-family: 'Quicksand', sans-serif;
 		top: 0;
         left: 0;
         width: 100%;
@@ -218,26 +219,26 @@
         align-items: center;
         font-size: 2vw;
         font-weight: bold;
-		font-family: Roboto;
+		font-family: 'Quicksand', sans-serif;
 		border-radius: 8px;
     }
 
 	#ytmusic {
 		display: flex;
-		align-items: center;  /* Căn giữa các phần tử theo chiều dọc */
-		justify-content: center; /* Căn giữa theo chiều ngang */
-		gap: 10px;  /* Tạo khoảng cách giữa ô nhập và nút */
-		max-width: 80%; /* Rút gọn chiều rộng khung */
-		margin: 20px auto; /* Căn giữa trên trang */
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		max-width: 80%;
+		margin: 20px auto;
 	}
 
 	#youtube-url {
-		flex: 1; /* Giúp input co dãn trong khung flex */
-		max-width: 300px; /* Giới hạn chiều rộng tối đa */
+		flex: 1;
+		max-width: 300px;
 		padding: 10px;
 		border: 1px solid #ccc;
 		border-radius: 5px;
-		font-family: AmpleSoft Light;
+		font-family: AmpleSoftLight;
 	}
 
 	#play-youtube-music, #pause-youtube-music {
