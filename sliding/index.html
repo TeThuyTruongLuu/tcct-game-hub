@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sliding Puzzle</title>
+  <style>
+	body {
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	  justify-content: center;
+	  min-height: 100vh;
+	  background: #fff0f3;
+	  font-family: "Segoe UI", sans-serif;
+	  margin: 0;
+	}
+
+	h1 {
+	  margin-bottom: 20px;
+	  color: #c33;
+	}
+
+	#puzzle {
+	  display: grid;
+	  grid-template-columns: repeat(3, 100px);
+	  grid-template-rows: repeat(3, 100px);
+	  gap: 6px;
+	  border: 6px solid #f55;
+	  background: #fdd;
+	  padding: 6px;
+	  border-radius: 12px;
+	}
+
+	.tile {
+	  width: 100px;
+	  height: 100px;
+	  background-size: cover;
+	  background-position: center;
+	  border-radius: 10px;
+	  cursor: pointer;
+	  transition: transform 0.2s, box-shadow 0.2s;
+	}
+
+	.tile:hover {
+	  transform: scale(1.05);
+	  box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+	}
+
+	.empty {
+	  background: #fff0f3;
+	  border: 2px dashed #f66;
+	  cursor: default;
+	}
+
+	@media (max-width: 400px) {
+	  #puzzle {
+		grid-template-columns: repeat(3, 80px);
+		grid-template-rows: repeat(3, 80px);
+	  }
+
+	  .tile {
+		width: 80px;
+		height: 80px;
+	  }
+	}
+
+  </style>
+</head>
+<body>
+  <h1>Sliding Puzzle</h1>
+  <div id="puzzle"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
