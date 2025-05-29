@@ -197,6 +197,10 @@
             color: white;
         }
         .hidden { display: none; }
+		#epub input, #epub textarea, #epub button {
+			max-width: 95%;
+			display: block;
+		}
         @media (max-width: 600px) {
             .table-container {
                 max-height: 400px;
@@ -269,7 +273,7 @@
             <h3>Tải Truyện EPUB</h3>
             <input type="text" id="epubUrl" placeholder="Dán link truyện vô đây nha">
             <textarea id="extra_content" placeholder="Ghi chú chương..."></textarea>
-            <button onclick="handleEpubDownload()">Tải EPUB</button>
+            <button style ="margin-bottom:10px;" onclick="handleEpubDownload()">Tải EPUB</button>
             <textarea id="log" rows="10" cols="50" readonly></textarea>
         </div>
 
