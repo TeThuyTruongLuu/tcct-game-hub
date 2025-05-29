@@ -10,12 +10,18 @@ const client = new Client({
   ]
 });
 
-// Load service account from file to avoid JSON parse issues
 const serviceAccount = require('./serviceAccount.json');
+console.log('Loaded serviceAccount keys:', Object.keys(serviceAccount));
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
+try {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+  console.log('Firebase initialized successfully');
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  process.exit(1);
+}
 
 const db = admin.firestore();
 
@@ -23,49 +29,56 @@ client.once('ready', () => {
   console.log(`Bot đã sẵn sàng! Đăng nhập với tên: ${client.user.tag}`);
 });
 
-// Lắng nghe tin nhắn mới để thêm reactions
-client.on('messageCreate', async (message) => {
-  const CHANNEL_ID = '1236906035932041286';
-  if (message.channelId !== CHANNEL_ID || message.author.bot === false) return;
+const channelId = '1236906035932041286';
 
-  if (message.content.includes('**Nonogram mới cần duyệt**')) {
-    try {
-      await message.react('✅');
-      await message.react('❌');
-      console.log(`Đã thêm reactions vào tin nhắn ${message.id}`);
-    } catch (error) {
-      console.error('Lỗi khi thêm reactions:', error);
-    }
+client.on('messageCreate', async (message) => {
+  if (message.channelId !== channelId || !message.author.bot) return;
+
+  try {
+    await message.react('✅');
+    await message.react('❌');
+    console.log(`Đã thêm reactions vào tin nhắn ${message.id}`);
+  } catch (error) {
+    console.error('Lỗi khi thêm reactions:', error);
   }
 });
 
-// Xử lý khi admin react
 client.on('messageReactionAdd', async (reaction, user) => {
-  // Bỏ qua reactions từ bot
+  console.log(`Reaction received: ${reaction.emoji.name} by ${user.tag} in channel ${reaction.message.channelId}`); // Debug
+
   if (user.bot) return;
 
-  // Lấy message đầy đủ
   const message = reaction.message.partial ? await reaction.message.fetch() : reaction.message;
 
-  // Kiểm tra kênh và nội dung tin nhắn
-  const CHANNEL_ID = '1236906035932041286';
-  if (message.channelId !== CHANNEL_ID || !message.content.includes('**Nonogram mới cần duyệt**')) return;
+  if (message.channelId !== channelId) {
+    console.log(`Wrong channel: ${message.channelId} (expected: ${channelId})`); // Debug
+    return;
+  }
 
-  // Kiểm tra emoji
   const emoji = reaction.emoji.name;
-  if (emoji !== '✅' && emoji !== '❌') return;
+  if (emoji !== '✅' && emoji !== '❌') {
+    console.log(`Invalid emoji: ${emoji}`); // Debug
+    return;
+  }
 
-  // Kiểm tra quyền admin
-  const member = await message.guild.members.fetch(user.id);
-  const isAdmin = member.roles.cache.some(role => role.name.toLowerCase() === 'admin');
+  let member;
+  try {
+    member = await message.guild.members.fetch(user.id);
+  } catch (error) {
+    console.error(`Lỗi khi fetch member ${user.tag}:`, error);
+    return;
+  }
+
+  const isAdmin = member.roles.cache.some(role => role.name.toLowerCase() === 'admin') || member.permissions.has('Administrator');
   if (!isAdmin) {
+    console.log(`User ${user.tag} is not admin`); // Debug
     await message.channel.send({ content: `${user.tag}, bạn cần quyền Admin để duyệt/từ chối Nonogram.`, ephemeral: true });
     return;
   }
 
-  // Lấy puzzleId từ embed
   const puzzleId = message.embeds[0]?.fields.find(field => field.name === 'ID')?.value;
   if (!puzzleId) {
+    console.log('No puzzleId found in embed:', JSON.stringify(message.embeds, null, 2)); // Debug
     await message.channel.send({ content: 'Không tìm thấy ID Nonogram trong tin nhắn.', ephemeral: true });
     return;
   }
@@ -75,12 +88,14 @@ client.on('messageReactionAdd', async (reaction, user) => {
     const pendingDoc = await pendingRef.get();
 
     if (!pendingDoc.exists) {
+      console.log(`No pending Nonogram for puzzleId: ${puzzleId}`); // Debug
       await message.channel.send({ content: 'Không tìm thấy Nonogram để duyệt.', ephemeral: true });
       return;
     }
 
     const puzzleData = pendingDoc.data();
     if (puzzleData.status !== 'pending') {
+      console.log(`Nonogram already processed: ${puzzleData.status}`); // Debug
       await message.channel.send({ content: 'Nonogram này đã được xử lý trước đó.', ephemeral: true });
       return;
     }
@@ -96,6 +111,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
       });
 
       await message.channel.send({ content: `Nonogram "${puzzleData.title}" đã được duyệt bởi ${user.tag}!` });
+      console.log(`Approved Nonogram: ${puzzleId}`); // Debug
 
       const notificationWebhookUrl = process.env.NOTIFICATION_WEBHOOK_URL;
       if (notificationWebhookUrl) {
@@ -111,6 +127,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
       await pendingRef.update({ status: 'rejected' });
 
       await message.channel.send({ content: `Nonogram "${puzzleData.title}" đã bị từ chối bởi ${user.tag}.` });
+      console.log(`Rejected Nonogram: ${puzzleId}`); // Debug
 
       const notificationWebhookUrl = process.env.NOTIFICATION_WEBHOOK_URL;
       if (notificationWebhookUrl) {
@@ -124,14 +141,15 @@ client.on('messageReactionAdd', async (reaction, user) => {
       }
     }
 
-    // Xóa reactions để tránh xử lý lại
     await message.reactions.removeAll();
+    console.log(`Cleared reactions for message ${message.id}`);
   } catch (error) {
-    console.error('Lỗi khi xử lý Nonogram:', error);
+    console.error(`Lỗi khi xử lý Nonogram ${puzzleId}:`, error);
     await message.channel.send({ content: 'Đã xảy ra lỗi khi xử lý Nonogram.', ephemeral: true });
   }
 });
 
 client.login(process.env.DISCORD_BOT_TOKEN).catch(error => {
   console.error('Lỗi đăng nhập bot:', error);
+  process.exit(1);
 });

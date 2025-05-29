@@ -2,125 +2,7 @@ let data = [], sizeR = 10, sizeC = 10, selectedColor = 1;
 const colors = ['#ffffff', '#000000', '#008000', '#0000ff', '#ffff00', '#800080', '#ffa600'];
 let isMouseDown = false;
 
-const puzzles = [
-  {
-    id: "puzzle_fish_final_clean",
-    title: "Cá vàng",
-    createdBy: "admin",
-    solution: JSON.stringify([
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-    ]),
-    hintRows: JSON.stringify([
-      [3],
-      [4, 5],
-      [5],
-      [20],
-      [1, 17],
-      [14, 1],
-      [20],
-      [18],
-      [2],
-      [14],
-      [3],
-      [3],
-      [8, 8],
-      [0]
-    ]),
-    hintCols: JSON.stringify([
-      [9],
-      [9],
-      [1],
-      [1],
-      [2],
-      [2],
-      [8],
-      [9],
-      [2],
-      [2],
-      [1],
-      [1],
-      [10, 10, 10, 9],
-      [2],
-      [1],
-      [2],
-      [5],
-      [4],
-      [2],
-      [6]
-    ]),
-    imageUrl: "https://firebasestorage.googleapis.com/v0/b/tcct-minigames.appspot.com/o/images%2Ffish_real.jpg?alt=media",
-    coverUrl: "https://firebasestorage.googleapis.com/v0/b/tcct-minigames.appspot.com/o/images%2Ffish_cover.jpg?alt=media",
-    colorData: JSON.stringify([
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-    ])
-  },
-  {
-    id: "puzzle_colorful_art",
-    title: "Bức tranh màu sắc",
-    createdBy: "user1",
-    solution: JSON.stringify([
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 1, 0, 1, 1, 1, 1, 1, 1, 0],
-      [0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
-      [0, 0, 0, 0, 1, 1, 0, 1, 1, 0],
-      [0, 0, 0, 0, 1, 1, 0, 1, 1, 1]
-    ]),
-    hintRows: JSON.stringify([
-      [0],
-      [6, 1],
-      [1, 1],
-      [1, 2],
-      [2, 1, 2]
-    ]),
-    hintCols: JSON.stringify([
-      [1],
-      [1],
-      [1],
-      [0],
-      [2],
-      [1],
-      [1],
-      [1],
-      [5],
-      [1]
-    ]),
-    imageUrl: "https://firebasestorage.googleapis.com/v0/b/tcct-minigames.appspot.com/o/images%2Fcolorful_art_real.jpg?alt=media",
-    coverUrl: "https://firebasestorage.googleapis.com/v0/b/tcct-minigames.appspot.com/o/images%2Fcolorful_art_cover.jpg?alt=media",
-    colorData: JSON.stringify([
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 1, 0, 1, 1, 1, 1, 1, 5, 0],
-      [0, 0, 0, 0, 0, 0, 0, 4, 5, 0],
-      [0, 0, 0, 0, 6, 6, 0, 4, 5, 0],
-      [0, 0, 0, 0, 6, 6, 0, 0, 5, 5]
-    ])
-  }
-];
+const puzzles = [];
 
 function showSection(id) {
   document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
@@ -233,12 +115,11 @@ function initCreateGrid() {
 
 function generatePreviewImage() {
   const canvas = document.createElement('canvas');
-  const cellSize = 24; // Same as td width/height
+  const cellSize = 24;
   canvas.width = sizeC * cellSize;
   canvas.height = sizeR * cellSize;
   const ctx = canvas.getContext('2d');
 
-  // Draw the grid
   for (let r = 0; r < sizeR; r++) {
     for (let c = 0; c < sizeC; c++) {
       ctx.fillStyle = colors[data[r][c]];
@@ -255,14 +136,12 @@ function previewBoard() {
   const preview = document.getElementById('previewArea');
   preview.innerHTML = '<h3>Xem trước bảng</h3>';
 
-  // Generate and display the preview image
   const previewImage = document.createElement('img');
   previewImage.src = generatePreviewImage();
   previewImage.style.marginTop = '10px';
   previewImage.style.border = '1px solid #ccc';
   preview.appendChild(previewImage);
 
-  // Generate hints and display the table as before
   const norm = data.map(row => row.map(val => val === 0 ? 0 : 1));
   const hintRows = norm.map(row => getHints(row));
   const hintCols = Array(sizeC).fill().map((_, i) => getHints(norm.map(row => row[i])));
@@ -322,13 +201,10 @@ function previewBoard() {
 async function submitBoard() {
   const name = document.getElementById('creatorName').value.trim();
   const msg = document.getElementById('creatorMessage').value.trim();
-
   const norm = data.map(row => row.map(val => val === 0 ? 0 : 1));
   const hintRows = norm.map(getHints);
   const hintCols = Array(sizeC).fill().map((_, i) => getHints(norm.map(row => row[i])));
-
   const previewImageData = generatePreviewImage();
-
   const puzzleId = 'puzzle_' + Date.now();
   const puzzle = {
     id: puzzleId,
@@ -344,10 +220,8 @@ async function submitBoard() {
     status: 'pending',
     createdAt: new Date().toISOString()
   };
-
   try {
     await window.db.collection('pendingNonograms').doc(puzzleId).set(puzzle);
-
     const webhookUrl = "https://discord.com/api/webhooks/1377505100230168636/_-CJu-aTffIyNvaOsqXcI7qfxq1VD-L1NIKnP0fM0GITxPeU-QgyhhCKapfIaj_F-7Lj";
     const payload = {
       content: `**Nonogram mới cần duyệt**\n**Tên:** ${puzzle.title}\n**Người tạo:** ${puzzle.createdBy}\n*React ✅ để duyệt, ❌ để từ chối.*`,
@@ -363,22 +237,18 @@ async function submitBoard() {
         }
       ]
     };
-
     const dataUrlToBlob = async (dataUrl) => {
       const response = await fetch(dataUrl);
       return await response.blob();
     };
     const imageBlob = await dataUrlToBlob(previewImageData);
-
     const formData = new FormData();
     formData.append('payload_json', JSON.stringify(payload));
     formData.append('files[0]', imageBlob, `nonogram_${puzzleId}.png`);
-
     const response = await fetch(webhookUrl, {
       method: 'POST',
       body: formData
     });
-
     if (response.ok) {
       alert('Nonogram đã được gửi để duyệt! Admin sẽ xem xét trên Discord.');
     } else {
@@ -392,25 +262,6 @@ async function submitBoard() {
   }
 }
 
-function generatePreviewImage() {
-  const canvas = document.createElement('canvas');
-  const cellSize = 10; // Giảm kích thước ô
-  canvas.width = sizeC * cellSize;
-  canvas.height = sizeR * cellSize;
-  const ctx = canvas.getContext('2d');
-
-  for (let r = 0; r < sizeR; r++) {
-    for (let c = 0; c < sizeC; c++) {
-      ctx.fillStyle = colors[data[r][c]];
-      ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
-      ctx.strokeStyle = '#999';
-      ctx.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
-    }
-  }
-
-  return canvas.toDataURL('image/jpeg', 0.7); // Nén JPEG với chất lượng 70%
-}
-
 async function renderAlbum() {
   const albumDiv = document.getElementById('albumDiv');
   albumDiv.innerHTML = '';
@@ -422,7 +273,6 @@ async function renderAlbum() {
     approvedSnapshot.forEach(doc => {
       const puzzleData = doc.data();
       try {
-        // Kiểm tra và parse dữ liệu
         puzzleData.solution = puzzleData.solution && typeof puzzleData.solution === 'string' ? JSON.parse(puzzleData.solution) : [];
         puzzleData.hintRows = puzzleData.hintRows && typeof puzzleData.hintRows === 'string' ? JSON.parse(puzzleData.hintRows) : [];
         puzzleData.hintCols = puzzleData.hintCols && typeof puzzleData.hintCols === 'string' ? JSON.parse(puzzleData.hintCols) : [];
@@ -455,7 +305,7 @@ async function renderAlbum() {
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
-        <img src="${puzzle.coverUrl || 'placeholder.jpg'}" alt="cover" />
+        <img src="${puzzle.coverUrl || 'https://via.placeholder.com/150?text=No+Cover'}" alt="cover" />
         <p>${puzzle.title || 'Không có tiêu đề'}</p>
         <a href="#" onclick="startGame('${puzzle.id}')">Chơi</a>
       `;
@@ -468,9 +318,13 @@ async function renderAlbum() {
 }
 
 function startGame(id) {
+  console.log(`Starting game with id: ${id}`); // Debug
   const puzzle = puzzles.find(p => p.id === id) || (async () => {
     const snapshot = await window.db.collection('approvedNonograms').doc(id).get();
-    if (!snapshot.exists) return null;
+    if (!snapshot.exists) {
+      console.error(`No document found for id: ${id}`); // Debug
+      return null;
+    }
     const puzzleData = snapshot.data();
     try {
       puzzleData.solution = puzzleData.solution && typeof puzzleData.solution === 'string' ? JSON.parse(puzzleData.solution) : [];
@@ -484,10 +338,16 @@ function startGame(id) {
     return puzzleData;
   })();
 
-  if (!puzzle) return alert("Không tìm thấy bảng!");
+  if (!puzzle) {
+    console.error(`Puzzle not found for id: ${id}`);
+    alert("Không tìm thấy bảng!");
+    return;
+  }
 
   Promise.resolve(puzzle).then(p => {
+    console.log(`Puzzle data:`, p); // Debug
     if (!p || !Array.isArray(p.solution) || !Array.isArray(p.hintRows) || !Array.isArray(p.hintCols)) {
+      console.error(`Invalid puzzle data for id: ${id}`, p);
       alert("Dữ liệu Nonogram không hợp lệ!");
       return;
     }
@@ -612,7 +472,7 @@ function startGame(id) {
 }
 
 async function checkAndFixFirestoreData() {
-  const snapshot = await db.collection('approvedNonograms').get();
+  const snapshot = await window.db.collection('approvedNonograms').get();
   snapshot.forEach(async (doc) => {
     const data = doc.data();
     const fields = ['solution', 'hintRows', 'hintCols', 'colorData'];
@@ -637,9 +497,10 @@ async function checkAndFixFirestoreData() {
       }
     });
     if (needsUpdate) {
-      await db.collection('approvedNonograms').doc(doc.id).update(updates);
+      await window.db.collection('approvedNonograms').doc(doc.id).update(updates);
       console.log(`Đã sửa dữ liệu cho ${doc.id}`);
     }
   });
 }
+
 checkAndFixFirestoreData();
