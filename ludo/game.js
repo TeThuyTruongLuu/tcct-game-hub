@@ -330,6 +330,9 @@ function kickEnemy(position, currentColor) {
                 const el = document.getElementById(`${otherColor}-${i}`);
                 const home = document.querySelector(`.home.${otherColor} .piece-wrapper`);
                 if (el && home) home.appendChild(el);
+				el.style.position = "";
+				el.style.left = "";
+				el.style.top = "";
             }
         }
     }
