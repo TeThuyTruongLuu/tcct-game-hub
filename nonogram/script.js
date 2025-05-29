@@ -339,8 +339,8 @@ async function submitBoard() {
     solution: JSON.stringify(norm),
     hintRows: JSON.stringify(hintRows),
     hintCols: JSON.stringify(hintCols),
-    imageUrl: '', // Để trống vì không dùng Firebase Storage
-    coverUrl: '', // Để trống vì không dùng Firebase Storage
+    imageUrl: '',
+    coverUrl: '',
     colorData: JSON.stringify(data),
     status: 'pending',
     createdAt: new Date().toISOString()
@@ -350,15 +350,14 @@ async function submitBoard() {
     // Lưu vào Firestore
     await window.db.collection('pendingNonograms').doc(puzzleId).set(puzzle);
 
-    // Gửi thông báo đến Discord với hình ảnh preview
+    // Gửi thông báo đến Discord với hình ảnh preview dưới dạng attachment
     const webhookUrl = "https://discord.com/api/webhooks/1377505100230168636/_-CJu-aTffIyNvaOsqXcI7qfxq1VD-L1NIKnP0fM0GITxPeU-QgyhhCKapfIaj_F-7Lj";
     const payload = {
-      content: `**Nonogram mới cần duyệt**\ deliberations**Tên:** ${puzzle.title}\n**Người tạo:** ${puzzle.createdBy}`,
+      content: `**Nonogram mới cần duyệt**\n**Tên:** ${puzzle.title}\n**Người tạo:** ${puzzle.createdBy}`,
       embeds: [
         {
           title: "Dữ liệu Nonogram",
           description: `**Lời nhắn:** ${puzzle.message}\n**Hint hàng:** ${hintRows.map(h => h.join(' ')).join(' | ')}\n**Hint cột:** ${hintCols.map(h => h.join(' ')).join(' | ')}`,
-          image: { url: previewImageData }, // Gửi data URL trực tiếp
           fields: [
             { name: "ID", value: puzzle.id, inline: true }
           ],
@@ -374,16 +373,33 @@ async function submitBoard() {
               label: "Duyệt",
               style: 3,
               custom_id: `approve_${puzzle.id}`
+            },
+            {
+              type: 2,
+              label: "Từ chối",
+              style: 4,
+              custom_id: `reject_${puzzle.id}`
             }
           ]
         }
       ]
     };
 
+    // Chuyển data URL thành Blob
+    const dataUrlToBlob = async (dataUrl) => {
+      const response = await fetch(dataUrl);
+      return await response.blob();
+    };
+    const imageBlob = await dataUrlToBlob(previewImageData);
+
+    // Tạo FormData để gửi file
+    const formData = new FormData();
+    formData.append('payload_json', JSON.stringify(payload));
+    formData.append('file[0]', imageBlob, `nonogram_${puzzleId}.png`);
+
     const response = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: formData
     });
 
     if (response.ok) {
@@ -415,7 +431,7 @@ function generatePreviewImage() {
     }
   }
 
-  return canvas.toDataURL('image/png');
+  return canvas.toDataURL('image/jpeg', 0.7); // Nén JPEG với chất lượng 70%
 }
 
 async function renderAlbum() {
@@ -479,19 +495,29 @@ function startGame(id) {
     const snapshot = await window.db.collection('approvedNonograms').doc(id).get();
     if (!snapshot.exists) return null;
     const puzzleData = snapshot.data();
-    puzzleData.solution = JSON.parse(puzzleData.solution);
-    puzzleData.hintRows = JSON.parse(puzzleData.hintRows);
-    puzzleData.hintCols = JSON.parse(puzzleData.hintCols);
-    puzzleData.colorData = JSON.parse(puzzleData.colorData);
+    try {
+      puzzleData.solution = puzzleData.solution && typeof puzzleData.solution === 'string' ? JSON.parse(puzzleData.solution) : [];
+      puzzleData.hintRows = puzzleData.hintRows && typeof puzzleData.hintRows === 'string' ? JSON.parse(puzzleData.hintRows) : [];
+      puzzleData.hintCols = puzzleData.hintCols && typeof puzzleData.hintCols === 'string' ? JSON.parse(puzzleData.hintCols) : [];
+      puzzleData.colorData = puzzleData.colorData && typeof puzzleData.colorData === 'string' ? JSON.parse(puzzleData.colorData) : [];
+    } catch (parseError) {
+      console.error(`Lỗi parse dữ liệu Nonogram ${id}:`, parseError);
+      return null;
+    }
     return puzzleData;
   })();
 
   if (!puzzle) return alert("Không tìm thấy bảng!");
 
   Promise.resolve(puzzle).then(p => {
+    if (!p || !Array.isArray(p.solution) || !Array.isArray(p.hintRows) || !Array.isArray(p.hintCols)) {
+      alert("Dữ liệu Nonogram không hợp lệ!");
+      return;
+    }
+
     let playerBoard = Array(p.solution.length).fill().map(() => Array(p.solution[0].length).fill(null));
-    const rowHints = p.hintRows;
-    const colHints = p.hintCols;
+    const rowHints = Array.isArray(p.hintRows) ? p.hintRows : [];
+    const colHints = Array.isArray(p.hintCols) ? p.hintCols : [];
     const solution = p.solution;
     const colorData = p.colorData;
 
@@ -503,8 +529,8 @@ function startGame(id) {
 
     function updateTable() {
       table.innerHTML = '';
-      const maxRowHint = Math.max(...rowHints.map(h => h.length));
-      const maxColHint = Math.max(...colHints.map(h => h.length));
+      const maxRowHint = rowHints.length > 0 ? Math.max(...rowHints.map(h => Array.isArray(h) ? h.length : 0)) : 0;
+      const maxColHint = colHints.length > 0 ? Math.max(...colHints.map(h => Array.isArray(h) ? h.length : 0)) : 0;
 
       for (let r = -maxColHint; r < solution.length; r++) {
         const tr = document.createElement('tr');
@@ -519,16 +545,16 @@ function startGame(id) {
           if (r < 0 && c < 0) {
             td.style.background = '#f0f0f0';
           } else if (r < 0 && c >= 0) {
-            const col = colHints[c];
+            const col = Array.isArray(colHints[c]) ? colHints[c] : [];
             const offset = maxColHint - col.length;
             const idx = r + offset;
-            td.innerHTML = (idx >= 0) ? col[idx] : '';
+            td.innerHTML = (idx >= 0) ? col[idx] || '' : '';
             td.style.opacity = '0.4';
           } else if (r >= 0 && c < 0) {
-            const row = rowHints[r];
+            const row = Array.isArray(rowHints[r]) ? rowHints[r] : [];
             const offset = maxRowHint - row.length;
             const idx = c + offset;
-            td.innerHTML = (idx >= 0) ? row[idx] : '';
+            td.innerHTML = (idx >= 0) ? row[idx] || '' : '';
             td.style.opacity = '0.4';
           } else {
             const val = playerBoard[r][c];
@@ -617,14 +643,18 @@ async function checkAndFixFirestoreData() {
     const updates = {};
     fields.forEach(field => {
       if (!data[field] || typeof data[field] !== 'string') {
-        updates[field] = JSON.stringify([]); // Gán giá trị mặc định
+        updates[field] = JSON.stringify([]);
         needsUpdate = true;
       } else {
         try {
-          JSON.parse(data[field]);
+          const parsed = JSON.parse(data[field]);
+          if (!Array.isArray(parsed)) {
+            updates[field] = JSON.stringify([]);
+            needsUpdate = true;
+          }
         } catch (e) {
-          console.warn(`Dữ liệu không hợp lệ trong ${field} của ${doc.id}`);
-          updates[field] = JSON.stringify([]); // Gán giá trị mặc định
+          console.warn(`Dữ liệu không hợp lệ trong ${field} của ${doc.id}:`, e);
+          updates[field] = JSON.stringify([]);
           needsUpdate = true;
         }
       }
