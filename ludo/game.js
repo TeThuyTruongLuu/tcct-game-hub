@@ -130,8 +130,11 @@ function releasePiece(color) {
     for (let i = 1; i <= 4; i++) {
         const piece = currentPieces[i];
         if (piece.position === null) {
-            piece.position = startPositions[color];
-			piece.inHome = false;
+            const start = startPositions[color];
+            kickEnemy(start, color);
+            piece.position = start;
+            piece.inHome = false;
+
             const pieceEl = document.getElementById(`${color}-${i}`);
             const startCell = document.querySelector(`.cell.start.${color}`);
             if (startCell && pieceEl) startCell.appendChild(pieceEl);
