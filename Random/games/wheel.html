@@ -4,57 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vòng quay may mắn</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 	<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet" />
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #ffebef;
-            font-family: 'Quicksand', sans-serif;
-        }
-        .wheel-container {
-            width: 300px;
-            height: 300px;
-            position: relative;
-        }
-        .spin-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #ff4081;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .input-container {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        textarea {
-            width: 200px;
-            height: 100px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 5px;
-            text-align: left;
-            white-space: pre-line;
-        }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vòng quay may mắn</title>
-    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <style>
@@ -81,7 +31,9 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
+			font-weight: bold;
             transition: all 0.2s ease-in-out;
+			font-family: 'Quicksand', sans-serif;
         }
         .spin-button:hover {
             background-color: #e0356f;
@@ -135,6 +87,7 @@
             cursor: pointer;
             font-size: 20px;
             font-weight: bold;
+			font-family: 'Quicksand', sans-serif;
         }
         .modal-button {
             padding: 10px 15px;
@@ -153,6 +106,7 @@
         .modal-button.remove {
             background-color: #ff4081;
             color: white;
+			font-family: 'Quicksand', sans-serif;
         }
         .modal-button.remove:hover {
             background-color: #e0356f;
@@ -190,7 +144,7 @@ Phong</textarea>
     <div id="winnerModal" class="modal">
         <div id="winnerHeader" class="modal-header">
             <span class="close-button" onclick="closeModal()">&times;</span>
-            <h2>Chúng ta đã có người chiến thắng!</h2>
+            <h2>Chúng ta đã có<br>người chiến thắng!</h2>
         </div>
         <div class="modal-body">
             <p id="winnerText"></p>
@@ -226,16 +180,17 @@ Phong</textarea>
                     responsive: true,
                     plugins: {
 						legend: {
-							display: false // Ẩn legend bên ngoài
+							display: false
 						},
 						tooltip: {
-							enabled: false // Tắt tooltip khi hover
+							enabled: false
 						},
                         datalabels: {
                             color: 'black',
                             font: {
                                 size: 16,
-                                weight: 'bold'
+                                weight: 'bold',
+								//family: 'Quicksand'
                             },
                             formatter: (value, context) => context.chart.data.labels[context.dataIndex] || "",
                             anchor: 'center',
