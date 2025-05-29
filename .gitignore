@@ -25,3 +25,5 @@ node_modules/
 /plugins/
 /platforms/
 .env
+serviceAccount.json
+node_modules/

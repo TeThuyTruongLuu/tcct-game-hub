@@ -10,8 +10,8 @@ const client = new Client({
   ]
 });
 
-// Load service account from environment variable
-const serviceAccount = JSON.parse(process.env.GOOGLE_CLOUD_SERVICE_ACCOUNT);
+// Load service account from file to avoid JSON parse issues
+const serviceAccount = require('./serviceAccount.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -23,79 +23,115 @@ client.once('ready', () => {
   console.log(`Bot đã sẵn sàng! Đăng nhập với tên: ${client.user.tag}`);
 });
 
-client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isButton()) return;
+// Lắng nghe tin nhắn mới để thêm reactions
+client.on('messageCreate', async (message) => {
+  const CHANNEL_ID = '1236906035932041286';
+  if (message.channelId !== CHANNEL_ID || message.author.bot === false) return;
+
+  if (message.content.includes('**Nonogram mới cần duyệt**')) {
+    try {
+      await message.react('✅');
+      await message.react('❌');
+      console.log(`Đã thêm reactions vào tin nhắn ${message.id}`);
+    } catch (error) {
+      console.error('Lỗi khi thêm reactions:', error);
+    }
+  }
+});
+
+// Xử lý khi admin react
+client.on('messageReactionAdd', async (reaction, user) => {
+  // Bỏ qua reactions từ bot
+  if (user.bot) return;
+
+  // Lấy message đầy đủ
+  const message = reaction.message.partial ? await reaction.message.fetch() : reaction.message;
+
+  // Kiểm tra kênh và nội dung tin nhắn
+  const CHANNEL_ID = '1236906035932041286';
+  if (message.channelId !== CHANNEL_ID || !message.content.includes('**Nonogram mới cần duyệt**')) return;
+
+  // Kiểm tra emoji
+  const emoji = reaction.emoji.name;
+  if (emoji !== '✅' && emoji !== '❌') return;
 
   // Kiểm tra quyền admin
-  const isAdmin = interaction.member.roles.cache.some(role => role.name === 'Admin'); // Thay 'Admin' bằng tên vai trò thực tế
+  const member = await message.guild.members.fetch(user.id);
+  const isAdmin = member.roles.cache.some(role => role.name.toLowerCase() === 'admin');
   if (!isAdmin) {
-    await interaction.reply({ content: 'Bạn cần quyền Admin để thực hiện hành động này.', ephemeral: true });
+    await message.channel.send({ content: `${user.tag}, bạn cần quyền Admin để duyệt/từ chối Nonogram.`, ephemeral: true });
     return;
   }
 
-  const puzzleId = interaction.customId.split('_')[1];
+  // Lấy puzzleId từ embed
+  const puzzleId = message.embeds[0]?.fields.find(field => field.name === 'ID')?.value;
+  if (!puzzleId) {
+    await message.channel.send({ content: 'Không tìm thấy ID Nonogram trong tin nhắn.', ephemeral: true });
+    return;
+  }
 
   try {
     const pendingRef = db.collection('pendingNonograms').doc(puzzleId);
     const pendingDoc = await pendingRef.get();
 
     if (!pendingDoc.exists) {
-      await interaction.reply({ content: 'Không tìm thấy Nonogram để duyệt.', ephemeral: true });
+      await message.channel.send({ content: 'Không tìm thấy Nonogram để duyệt.', ephemeral: true });
       return;
     }
 
     const puzzleData = pendingDoc.data();
     if (puzzleData.status !== 'pending') {
-      await interaction.reply({ content: 'Nonogram này đã được xử lý trước đó.', ephemeral: true });
+      await message.channel.send({ content: 'Nonogram này đã được xử lý trước đó.', ephemeral: true });
       return;
     }
 
-    if (interaction.customId.startsWith('approve_')) {
+    if (emoji === '✅') {
       await pendingRef.update({ status: 'approved' });
 
       await db.collection('approvedNonograms').doc(puzzleId).set({
         ...puzzleData,
-        imageUrl: puzzleData.imageUrl || '', // Đảm bảo trường tồn tại
-        coverUrl: puzzleData.coverUrl || '', // Đảm bảo trường tồn tại
+        imageUrl: puzzleData.imageUrl || '',
+        coverUrl: puzzleData.coverUrl || '',
         approvedAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
-      await interaction.reply({ content: `Nonogram "${puzzleData.title}" đã được duyệt và thêm vào Album!`, ephemeral: true });
+      await message.channel.send({ content: `Nonogram "${puzzleData.title}" đã được duyệt bởi ${user.tag}!` });
 
-      // Gửi thông báo cho người tạo (nếu có kênh hoặc webhook)
-      const notificationWebhookUrl = process.env.NOTIFICATION_WEBHOOK_URL; // Thêm vào .env nếu cần
-      if (notificationWebhookUrl) {
-        await fetch(notificationWebhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            content: `Nonogram "${puzzleData.title}" của bạn đã được duyệt bởi ${interaction.user.tag}!`
-          })
-        });
-      }
-    } else if (interaction.customId.startsWith('reject_')) {
-      await pendingRef.update({ status: 'rejected' });
-
-      await interaction.reply({ content: `Nonogram "${puzzleData.title}" đã bị từ chối.`, ephemeral: true });
-
-      // Gửi thông báo cho người tạo (nếu có kênh hoặc webhook)
       const notificationWebhookUrl = process.env.NOTIFICATION_WEBHOOK_URL;
       if (notificationWebhookUrl) {
         await fetch(notificationWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            content: `Nonogram "${puzzleData.title}" của bạn đã bị từ chối bởi ${interaction.user.tag}.`
+            content: `Nonogram "${puzzleData.title}" của bạn đã được duyệt bởi ${user.tag}!`
+          })
+        });
+      }
+    } else if (emoji === '❌') {
+      await pendingRef.update({ status: 'rejected' });
+
+      await message.channel.send({ content: `Nonogram "${puzzleData.title}" đã bị từ chối bởi ${user.tag}.` });
+
+      const notificationWebhookUrl = process.env.NOTIFICATION_WEBHOOK_URL;
+      if (notificationWebhookUrl) {
+        await fetch(notificationWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: `Nonogram "${puzzleData.title}" của bạn đã bị từ chối bởi ${user.tag}.`
           })
         });
       }
     }
+
+    // Xóa reactions để tránh xử lý lại
+    await message.reactions.removeAll();
   } catch (error) {
     console.error('Lỗi khi xử lý Nonogram:', error);
-    await interaction.reply({ content: 'Đã xảy ra lỗi khi xử lý Nonogram.', ephemeral: true });
+    await message.channel.send({ content: 'Đã xảy ra lỗi khi xử lý Nonogram.', ephemeral: true });
   }
 });
 
-// Load Discord bot token from environment variable
-client.login(process.env.DISCORD_BOT_TOKEN);
-
+client.login(process.env.DISCORD_BOT_TOKEN).catch(error => {
+  console.error('Lỗi đăng nhập bot:', error);
+});

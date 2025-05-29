@@ -327,7 +327,6 @@ async function submitBoard() {
   const hintRows = norm.map(getHints);
   const hintCols = Array(sizeC).fill().map((_, i) => getHints(norm.map(row => row[i])));
 
-  // Tạo hình ảnh preview dưới dạng data URL
   const previewImageData = generatePreviewImage();
 
   const puzzleId = 'puzzle_' + Date.now();
@@ -347,13 +346,11 @@ async function submitBoard() {
   };
 
   try {
-    // Lưu vào Firestore
     await window.db.collection('pendingNonograms').doc(puzzleId).set(puzzle);
 
-    // Gửi thông báo đến Discord với hình ảnh preview dưới dạng attachment
     const webhookUrl = "https://discord.com/api/webhooks/1377505100230168636/_-CJu-aTffIyNvaOsqXcI7qfxq1VD-L1NIKnP0fM0GITxPeU-QgyhhCKapfIaj_F-7Lj";
     const payload = {
-      content: `**Nonogram mới cần duyệt**\n**Tên:** ${puzzle.title}\n**Người tạo:** ${puzzle.createdBy}`,
+      content: `**Nonogram mới cần duyệt**\n**Tên:** ${puzzle.title}\n**Người tạo:** ${puzzle.createdBy}\n*React ✅ để duyệt, ❌ để từ chối.*`,
       embeds: [
         {
           title: "Dữ liệu Nonogram",
@@ -361,41 +358,21 @@ async function submitBoard() {
           fields: [
             { name: "ID", value: puzzle.id, inline: true }
           ],
-          color: 15258703
-        }
-      ],
-      components: [
-        {
-          type: 1,
-          components: [
-            {
-              type: 2,
-              label: "Duyệt",
-              style: 3,
-              custom_id: `approve_${puzzle.id}`
-            },
-            {
-              type: 2,
-              label: "Từ chối",
-              style: 4,
-              custom_id: `reject_${puzzle.id}`
-            }
-          ]
+          color: 15258703,
+          image: { url: `attachment://nonogram_${puzzleId}.png` }
         }
       ]
     };
 
-    // Chuyển data URL thành Blob
     const dataUrlToBlob = async (dataUrl) => {
       const response = await fetch(dataUrl);
       return await response.blob();
     };
     const imageBlob = await dataUrlToBlob(previewImageData);
 
-    // Tạo FormData để gửi file
     const formData = new FormData();
     formData.append('payload_json', JSON.stringify(payload));
-    formData.append('file[0]', imageBlob, `nonogram_${puzzleId}.png`);
+    formData.append('files[0]', imageBlob, `nonogram_${puzzleId}.png`);
 
     const response = await fetch(webhookUrl, {
       method: 'POST',
