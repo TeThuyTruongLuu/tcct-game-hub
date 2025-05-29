@@ -32,7 +32,8 @@ client.once('ready', () => {
 const channelId = '1236906035932041286';
 
 client.on('messageCreate', async (message) => {
-  if (message.channelId !== channelId || !message.author.bot) return;
+  if (message.channelId !== channelId || (!message.author.bot && !message.webhookId)) return;
+
 
   try {
     await message.react('✅');
