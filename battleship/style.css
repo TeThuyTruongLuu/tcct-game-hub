@@ -1,13 +1,19 @@
+@font-face {
+    font-family: 'AmpleSoft';
+    src: url('../css/fonts/AmpleSoft.ttf') format('truetype');
+}
+
 body {
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   background-color: #f0f8ff;
   text-align: center;
-  margin: 0;
+  margin-top: 5vw;
   padding: 10px;
   overflow-x: hidden;
 }
 
 h1 {
+  font-family: AmpleSoft;
   color: #007acc;
   margin-bottom: 10px;
 }
@@ -117,6 +123,7 @@ button {
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  font-family: 'Quicksand', sans-serif;
 }
 
 button:disabled {
