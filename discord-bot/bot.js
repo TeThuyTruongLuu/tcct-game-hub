@@ -32,7 +32,11 @@ client.once('ready', () => {
 const channelId = '1236906035932041286';
 
 client.on('messageCreate', async (message) => {
-  if (message.channelId !== channelId || (!message.author.bot && !message.webhookId)) return;
+  if (
+    message.channelId !== channelId ||
+    (!message.author.bot && !message.webhookId) ||
+    !message.embeds?.[0]?.fields?.some(f => f.name === 'ID')
+  ) return;
 
   try {
     await message.react('✅');
@@ -76,10 +80,24 @@ client.on('messageReactionAdd', async (reaction, user) => {
     return;
   }
 
-  console.log('Embeds:', JSON.stringify(message.embeds, null, 2)); // Debug embed content
-  const puzzleId = message.embeds[0]?.fields.find(field => field.name === 'ID')?.value;
+  // Log nội dung tin nhắn đầy đủ để debug
+  console.log('Full message content:', message.content);
+
+  // Thử trích xuất puzzleId từ embed
+  let puzzleId = message.embeds?.[0]?.fields?.find(field => field.name === 'ID')?.value;
+
+  // Fallback: trích xuất puzzleId từ nội dung tin nhắn
   if (!puzzleId) {
-    console.log('No puzzleId found in embed:', JSON.stringify(message.embeds, null, 2));
+    const match = message.content.match(/\*\*ID:\s*(puzzle_\d+)/i);
+    if (match && match[1]) {
+      puzzleId = match[1];
+    }
+  }
+
+  if (!puzzleId) {
+    console.log('Không tìm thấy puzzleId trong embed hoặc content.');
+    console.log('Embeds:', JSON.stringify(message.embeds, null, 2));
+    console.log('Full message content:', message.content);
     await message.channel.send({ content: 'Không tìm thấy ID Nonogram trong tin nhắn.', ephemeral: true });
     return;
   }

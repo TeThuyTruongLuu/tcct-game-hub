@@ -220,11 +220,13 @@ async function submitBoard() {
     status: 'pending',
     createdAt: new Date().toISOString()
   };
+
   try {
     await window.db.collection('pendingNonograms').doc(puzzleId).set(puzzle);
+
     const webhookUrl = "https://discord.com/api/webhooks/1377505100230168636/_-CJu-aTffIyNvaOsqXcI7qfxq1VD-L1NIKnP0fM0GITxPeU-QgyhhCKapfIaj_F-7Lj";
     const payload = {
-      content: `**Nonogram mới cần duyệt**\n**Tên:** ${puzzle.title}\n**Người tạo:** ${puzzle.createdBy}\n*React ✅ để duyệt, ❌ để từ chối.*`,
+      content: `**Nonogram mới cần duyệt**\n**Tên:** ${puzzle.title}\n**Người tạo:** ${puzzle.createdBy}\n**ID:** ${puzzle.id}\n*React ✅ để duyệt, ❌ để từ chối.*`,
       embeds: [
         {
           title: "Dữ liệu Nonogram",
@@ -236,24 +238,23 @@ async function submitBoard() {
         }
       ]
     };
-    console.log('Webhook payload:', JSON.stringify(payload, null, 2)); // Debug payload
+
+    const dataUrlToBlob = async (dataUrl) => {
+      const response = await fetch(dataUrl);
+      return await response.blob();
+    };
+    const imageBlob = await dataUrlToBlob(previewImageData);
+    const formData = new FormData();
+    formData.append('file', imageBlob, `nonogram_${puzzleId}.png`);
+    formData.append('payload_json', JSON.stringify(payload));
+
     const response = await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: formData
     });
+
     if (response.ok) {
-      const dataUrlToBlob = async (dataUrl) => {
-        const response = await fetch(dataUrl);
-        return await response.blob();
-      };
-      const imageBlob = await dataUrlToBlob(previewImageData);
-      const formData = new FormData();
-      formData.append('file', imageBlob, `nonogram_${puzzleId}.png`);
-      await fetch(webhookUrl, {
-        method: 'POST',
-        body: formData
-      });
+      console.log('Webhook sent successfully:', await response.json());
       alert('Nonogram đã được gửi để duyệt! Admin sẽ xem xét trên Discord.');
     } else {
       const errorText = await response.text();
@@ -265,6 +266,7 @@ async function submitBoard() {
     alert('Đã xảy ra lỗi khi gửi Nonogram để duyệt. Vui lòng thử lại.');
   }
 }
+
 
 async function renderAlbum() {
   const albumDiv = document.getElementById('albumDiv');
