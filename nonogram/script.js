@@ -232,24 +232,28 @@ async function submitBoard() {
           fields: [
             { name: "ID", value: puzzle.id, inline: true }
           ],
-          color: 15258703,
-          image: { url: `attachment://nonogram_${puzzleId}.png` }
+          color: 15258703
         }
       ]
     };
-    const dataUrlToBlob = async (dataUrl) => {
-      const response = await fetch(dataUrl);
-      return await response.blob();
-    };
-    const imageBlob = await dataUrlToBlob(previewImageData);
-    const formData = new FormData();
-    formData.append('payload_json', JSON.stringify(payload));
-    formData.append('files[0]', imageBlob, `nonogram_${puzzleId}.png`);
+    console.log('Webhook payload:', JSON.stringify(payload, null, 2)); // Debug payload
     const response = await fetch(webhookUrl, {
       method: 'POST',
-      body: formData
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
     if (response.ok) {
+      const dataUrlToBlob = async (dataUrl) => {
+        const response = await fetch(dataUrl);
+        return await response.blob();
+      };
+      const imageBlob = await dataUrlToBlob(previewImageData);
+      const formData = new FormData();
+      formData.append('file', imageBlob, `nonogram_${puzzleId}.png`);
+      await fetch(webhookUrl, {
+        method: 'POST',
+        body: formData
+      });
       alert('Nonogram đã được gửi để duyệt! Admin sẽ xem xét trên Discord.');
     } else {
       const errorText = await response.text();
@@ -318,11 +322,11 @@ async function renderAlbum() {
 }
 
 function startGame(id) {
-  console.log(`Starting game with id: ${id}`); // Debug
+  console.log(`Starting game with id: ${id}`);
   const puzzle = puzzles.find(p => p.id === id) || (async () => {
     const snapshot = await window.db.collection('approvedNonograms').doc(id).get();
     if (!snapshot.exists) {
-      console.error(`No document found for id: ${id}`); // Debug
+      console.error(`No document found for id: ${id}`);
       return null;
     }
     const puzzleData = snapshot.data();
@@ -345,7 +349,7 @@ function startGame(id) {
   }
 
   Promise.resolve(puzzle).then(p => {
-    console.log(`Puzzle data:`, p); // Debug
+    console.log(`Puzzle data:`, p);
     if (!p || !Array.isArray(p.solution) || !Array.isArray(p.hintRows) || !Array.isArray(p.hintCols)) {
       console.error(`Invalid puzzle data for id: ${id}`, p);
       alert("Dữ liệu Nonogram không hợp lệ!");

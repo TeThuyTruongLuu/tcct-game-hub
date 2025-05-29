@@ -34,7 +34,6 @@ const channelId = '1236906035932041286';
 client.on('messageCreate', async (message) => {
   if (message.channelId !== channelId || (!message.author.bot && !message.webhookId)) return;
 
-
   try {
     await message.react('✅');
     await message.react('❌');
@@ -45,20 +44,20 @@ client.on('messageCreate', async (message) => {
 });
 
 client.on('messageReactionAdd', async (reaction, user) => {
-  console.log(`Reaction received: ${reaction.emoji.name} by ${user.tag} in channel ${reaction.message.channelId}`); // Debug
+  console.log(`Reaction received: ${reaction.emoji.name} by ${user.tag} in channel ${reaction.message.channelId}`);
 
-  if (user.bot) return;
+  if (user.bot || user.id === client.user.id) return;
 
   const message = reaction.message.partial ? await reaction.message.fetch() : reaction.message;
 
   if (message.channelId !== channelId) {
-    console.log(`Wrong channel: ${message.channelId} (expected: ${channelId})`); // Debug
+    console.log(`Wrong channel: ${message.channelId} (expected: ${channelId})`);
     return;
   }
 
   const emoji = reaction.emoji.name;
   if (emoji !== '✅' && emoji !== '❌') {
-    console.log(`Invalid emoji: ${emoji}`); // Debug
+    console.log(`Invalid emoji: ${emoji}`);
     return;
   }
 
@@ -72,14 +71,15 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
   const isAdmin = member.roles.cache.some(role => role.name.toLowerCase() === 'admin') || member.permissions.has('Administrator');
   if (!isAdmin) {
-    console.log(`User ${user.tag} is not admin`); // Debug
+    console.log(`User ${user.tag} is not admin`);
     await message.channel.send({ content: `${user.tag}, bạn cần quyền Admin để duyệt/từ chối Nonogram.`, ephemeral: true });
     return;
   }
 
+  console.log('Embeds:', JSON.stringify(message.embeds, null, 2)); // Debug embed content
   const puzzleId = message.embeds[0]?.fields.find(field => field.name === 'ID')?.value;
   if (!puzzleId) {
-    console.log('No puzzleId found in embed:', JSON.stringify(message.embeds, null, 2)); // Debug
+    console.log('No puzzleId found in embed:', JSON.stringify(message.embeds, null, 2));
     await message.channel.send({ content: 'Không tìm thấy ID Nonogram trong tin nhắn.', ephemeral: true });
     return;
   }
@@ -89,14 +89,14 @@ client.on('messageReactionAdd', async (reaction, user) => {
     const pendingDoc = await pendingRef.get();
 
     if (!pendingDoc.exists) {
-      console.log(`No pending Nonogram for puzzleId: ${puzzleId}`); // Debug
+      console.log(`No pending Nonogram for puzzleId: ${puzzleId}`);
       await message.channel.send({ content: 'Không tìm thấy Nonogram để duyệt.', ephemeral: true });
       return;
     }
 
     const puzzleData = pendingDoc.data();
     if (puzzleData.status !== 'pending') {
-      console.log(`Nonogram already processed: ${puzzleData.status}`); // Debug
+      console.log(`Nonogram already processed: ${puzzleData.status}`);
       await message.channel.send({ content: 'Nonogram này đã được xử lý trước đó.', ephemeral: true });
       return;
     }
@@ -112,7 +112,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
       });
 
       await message.channel.send({ content: `Nonogram "${puzzleData.title}" đã được duyệt bởi ${user.tag}!` });
-      console.log(`Approved Nonogram: ${puzzleId}`); // Debug
+      console.log(`Approved Nonogram: ${puzzleId}`);
 
       const notificationWebhookUrl = process.env.NOTIFICATION_WEBHOOK_URL;
       if (notificationWebhookUrl) {
@@ -128,7 +128,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
       await pendingRef.update({ status: 'rejected' });
 
       await message.channel.send({ content: `Nonogram "${puzzleData.title}" đã bị từ chối bởi ${user.tag}.` });
-      console.log(`Rejected Nonogram: ${puzzleId}`); // Debug
+      console.log(`Rejected Nonogram: ${puzzleId}`);
 
       const notificationWebhookUrl = process.env.NOTIFICATION_WEBHOOK_URL;
       if (notificationWebhookUrl) {
