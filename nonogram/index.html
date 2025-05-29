@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nonogram</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="script.js" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>Nonogram</h1>
   <nav>
-    <button onclick="showSection('home')">Trang chủ</button>
-    <button onclick="showSection('album')">Album</button>
-    <button onclick="showSection('create')">Tạo Nonogram</button>
+    <button class="tab-btn" onclick="showSection('home')">Trang chủ</button>
+    <button class="tab-btn" onclick="showSection('album')">Album</button>
+    <button class="tab-btn" onclick="showSection('create')">Tạo Nonogram</button>
   </nav>
 
   <section id="home">
@@ -21,34 +21,39 @@
     <p>Chọn mục bên trên để bắt đầu.</p>
   </section>
 
-  <section id="album" style="display:none">
+  <section id="album" style="display: none;">
     <h2>Album Nonogram</h2>
-    <div id="albumDiv"></div>
+    <div id="albumDiv" class="album-grid"></div>
   </section>
-  
-  <section id="play" style="display: none">
-    <h2 id="playTitle">Đang chơi</h2>
+
+  <section id="play" style="display: none;">
+    <h2 id="playTitle"></h2>
     <div id="playArea"></div>
   </section>
 
-  <section id="create" style="display:none">
+  <section id="create" style="display: none;">
     <h2>Tạo bảng</h2>
-    <label>Tên của bạn: <input type="text" id="creatorName" placeholder="Tên người tạo" /></label><br />
-    <label>Lời nhắn: <input type="text" id="creatorMessage" placeholder="VD: Đố bạn biết ai là tui" /></label>
-
+    <input type="text" id="creatorName" placeholder="Tên của bạn">
+    <textarea id="creatorMessage" placeholder="Lời nhắn"></textarea>
     <div id="controls">
       <button onclick="addRow()">+ Hàng</button>
+      <button onclick="removeRow()">– Hàng</button>
       <button onclick="addCol()">+ Cột</button>
-    </div>
-    <div id="palette" class="color-picker"></div>
-    <div style="margin-top: 10px;">
-      <input type="color" id="customColor" />
-      <button onclick="addCustomColor()">Thêm màu</button>
+      <button onclick="removeCol()">– Cột</button>
     </div>
     <table id="nonogramGrid"></table>
-	<button class="preview" onclick="previewBoard()">Tạo thử</button>
-	<button class="submit" onclick="submitBoard()">Gửi duyệt</button>
+    <div class="color-picker" id="palette"></div>
+    <input type="color" id="customColor" value="#000000">
+    <button onclick="addCustomColor()">Thêm màu</button>
+    <button class="preview" onclick="previewBoard()">Tạo thử</button>
+    <button class="submit" onclick="submitBoard()">Gửi duyệt</button>
     <div id="previewArea"></div>
   </section>
+
+  <!-- Load index.js first for Firebase initialization -->
+  <script src="../js/index.js"></script>
+
+  <!-- Load script.js after index.js -->
+  <script src="script.js"></script>
 </body>
 </html>

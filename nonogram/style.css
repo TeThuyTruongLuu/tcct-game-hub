@@ -25,7 +25,7 @@ nav button:hover {
   background: #ffd1e3;
 }
 
-#controls button, #export {
+#controls button {
   background: #bae8e8;
   border: none;
   border-radius: 6px;
@@ -34,7 +34,7 @@ nav button:hover {
   cursor: pointer;
   transition: background 0.3s;
 }
-#controls button:hover, #export:hover {
+#controls button:hover {
   background: #a0d8d8;
 }
 
@@ -47,7 +47,7 @@ nav button:hover {
 .color-option {
   width: 24px;
   height: 24px;
-  border: 2px solid #ccc;
+  border: 2px solid #666;
   border-radius: 4px;
   cursor: pointer;
 }
@@ -62,10 +62,56 @@ table {
 }
 td {
   border: 1px solid #ccc;
+  vertical-align: middle;
+  text-align: center;
+  padding: 2px;
+  font-size: 12px;
+  line-height: 1.1;
 }
 
+td.hint-cell {
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: normal;
+  padding: 2px;
+  height: auto;
+}
 
-/* Style for preview and submit buttons */
+.nonogram-table td {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #999;
+  padding: 2px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.nonogram-table td.hint-cell {
+  font-size: 10px;
+  line-height: 1.2;
+  color: #444;
+  opacity: 0.6;
+}
+
+.nonogram-table td.solution-cell {
+  opacity: 1;
+  box-shadow: inset 0 0 3px #00000022;
+}
+
+.nonogram-table td.error-cell {
+  background-color: #ff0000;
+  opacity: 0.7;
+}
+
+.cell-error-x {
+  color: red;
+  font-weight: bold;
+}
+.cell-error-o {
+  border: 2px solid red;
+  box-shadow: 0 0 4px red;
+}
+
 button {
   font-family: 'Quicksand', sans-serif;
 }
@@ -89,14 +135,6 @@ button.submit:hover {
   background: #3b82f6;
 }
 
-.color-option {
-  width: 24px;
-  height: 24px;
-  border: 2px solid #666;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
 #creatorName, #creatorMessage {
   margin-top: 10px;
   margin-bottom: 12px;
@@ -104,23 +142,50 @@ button.submit:hover {
   border-radius: 6px;
   border: 1px solid #ccc;
   font-family: 'Quicksand', sans-serif;
+  width: 80%;
+  max-width: 400px;
 }
 
-.nonogram-table td {
-  width: 32px;
-  height: 32px;
-  border: 1px solid #999;
+#previewArea {
+  margin-top: 20px;
+}
+#previewArea img {
+  max-width: 100%;
+  border: 1px solid #ccc;
   border-radius: 6px;
 }
 
-.nonogram-table td.hint-cell {
-  font-size: 10px;
-  line-height: 1.2;
-  color: #444;
-  opacity: 0.6;
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  padding: 10px;
 }
-
-.nonogram-table td.solution-cell {
-  opacity: 1;
-  box-shadow: inset 0 0 3px #00000022;
+.album-grid .card {
+  background: #f9f9f9;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 2px 6px #ddd;
+  text-align: center;
+}
+.album-grid .card img {
+  width: 100%;
+  border-radius: 6px;
+}
+.album-grid .card p {
+  margin: 8px 0;
+  font-weight: bold;
+}
+.album-grid .card a {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 6px 12px;
+  background: #60a5fa;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+}
+.album-grid .card a:hover {
+  background: #3b82f6;
 }

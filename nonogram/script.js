@@ -2,571 +2,125 @@ let data = [], sizeR = 10, sizeC = 10, selectedColor = 1;
 const colors = ['#ffffff', '#000000', '#008000', '#0000ff', '#ffff00', '#800080', '#ffa600'];
 let isMouseDown = false;
 
-
 const puzzles = [
   {
     id: "puzzle_fish_final_clean",
     title: "Cá vàng",
     createdBy: "admin",
-  "solution": [
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      0,
-      1,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0,
-      1,
-      1,
-      1,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0
-    ],
-    [
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0
-    ],
-    [
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0
-    ],
-    [
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0
-    ],
-    [
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0
-    ],
-    [
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0
-    ],
-    [
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ]
-  ],
-  "hintRows": [
-    [
-      3,
-      1,
-      1
-    ],
-    [
-      5
-    ],
-    [
-      8
-    ],
-    [
-      8
-    ],
-    [
-      4,
-      8,
-      3
-    ],
-    [
-      21
-    ],
-    [
-      19
-    ],
-    [
-      21
-    ],
-    [
-      21
-    ],
-    [
-      21
-    ],
-    [
-      21
-    ],
-    [
-      21
-    ],
-    [
-      19
-    ],
-    [
-      21
-    ],
-    [
-      21
-    ],
-    [
-      7
-    ]
-  ],
-  "hintCols": [
-    [
-      0
-    ],
-    [
-      2,
-      8
-    ],
-    [
-      11
-    ],
-    [
-      11
-    ],
-    [
-      11
-    ],
-    [
-      10
-    ],
-    [
-      10
-    ],
-    [
-      1,
-      10
-    ],
-    [
-      1,
-      14
-    ],
-    [
-      16
-    ],
-    [
-      15
-    ],
-    [
-      16
-    ],
-    [
-      15
-    ],
-    [
-      15
-    ],
-    [
-      1,
-      14
-    ],
-    [
-      13
-    ],
-    [
-      10
-    ],
-    [
-      10
-    ],
-    [
-      11
-    ],
-    [
-      11
-    ],
-    [
-      8,
-      2
-    ],
-    [
-      1,
-      5,
-      2
-    ],
-    [
-      0
-    ],
-    [
-      0
-    ]
-  ],
-  
-	imageUrl: "https://via.placeholder.com/100x100?text=Real",
-	coverUrl: "https://via.placeholder.com/100x100?text=Cover"
+    solution: JSON.stringify([
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    ]),
+    hintRows: JSON.stringify([
+      [3],
+      [4, 5],
+      [5],
+      [20],
+      [1, 17],
+      [14, 1],
+      [20],
+      [18],
+      [2],
+      [14],
+      [3],
+      [3],
+      [8, 8],
+      [0]
+    ]),
+    hintCols: JSON.stringify([
+      [9],
+      [9],
+      [1],
+      [1],
+      [2],
+      [2],
+      [8],
+      [9],
+      [2],
+      [2],
+      [1],
+      [1],
+      [10, 10, 10, 9],
+      [2],
+      [1],
+      [2],
+      [5],
+      [4],
+      [2],
+      [6]
+    ]),
+    imageUrl: "https://firebasestorage.googleapis.com/v0/b/tcct-minigames.appspot.com/o/images%2Ffish_real.jpg?alt=media",
+    coverUrl: "https://firebasestorage.googleapis.com/v0/b/tcct-minigames.appspot.com/o/images%2Ffish_cover.jpg?alt=media",
+    colorData: JSON.stringify([
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    ])
+  },
+  {
+    id: "puzzle_colorful_art",
+    title: "Bức tranh màu sắc",
+    createdBy: "user1",
+    solution: JSON.stringify([
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 1, 0, 1, 1, 1, 1, 1, 1, 0],
+      [0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+      [0, 0, 0, 0, 1, 1, 0, 1, 1, 0],
+      [0, 0, 0, 0, 1, 1, 0, 1, 1, 1]
+    ]),
+    hintRows: JSON.stringify([
+      [0],
+      [6, 1],
+      [1, 1],
+      [1, 2],
+      [2, 1, 2]
+    ]),
+    hintCols: JSON.stringify([
+      [1],
+      [1],
+      [1],
+      [0],
+      [2],
+      [1],
+      [1],
+      [1],
+      [5],
+      [1]
+    ]),
+    imageUrl: "https://firebasestorage.googleapis.com/v0/b/tcct-minigames.appspot.com/o/images%2Fcolorful_art_real.jpg?alt=media",
+    coverUrl: "https://firebasestorage.googleapis.com/v0/b/tcct-minigames.appspot.com/o/images%2Fcolorful_art_cover.jpg?alt=media",
+    colorData: JSON.stringify([
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 1, 0, 1, 1, 1, 1, 1, 5, 0],
+      [0, 0, 0, 0, 0, 0, 0, 4, 5, 0],
+      [0, 0, 0, 0, 6, 6, 0, 4, 5, 0],
+      [0, 0, 0, 0, 6, 6, 0, 0, 5, 5]
+    ])
   }
 ];
-
 
 function showSection(id) {
   document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
@@ -585,6 +139,22 @@ function addCol() {
   data.forEach(row => row.push(0));
   sizeC++;
   updateGrid();
+}
+
+function removeRow() {
+  if (sizeR > 1) {
+    data.pop();
+    sizeR--;
+    updateGrid();
+  }
+}
+
+function removeCol() {
+  if (sizeC > 1) {
+    data.forEach(row => row.pop());
+    sizeC--;
+    updateGrid();
+  }
 }
 
 function getHints(line) {
@@ -632,23 +202,23 @@ function updateGrid() {
       td.style.cursor = 'pointer';
       td.style.width = '24px';
       td.style.height = '24px';
-	  td.addEventListener('mousedown', (e) => {
-	    isMouseDown = true;
-	    data[r][c] = selectedColor;
-	    td.style.background = colors[selectedColor];
-	    e.preventDefault();
-	  });
+      td.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        data[r][c] = selectedColor;
+        td.style.background = colors[selectedColor];
+        e.preventDefault();
+      });
 
-	  td.addEventListener('mouseover', () => {
-	    if (isMouseDown) {
-		  data[r][c] = selectedColor;
-		  td.style.background = colors[selectedColor];
-	    }
-	  });
+      td.addEventListener('mouseover', () => {
+        if (isMouseDown) {
+          data[r][c] = selectedColor;
+          td.style.background = colors[selectedColor];
+        }
+      });
 
-	  td.addEventListener('mouseup', () => {
-	    isMouseDown = false;
-	  });
+      td.addEventListener('mouseup', () => {
+        isMouseDown = false;
+      });
       tr.appendChild(td);
     }
     table.appendChild(tr);
@@ -661,123 +231,83 @@ function initCreateGrid() {
   updateGrid();
 }
 
-function previewBoard() {
-  const preview = document.getElementById('previewArea');
-  const rowHints = data.map(getHints);
-  const colHints = Array(sizeC).fill().map((_, i) => getHints(data.map(row => row[i])));
-  const table = document.createElement('table');
-  table.style.marginTop = '20px';
+function generatePreviewImage() {
+  const canvas = document.createElement('canvas');
+  const cellSize = 24; // Same as td width/height
+  canvas.width = sizeC * cellSize;
+  canvas.height = sizeR * cellSize;
+  const ctx = canvas.getContext('2d');
 
-  const maxRowHint = Math.max(...rowHints.map(h => h.length));
-  const maxColHint = Math.max(...colHints.map(h => h.length));
-
-  for (let r = -maxColHint; r < sizeR; r++) {
-    const tr = document.createElement('tr');
-    for (let c = -maxRowHint; c < sizeC; c++) {
-      const td = document.createElement('td');
-      td.style.width = '24px';
-      td.style.height = '24px';
-      td.style.textAlign = 'center';
-      td.style.fontSize = '10px';
-      td.style.border = '1px solid #ccc';
-
-      if (r < 0 && c < 0) {
-        td.style.background = '#f0f0f0';
-      } else if (r < 0 && c >= 0) {
-        const col = colHints[c];
-        td.textContent = (col.length > (r + maxColHint - col.length)) ? col[r + maxColHint - col.length] : '';
-        td.style.opacity = 0.4;
-      } else if (r >= 0 && c < 0) {
-        const row = rowHints[r];
-        td.textContent = (row.length > (c + maxRowHint - row.length)) ? row[c + maxRowHint - row.length] : '';
-        td.style.opacity = 0.4;
-      } else {
-        if (data[r][c] === 0) { td.textContent = '×'; } else { td.style.background = colors[data[r][c]]; }
-      }
-      tr.appendChild(td);
+  // Draw the grid
+  for (let r = 0; r < sizeR; r++) {
+    for (let c = 0; c < sizeC; c++) {
+      ctx.fillStyle = colors[data[r][c]];
+      ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+      ctx.strokeStyle = '#999';
+      ctx.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
     }
-    table.appendChild(tr);
   }
 
-  preview.innerHTML = '';
-  preview.appendChild(table);
+  return canvas.toDataURL('image/png');
 }
 
-function submitBoard() {
-  const name = document.getElementById('creatorName').value.trim();
-  const msg = document.getElementById('creatorMessage').value.trim();
-  const output = {
-    name,
-    message: msg,
-    solution: data
-  };
-  console.log('Đây là dữ liệu sẽ gửi duyệt:', output);
-  alert('Dữ liệu đã sẵn sàng để gửi duyệt. Tạm thời xem log console nhé!');
-}
+function previewBoard() {
+  const preview = document.getElementById('previewArea');
+  preview.innerHTML = '<h3>Xem trước bảng</h3>';
 
-document.body.addEventListener('mouseup', () => {
-  isMouseDown = false;
-});
+  // Generate and display the preview image
+  const previewImage = document.createElement('img');
+  previewImage.src = generatePreviewImage();
+  previewImage.style.marginTop = '10px';
+  previewImage.style.border = '1px solid #ccc';
+  preview.appendChild(previewImage);
 
-function renderAlbum() {
-  const albumDiv = document.getElementById('albumDiv');
-  albumDiv.innerHTML = '';
-  puzzles.forEach(puzzle => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <img src="${puzzle.coverUrl}" alt="cover" />
-      <p>${puzzle.title}</p>
-      <a href="#" onclick="startGame('${puzzle.id}')">Chơi</a>
-    `;
-    albumDiv.appendChild(card);
-  });
-}
-
-function startGame(id) {
-  const puzzle = puzzles.find(p => p.id === id);
-  if (!puzzle) return alert("Không tìm thấy bảng!");
-
-  const rowHints = puzzle.hintRows;
-  const colHints = puzzle.hintCols;
-  const solution = puzzle.solution;
+  // Generate hints and display the table as before
+  const norm = data.map(row => row.map(val => val === 0 ? 0 : 1));
+  const hintRows = norm.map(row => getHints(row));
+  const hintCols = Array(sizeC).fill().map((_, i) => getHints(norm.map(row => row[i])));
 
   const table = document.createElement('table');
+  table.className = 'nonogram-table';
   table.style.marginTop = '20px';
 
-  const maxRowHint = Math.max(...rowHints.map(h => h.length));
-  const maxColHint = Math.max(...colHints.map(h => h.length));
-
-  for (let r = -maxColHint; r < solution.length; r++) {
+  for (let r = -1; r < sizeR; r++) {
     const tr = document.createElement('tr');
-    for (let c = -maxRowHint; c < solution[0].length; c++) {
+    for (let c = -1; c < sizeC; c++) {
       const td = document.createElement('td');
       td.style.width = '24px';
       td.style.height = '24px';
       td.style.textAlign = 'center';
+      td.style.verticalAlign = 'middle';
       td.style.fontSize = '10px';
-      td.style.border = '1px solid #ccc';
 
       if (r < 0 && c < 0) {
         td.style.background = '#f0f0f0';
+        td.innerHTML = ' ';
       } else if (r < 0 && c >= 0) {
-        const col = colHints[c];
-        const offset = maxColHint - col.length;
-        const idx = r + offset;
-        td.textContent = (idx >= 0) ? col[idx] : '';
-        td.style.opacity = 0.4;
+        const colHint = hintCols[c];
+        if (colHint.length > 0) {
+          td.classList.add('hint-cell');
+          td.innerHTML = colHint.map(num => num).join('<br>');
+        } else {
+          td.innerHTML = ' ';
+        }
       } else if (r >= 0 && c < 0) {
-        const row = rowHints[r];
-        const offset = maxRowHint - row.length;
-        const idx = c + offset;
-        td.textContent = (idx >= 0) ? row[idx] : '';
-        td.style.opacity = 0.4;
+        const rowHint = hintRows[r];
+        if (rowHint.length > 0) {
+          td.classList.add('hint-cell');
+          td.textContent = rowHint.join(' ');
+        } else {
+          td.innerHTML = ' ';
+        }
       } else {
-        if (solution[r][c] === 0) {
+        const val = data[r][c];
+        if (val === 0) {
           td.textContent = '×';
           td.style.opacity = 0.2;
         } else {
-          td.style.background = '#444'; // hoặc để trống nếu chưa reveal
+          td.classList.add('solution-cell');
+          td.style.background = colors[val];
         }
       }
 
@@ -786,12 +316,323 @@ function startGame(id) {
     table.appendChild(tr);
   }
 
-  document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
-  document.getElementById('play').style.display = 'block';
-  document.getElementById('playTitle').innerText = puzzle.title;
-  const playArea = document.getElementById('playArea');
-  playArea.innerHTML = '';
-  playArea.appendChild(table);
+  preview.appendChild(table);
 }
 
+async function submitBoard() {
+  const name = document.getElementById('creatorName').value.trim();
+  const msg = document.getElementById('creatorMessage').value.trim();
 
+  const norm = data.map(row => row.map(val => val === 0 ? 0 : 1));
+  const hintRows = norm.map(getHints);
+  const hintCols = Array(sizeC).fill().map((_, i) => getHints(norm.map(row => row[i])));
+
+  // Tạo hình ảnh preview dưới dạng data URL
+  const previewImageData = generatePreviewImage();
+
+  const puzzleId = 'puzzle_' + Date.now();
+  const puzzle = {
+    id: puzzleId,
+    title: 'Tác phẩm chưa đặt tên',
+    createdBy: name || 'anon',
+    message: msg,
+    solution: JSON.stringify(norm),
+    hintRows: JSON.stringify(hintRows),
+    hintCols: JSON.stringify(hintCols),
+    imageUrl: '', // Để trống vì không dùng Firebase Storage
+    coverUrl: '', // Để trống vì không dùng Firebase Storage
+    colorData: JSON.stringify(data),
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    // Lưu vào Firestore
+    await window.db.collection('pendingNonograms').doc(puzzleId).set(puzzle);
+
+    // Gửi thông báo đến Discord với hình ảnh preview
+    const webhookUrl = "https://discord.com/api/webhooks/1377505100230168636/_-CJu-aTffIyNvaOsqXcI7qfxq1VD-L1NIKnP0fM0GITxPeU-QgyhhCKapfIaj_F-7Lj";
+    const payload = {
+      content: `**Nonogram mới cần duyệt**\ deliberations**Tên:** ${puzzle.title}\n**Người tạo:** ${puzzle.createdBy}`,
+      embeds: [
+        {
+          title: "Dữ liệu Nonogram",
+          description: `**Lời nhắn:** ${puzzle.message}\n**Hint hàng:** ${hintRows.map(h => h.join(' ')).join(' | ')}\n**Hint cột:** ${hintCols.map(h => h.join(' ')).join(' | ')}`,
+          image: { url: previewImageData }, // Gửi data URL trực tiếp
+          fields: [
+            { name: "ID", value: puzzle.id, inline: true }
+          ],
+          color: 15258703
+        }
+      ],
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 2,
+              label: "Duyệt",
+              style: 3,
+              custom_id: `approve_${puzzle.id}`
+            }
+          ]
+        }
+      ]
+    };
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      alert('Nonogram đã được gửi để duyệt! Admin sẽ xem xét trên Discord.');
+    } else {
+      const errorText = await response.text();
+      console.error('Discord API Error:', errorText);
+      alert('Có lỗi khi gửi thông báo đến Discord: ' + errorText);
+    }
+  } catch (error) {
+    console.error('Lỗi khi gửi Nonogram:', error);
+    alert('Đã xảy ra lỗi khi gửi Nonogram để duyệt. Vui lòng thử lại.');
+  }
+}
+
+function generatePreviewImage() {
+  const canvas = document.createElement('canvas');
+  const cellSize = 10; // Giảm kích thước ô
+  canvas.width = sizeC * cellSize;
+  canvas.height = sizeR * cellSize;
+  const ctx = canvas.getContext('2d');
+
+  for (let r = 0; r < sizeR; r++) {
+    for (let c = 0; c < sizeC; c++) {
+      ctx.fillStyle = colors[data[r][c]];
+      ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+      ctx.strokeStyle = '#999';
+      ctx.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
+    }
+  }
+
+  return canvas.toDataURL('image/png');
+}
+
+async function renderAlbum() {
+  const albumDiv = document.getElementById('albumDiv');
+  albumDiv.innerHTML = '';
+
+  try {
+    const approvedSnapshot = await window.db.collection('approvedNonograms').get();
+    const approvedPuzzles = [];
+
+    approvedSnapshot.forEach(doc => {
+      const puzzleData = doc.data();
+      try {
+        // Kiểm tra và parse dữ liệu
+        puzzleData.solution = puzzleData.solution && typeof puzzleData.solution === 'string' ? JSON.parse(puzzleData.solution) : [];
+        puzzleData.hintRows = puzzleData.hintRows && typeof puzzleData.hintRows === 'string' ? JSON.parse(puzzleData.hintRows) : [];
+        puzzleData.hintCols = puzzleData.hintCols && typeof puzzleData.hintCols === 'string' ? JSON.parse(puzzleData.hintCols) : [];
+        puzzleData.colorData = puzzleData.colorData && typeof puzzleData.colorData === 'string' ? JSON.parse(puzzleData.colorData) : [];
+        approvedPuzzles.push(puzzleData);
+      } catch (parseError) {
+        console.warn(`Lỗi parse dữ liệu Nonogram ${doc.id}:`, parseError);
+      }
+    });
+
+    puzzles.forEach(puzzle => {
+      const parsedPuzzle = { ...puzzle };
+      try {
+        parsedPuzzle.solution = puzzle.solution && typeof puzzle.solution === 'string' ? JSON.parse(puzzle.solution) : [];
+        parsedPuzzle.hintRows = puzzle.hintRows && typeof puzzle.hintRows === 'string' ? JSON.parse(puzzle.hintRows) : [];
+        parsedPuzzle.hintCols = puzzle.hintCols && typeof puzzle.hintCols === 'string' ? JSON.parse(puzzle.hintCols) : [];
+        parsedPuzzle.colorData = puzzle.colorData && typeof puzzle.colorData === 'string' ? JSON.parse(puzzle.colorData) : [];
+        approvedPuzzles.push(parsedPuzzle);
+      } catch (parseError) {
+        console.warn(`Lỗi parse dữ liệu puzzle mẫu ${puzzle.id}:`, parseError);
+      }
+    });
+
+    if (approvedPuzzles.length === 0) {
+      albumDiv.innerHTML = '<p>Chưa có Nonogram nào được duyệt.</p>';
+      return;
+    }
+
+    approvedPuzzles.forEach(puzzle => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img src="${puzzle.coverUrl || 'placeholder.jpg'}" alt="cover" />
+        <p>${puzzle.title || 'Không có tiêu đề'}</p>
+        <a href="#" onclick="startGame('${puzzle.id}')">Chơi</a>
+      `;
+      albumDiv.appendChild(card);
+    });
+  } catch (error) {
+    console.error('Lỗi khi tải Nonogram:', error);
+    albumDiv.innerHTML = '<p>Đã xảy ra lỗi khi tải danh sách Nonogram.</p>';
+  }
+}
+
+function startGame(id) {
+  const puzzle = puzzles.find(p => p.id === id) || (async () => {
+    const snapshot = await window.db.collection('approvedNonograms').doc(id).get();
+    if (!snapshot.exists) return null;
+    const puzzleData = snapshot.data();
+    puzzleData.solution = JSON.parse(puzzleData.solution);
+    puzzleData.hintRows = JSON.parse(puzzleData.hintRows);
+    puzzleData.hintCols = JSON.parse(puzzleData.hintCols);
+    puzzleData.colorData = JSON.parse(puzzleData.colorData);
+    return puzzleData;
+  })();
+
+  if (!puzzle) return alert("Không tìm thấy bảng!");
+
+  Promise.resolve(puzzle).then(p => {
+    let playerBoard = Array(p.solution.length).fill().map(() => Array(p.solution[0].length).fill(null));
+    const rowHints = p.hintRows;
+    const colHints = p.hintCols;
+    const solution = p.solution;
+    const colorData = p.colorData;
+
+    let currentMark = 'x';
+
+    const table = document.createElement('table');
+    table.className = 'nonogram-table';
+    table.style.marginTop = '20px';
+
+    function updateTable() {
+      table.innerHTML = '';
+      const maxRowHint = Math.max(...rowHints.map(h => h.length));
+      const maxColHint = Math.max(...colHints.map(h => h.length));
+
+      for (let r = -maxColHint; r < solution.length; r++) {
+        const tr = document.createElement('tr');
+        for (let c = -maxRowHint; c < solution[0].length; c++) {
+          const td = document.createElement('td');
+          td.style.width = '24px';
+          td.style.height = '24px';
+          td.style.textAlign = 'center';
+          td.style.fontSize = '10px';
+          td.style.border = '1px solid #ccc';
+
+          if (r < 0 && c < 0) {
+            td.style.background = '#f0f0f0';
+          } else if (r < 0 && c >= 0) {
+            const col = colHints[c];
+            const offset = maxColHint - col.length;
+            const idx = r + offset;
+            td.innerHTML = (idx >= 0) ? col[idx] : '';
+            td.style.opacity = '0.4';
+          } else if (r >= 0 && c < 0) {
+            const row = rowHints[r];
+            const offset = maxRowHint - row.length;
+            const idx = c + offset;
+            td.innerHTML = (idx >= 0) ? row[idx] : '';
+            td.style.opacity = '0.4';
+          } else {
+            const val = playerBoard[r][c];
+
+            if (val === 'x') {
+              if (solution[r][c] === 1) {
+                td.style.background = colors[colorData[r][c]];
+                td.classList.add('cell-error-o');
+              } else {
+                td.textContent = '×';
+                td.style.opacity = '0.2';
+              }
+            } else if (val === 'o') {
+              if (solution[r][c] === 1) {
+                td.style.background = colors[colorData[r][c]];
+                td.classList.add('solution-cell');
+              } else {
+                td.textContent = '×';
+                td.classList.add('cell-error-x');
+              }
+            }
+
+            if (val === null) {
+              td.addEventListener('click', () => {
+                playerBoard[r][c] = currentMark;
+                updateTable();
+              });
+            }
+          }
+
+          tr.appendChild(td);
+        }
+        table.appendChild(tr);
+      }
+    }
+
+    const toggleDiv = document.createElement('div');
+    toggleDiv.style.marginBottom = '12px';
+    toggleDiv.innerHTML = `
+      <span>Đánh dấu: </span>
+      <button id="toggleMarkBtn">×</button>
+    `;
+    const toggleBtn = toggleDiv.querySelector('#toggleMarkBtn');
+    toggleBtn.style.padding = '6px 12px';
+    toggleBtn.style.borderRadius = '6px';
+    toggleBtn.style.border = 'none';
+    toggleBtn.style.background = '#fcd34d';
+    toggleBtn.style.cursor = 'pointer';
+    toggleBtn.onclick = () => {
+      currentMark = currentMark === 'x' ? 'o' : 'x';
+      toggleBtn.innerText = currentMark === 'x' ? '×' : 'O';
+    };
+
+    const controls = document.createElement('div');
+    controls.style.marginTop = '10px';
+    controls.innerHTML = `
+      <button onclick="
+        document.querySelectorAll('.nonogram-table td').forEach(td => td.style.background = '');
+        playerBoard = playerBoard.map(row => row.map(() => null));
+        currentMark = 'x';
+        document.getElementById('toggleMarkBtn').innerText = '×';
+        updateTable();
+      ">Xóa tất cả</button>
+    `;
+
+    const playArea = document.getElementById('playArea');
+    playArea.innerHTML = '';
+    playArea.appendChild(toggleDiv);
+    playArea.appendChild(table);
+    playArea.appendChild(controls);
+
+    updateTable();
+
+    document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
+    document.getElementById('play').style.display = 'block';
+    document.getElementById('playTitle').innerText = p.title;
+  });
+}
+
+async function checkAndFixFirestoreData() {
+  const snapshot = await db.collection('approvedNonograms').get();
+  snapshot.forEach(async (doc) => {
+    const data = doc.data();
+    const fields = ['solution', 'hintRows', 'hintCols', 'colorData'];
+    let needsUpdate = false;
+    const updates = {};
+    fields.forEach(field => {
+      if (!data[field] || typeof data[field] !== 'string') {
+        updates[field] = JSON.stringify([]); // Gán giá trị mặc định
+        needsUpdate = true;
+      } else {
+        try {
+          JSON.parse(data[field]);
+        } catch (e) {
+          console.warn(`Dữ liệu không hợp lệ trong ${field} của ${doc.id}`);
+          updates[field] = JSON.stringify([]); // Gán giá trị mặc định
+          needsUpdate = true;
+        }
+      }
+    });
+    if (needsUpdate) {
+      await db.collection('approvedNonograms').doc(doc.id).update(updates);
+      console.log(`Đã sửa dữ liệu cho ${doc.id}`);
+    }
+  });
+}
+checkAndFixFirestoreData();

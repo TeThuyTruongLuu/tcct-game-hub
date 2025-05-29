@@ -29,6 +29,7 @@ if (!firebase.apps.length) {
 }
 
 const db = firebase.firestore();
+window.db = db;
 
 const characterImagesData = {
     "Du": [
