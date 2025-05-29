@@ -34,9 +34,26 @@ const channelId = '1236906035932041286';
 client.on('messageCreate', async (message) => {
   if (
     message.channelId !== channelId ||
-    (!message.author.bot && !message.webhookId) ||
-    !message.embeds?.[0]?.fields?.some(f => f.name === 'ID')
+    (!message.author.bot && !message.webhookId)
   ) return;
+
+  let foundId = false;
+
+  for (const embed of message.embeds) {
+    if (embed.fields?.some(f => f.name.toLowerCase() === 'id')) {
+      foundId = true;
+      break;
+    }
+    if (embed.description && /ID[:：]?\s*(puzzle_\d+)/i.test(embed.description)) {
+      foundId = true;
+      break;
+    }
+  }
+
+  if (!foundId && !/ID[:：]?\s*(puzzle_\d+)/i.test(message.content)) {
+    console.log('Bỏ qua message không chứa ID:', message.id);
+    return;
+  }
 
   try {
     await message.react('✅');
@@ -46,6 +63,8 @@ client.on('messageCreate', async (message) => {
     console.error('Lỗi khi thêm reactions:', error);
   }
 });
+
+
 
 client.on('messageReactionAdd', async (reaction, user) => {
   console.log(`Reaction received: ${reaction.emoji.name} by ${user.tag} in channel ${reaction.message.channelId}`);
@@ -84,15 +103,32 @@ client.on('messageReactionAdd', async (reaction, user) => {
   console.log('Full message content:', message.content);
 
   // Thử trích xuất puzzleId từ embed
-  let puzzleId = message.embeds?.[0]?.fields?.find(field => field.name === 'ID')?.value;
+let puzzleId = null;
 
-  // Fallback: trích xuất puzzleId từ nội dung tin nhắn
-  if (!puzzleId) {
-    const match = message.content.match(/\*\*ID:\s*(puzzle_\d+)/i);
-    if (match && match[1]) {
-      puzzleId = match[1];
-    }
+// Ưu tiên lấy từ embed.fields
+for (const embed of message.embeds) {
+  const field = embed.fields?.find(f => f.name.toLowerCase() === 'id');
+  if (field) {
+    puzzleId = field.value;
+    break;
   }
+
+  // Nếu không có field, thử match trong embed.description
+  const match = embed.description?.match(/ID[:：]?\s*(puzzle_\d+)/i);
+  if (match) {
+    puzzleId = match[1];
+    break;
+  }
+}
+
+// Nếu vẫn không thấy, thử trong message.content
+if (!puzzleId) {
+  const match = message.content?.match(/ID[:：]?\s*(puzzle_\d+)/i);
+  if (match) {
+    puzzleId = match[1];
+  }
+}
+
 
   if (!puzzleId) {
     console.log('Không tìm thấy puzzleId trong embed hoặc content.');
