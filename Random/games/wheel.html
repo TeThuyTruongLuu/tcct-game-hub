@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet" />
     <style>
         body {
             display: flex;
@@ -15,7 +16,7 @@
             justify-content: center;
             height: 100vh;
             background-color: #ffebef;
-            font-family: Arial, sans-serif;
+            font-family: 'Quicksand', sans-serif;
         }
         .wheel-container {
             width: 300px;
@@ -64,7 +65,7 @@
             justify-content: center;
             height: 100vh;
             background-color: #ffebef;
-            font-family: Arial, sans-serif;
+            font-family: 'Quicksand', sans-serif;
         }
         .wheel-container {
             width: 300px;
@@ -324,14 +325,14 @@ function spinWheel() {
         
 		function handleEnter(event) {
 			if (event.key === "Enter") {
-				event.preventDefault(); // Ngăn textarea xuống dòng thật
+				event.preventDefault();
 
-				names.push(""); // Thêm một pie trống
-				document.getElementById("nameInput").value += "\n"; // Giữ sync với textarea
+				names.push("");
+				document.getElementById("nameInput").value += "\n";
 
 				wheelChart.data.labels = names;
-				wheelChart.data.datasets[0].data.push(1); // Thêm dữ liệu cho pie
-				wheelChart.update(); // Chỉ cập nhật chart khi Enter
+				wheelChart.data.datasets[0].data.push(1);
+				wheelChart.update();
 			}
 		}		
 
