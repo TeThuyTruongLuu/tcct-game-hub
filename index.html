@@ -117,8 +117,8 @@
 	</div></div>
 	
 	<div class="game-page"><div class="game-list grid-2x2">
-		<div class="game-item" onclick="window.location.href='ludo/index.html'"><img src="img/ludo.png"/><p class="game-name">Cá ngựa</p></div>
-		<div class="game-item" onclick="window.location.href='battleship/index.html'"><img src="img/battleship.png"/><p class="game-name">Bắn tàu</p></div>
+		<div class="game-item" onclick="checkAccess('ludo')"><img src="img/ludo.png"/><p class="game-name">Cá ngựa</p></div>
+		<div class="game-item" onclick="checkAccess('ludo')"><img src="img/battleship.png"/><p class="game-name">Bắn tàu</p></div>
 		<div class="game-item"><img src="img/coming (6).png"/><p class="game-name">Hamster Tranh</p></div>
 		<div class="game-item"><img src="img/coming (5).png"/><p class="game-name">Vịt Kiều</p></div>
 	</div></div>
@@ -173,6 +173,14 @@
 		window.addEventListener('load', () => {
 		  updateUI();
 		});
+		function checkAccess(folder) {
+			const username = localStorage.getItem("username");
+			if (username === "Phong") {
+				window.location.href = `${folder}/index.html`;
+			} else {
+				alert("❌ Tương lai quay lại nha!");
+			}
+		}
 	</script>
 </body>
 </html>

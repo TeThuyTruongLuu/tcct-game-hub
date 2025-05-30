@@ -95,6 +95,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     let username = localStorage.getItem("username");
     let selectedCharacter = localStorage.getItem("selectedCharacter") || "Vuong";
     let totalScore = localStorage.getItem("totalScore") ? parseInt(localStorage.getItem("totalScore")) : "N/A";
+	document.querySelector(".carousel-wrapper").style.display = "none";
+	document.querySelector(".nav-dots").style.display = "none";
+	document.querySelector(".page-title").style.display = "none";
 
     if (username) {
         document.getElementById("login-modal").style.display = "none";
@@ -104,7 +107,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         document.querySelector(".points").style.display = "block";
         document.querySelector(".scoreboard-container").style.display = "flex";
-        document.querySelector(".game-list").style.display = "grid";
+        document.querySelector(".carousel-wrapper").style.display = "grid";
+		document.querySelector(".nav-dots").style.display = "flex";
+		document.querySelector(".page-title").style.display = "block";
         document.getElementById("scoreboard").style.display = "block";
         document.getElementById("character-callout").style.display = "flex";
         document.getElementById("settings-btn-game").style.display = "block";
@@ -151,17 +156,19 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             localStorage.setItem("username", nicknameInputValue);
 
-            document.getElementById("login-modal").style.display = "none";
-            document.getElementById("welcome-message").style.display = "block";
-            document.getElementById("display-name").innerText = nicknameInputValue;
-            document.getElementById("logout-button").style.display = "block";
+			document.getElementById("login-modal").style.display = "none";
+			document.getElementById("welcome-message").style.display = "block";
+			document.getElementById("display-name").innerText = username;
+			document.getElementById("logout-button").style.display = "block";
 
-            document.querySelector(".points").style.display = "block";
-            document.querySelector(".scoreboard-container").style.display = "flex";
-            document.querySelector(".game-list").style.display = "grid";
-            document.getElementById("scoreboard").style.display = "block";
-            document.getElementById("character-callout").style.display = "flex";
-            document.getElementById("settings-btn-game").style.display = "block";
+			document.querySelector(".points").style.display = "block";
+			document.querySelector(".scoreboard-container").style.display = "flex";
+			document.querySelector(".carousel-wrapper").style.display = "grid";
+			document.querySelector(".nav-dots").style.display = "flex";
+			document.querySelector(".page-title").style.display = "block";
+			document.getElementById("scoreboard").style.display = "block";
+			document.getElementById("character-callout").style.display = "flex";
+			document.getElementById("settings-btn-game").style.display = "block";
         });
     }
 
@@ -175,18 +182,21 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     const playWithoutLoginButton = document.getElementById("play-without-login");
     if (playWithoutLoginButton) {
-        playWithoutLoginButton.addEventListener("click", () => {
-            document.getElementById("login-modal").style.display = "none";
-            document.querySelector(".game-list").style.display = "grid";
-            document.querySelector(".points").style.display = "none";
-            document.querySelector(".scoreboard-container").style.display = "none";
-            document.getElementById("scoreboard").style.display = "none";
-            document.getElementById("logout-button").style.display = "none";
-            document.getElementById("character-callout").style.display = "flex";
-            document.getElementById("settings-btn-game").style.display = "block";
+	playWithoutLoginButton.addEventListener("click", () => {
+		document.getElementById("login-modal").style.display = "none";
+		document.querySelector(".game-list").style.display = "grid";
+		document.querySelector(".carousel-wrapper").style.display = "grid";
+		document.querySelector(".nav-dots").style.display = "flex";
+		document.querySelector(".page-title").style.display = "block";
+		document.querySelector(".points").style.display = "none";
+		document.querySelector(".scoreboard-container").style.display = "none";
+		document.getElementById("scoreboard").style.display = "none";
+		document.getElementById("logout-button").style.display = "none";
+		document.getElementById("character-callout").style.display = "flex";
+		document.getElementById("settings-btn-game").style.display = "block";
 
-            alert("Bồ đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
-        });
+		alert("Bồ đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
+	});
     }
 
 	const tabButtons = document.querySelectorAll(".tab-btn");
