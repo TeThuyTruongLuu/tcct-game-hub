@@ -123,7 +123,7 @@ for (const embed of message.embeds) {
 
 // Nếu vẫn không thấy, thử trong message.content
 if (!puzzleId) {
-  const match = message.content?.match(/ID[:：]?\s*(puzzle_\d+)/i);
+  const match = message.content?.match(/\*{0,2}ID[:：]?\*{0,2}\s*(puzzle_\d+)/i);
   if (match) {
     puzzleId = match[1];
   }

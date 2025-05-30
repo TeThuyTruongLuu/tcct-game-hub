@@ -1,11 +1,15 @@
 body {
   font-family: 'Quicksand', sans-serif;
-  background: white;
+  background: #fff5f7;
   color: black;
   padding: 40px 20px;
   max-width: 800px;
   margin: auto;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
 }
 
 nav {
@@ -87,10 +91,9 @@ td.hint-cell {
 }
 
 .nonogram-table td.hint-cell {
-  font-size: 10px;
-  line-height: 1.2;
-  color: #444;
-  opacity: 0.6;
+  font-size: 12px;
+  font-weight: bold;
+  opacity: 0.7;
 }
 
 .nonogram-table td.solution-cell {
@@ -188,4 +191,16 @@ button.submit:hover {
 }
 .album-grid .card a:hover {
   background: #3b82f6;
+}
+
+.tab-mark {
+  padding: 6px 12px;
+  margin: 0 4px;
+  border-radius: 6px;
+  border: none;
+  background: #eee;
+  cursor: pointer;
+}
+.tab-mark.selected {
+  background: #fcd34d;
 }
