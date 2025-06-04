@@ -113,6 +113,7 @@ async function saveSlidingScore(username, totalTimeInSeconds, totalTime) {
     score,
     rank,
     totalTime,
+	totalTimeInSeconds,
     updatedAt: new Date().toISOString()
   }, { merge: true });
 

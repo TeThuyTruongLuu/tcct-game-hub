@@ -199,17 +199,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 	});
     }
 
-	const tabButtons = document.querySelectorAll(".tab-btn");
-	tabButtons.forEach((btn) => {
-		btn.addEventListener("click", function () {
-			tabButtons.forEach((btn) => btn.classList.remove("active"));
-			this.classList.add("active");
-
-			const game = this.getAttribute("data-game");
-			loadLeaderboard(game);
-		});
-	});
-
     loadLeaderboard("2048");
 
     const calloutAvatar = document.getElementById("callout-avatar");
@@ -362,19 +351,10 @@ async function showPersonalScores() {
 
 async function showLeaderboard() {
     const leaderboardSection = document.getElementById("leaderboard-section");
-    const tabPages = document.querySelectorAll(".tab-page");
-    const allTabs = document.querySelectorAll(".tab-btn");
 
     if (leaderboardSection.style.display === "none") {
         leaderboardSection.style.display = "block";
 
-        // Reset tất cả tab về inactive
-        allTabs.forEach(btn => btn.classList.remove("active"));
-		const firstTab = tabPages[0].querySelector(".tab-btn");
-		if (firstTab) {
-			firstTab.classList.add("active");
-			loadLeaderboard(firstTab.getAttribute("data-game"));
-		}
     } else {
         leaderboardSection.style.display = "none";
     }
