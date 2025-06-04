@@ -653,10 +653,10 @@ th {
         right: 3vw;
     }
 	.nav-button {
-		width: 35px;
-		height: 35px;
-		padding: 8px;
+		width: 20px;
+		height: 20px;
+		padding: 0;
 	}
-	.prev { left: 10px; }
-	.next { right: 10px; }
+	.prev { left: 2vw; }
+	.next { right: 2vw; }
 }
