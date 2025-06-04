@@ -103,17 +103,16 @@ async function calculateRankAndScore(game, timeInSeconds) {
   return { rank, score };
 }
 
-async function saveSlidingScore(username, totalTimeInSeconds) {
-  const { rank, score } = await calculateRankAndScore("sliding", totalTimeInSeconds);
-  const docId = `${username}-sliding`;
+async function saveSlidingScore(username, totalTimeInSeconds, totalTime) {
+  const { rank, score } = await calculateRankAndScore("Sliding", totalTimeInSeconds);
+  const docId = `${username}-Sliding`;
   const scoresRef = firebase.firestore().collection("userScores").doc(docId);
-
   await scoresRef.set({
     username,
     game: "Sliding",
     score,
     rank,
-    totalTimeInSeconds,
+    totalTime,
     updatedAt: new Date().toISOString()
   }, { merge: true });
 
@@ -129,7 +128,7 @@ function checkWin() {
     const username = localStorage.getItem("username") || "Guest";
 
     setTimeout(async () => {
-      const score = await saveSlidingScore(username, totalTime);
+      const score = await saveSlidingScore(username, totalTimeInSeconds, totalTime);
       alert(`🎉 Bạn đã nhận được một trái tim!
 Thời gian: ${totalTimeInSeconds} giây
 Điểm: ${score}`);
