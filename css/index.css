@@ -168,32 +168,30 @@ h1 {
   height: 100%;
 }
 
-.carousel-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  background: rgba(0, 0, 0, 0.1);
-  border: none;
-  border-radius: 50%;
-  width: 3vw;
-  height: 3vw;
-  font-size: 2.5vw;
-  color: #333;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s;
+.nav-button {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	background: rgba(0, 0, 0, 0.11);
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	border-radius: 50%;
+	width: 2.5vw;
+	height: 2.5vw;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
-
-.carousel-nav.left {
-  left: 25vw;
+.nav-button img {
+	width: 100%;
+	height: auto;
 }
-
-.carousel-nav.right {
-  right: 25vw;
+.next img {
+	transform: scaleX(-1);
 }
+.prev { left: 25vw; }
+.next { right: 25vw; }
 
 .game-list.grid-2x2 {
   display: grid;
@@ -654,16 +652,11 @@ th {
         top: 10px;
         right: 3vw;
     }
-	.carousel-nav {
-		width: 10vw;
-		height: 10vw;
-		font-size: 6vw;
+	.nav-button {
+		width: 35px;
+		height: 35px;
+		padding: 8px;
 	}
-	.carousel-nav.left {
-		left: 0vw;
-		
-	}
-	.carousel-nav.right {
-		right: 0vw;
-	}
+	.prev { left: 10px; }
+	.next { right: 10px; }
 }
