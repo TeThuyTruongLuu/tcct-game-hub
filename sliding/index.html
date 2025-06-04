@@ -1,11 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Love U</title>
   <link rel="icon" href="../favicon.ico" type="image/x-icon" />
   <style>
+	@font-face {
+		font-family: 'AmpleSoft';
+		src: url('../css/fonts/AmpleSoft.ttf') format('truetype');
+		font-weight: thin;
+		font-style: normal;
+	}
 	body {
 	  display: flex;
 	  flex-direction: column;
@@ -13,13 +21,19 @@
 	  justify-content: center;
 	  min-height: 100vh;
 	  background: #fff0f3;
-	  font-family: "Segoe UI", sans-serif;
+	  font-family: 'AmpleSoft';
 	  margin: 0;
 	}
 
 	h1 {
-	  margin-bottom: 20px;
+	  margin-bottom: 10px;
 	  color: #c33;
+	}
+
+	#timer {
+	  font-size: 18px;
+	  color: #444;
+	  margin-bottom: 20px;
 	}
 
 	#puzzle {
@@ -65,13 +79,14 @@
 		height: 80px;
 	  }
 	}
-
   </style>
 </head>
 <body>
   <h1>Sliding Puzzle</h1>
+  <div id="timer">⏱️ Thời gian: 0 giây</div>
   <div id="puzzle"></div>
-  <p>Cre: Phong's commissions by <a href="https://www.facebook.com/quynh.nguyenthuy.127201">Cá Mắc Cạn</a>
+  <p>Cre: Phong's commissions by <a href="https://www.facebook.com/quynh.nguyenthuy.127201">Cá Mắc Cạn</a></p>
+  <script src="../js/index.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

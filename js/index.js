@@ -277,7 +277,7 @@ async function loadLeaderboard(game) {
     const scoresRef = firebase.firestore().collection("userScores");
 
     let q;
-    if (game === "Lật hình") {
+    if (game === "Lật hình" || game === "Sliding") {
         q = scoresRef.where("game", "==", game).orderBy("totalTimeInSeconds", "asc").limit(10); 
     } else {
         q = scoresRef.where("game", "==", game).orderBy("score", "desc").limit(10);
@@ -285,18 +285,18 @@ async function loadLeaderboard(game) {
 
     try {
         const querySnapshot = await q.get();
-        if (game === "Lật hình") {
+        if (game === "Lật hình" || game === "Sliding") {
             html += `<table><tr><th>Người chơi</th><th>Thời gian (s)</th><th>Điểm</th></tr>`;
         } else {
             html += `<table><tr><th>Người chơi</th><th>Điểm</th></tr>`;
         }
 
         if (querySnapshot.empty) {
-            html += `<tr><td colspan="${game === "Lật hình" ? 3 : 2}">Chưa có dữ liệu</td></tr>`;
+            html += `<tr><td colspan="${game === "Lật hình" || game === "Sliding" ? 3 : 2}">Chưa có dữ liệu</td></tr>`;
         } else {
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                if (game === "Lật hình") {
+                if (game === "Lật hình" || game === "Sliding") {
                     html += `<tr><td>${data.username}</td><td>${data.totalTime || "N/A"}</td><td>${data.score}</td></tr>`;
                 } else {
                     html += `<tr><td>${data.username}</td><td>${data.score}</td></tr>`;
