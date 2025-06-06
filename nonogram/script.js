@@ -206,6 +206,7 @@ async function submitBoard() {
   const hintCols = Array(sizeC).fill().map((_, i) => getHints(norm.map(row => row[i])));
   const previewImageData = generatePreviewImage();
   const puzzleId = 'puzzle_' + Date.now();
+
   const puzzle = {
     id: puzzleId,
     title: 'Tác phẩm chưa đặt tên',
@@ -224,46 +225,58 @@ async function submitBoard() {
   try {
     await window.db.collection('pendingNonograms').doc(puzzleId).set(puzzle);
 
-    const webhookUrl = "https://discord.com/api/webhooks/1377505100230168636/_-CJu-aTffIyNvaOsqXcI7qfxq1VD-L1NIKnP0fM0GITxPeU-QgyhhCKapfIaj_F-7Lj";
+    const webhookFunctionUrl = "https://senddiscordwebhook-tw5hilh7aa-uc.a.run.app";
+    const previewImageData = generatePreviewImage();
+    const formData = new FormData();
+
     const payload = {
       content: `**Nonogram mới cần duyệt**\n**Tên:** ${puzzle.title}\n**Người tạo:** ${puzzle.createdBy}\n**ID:** ${puzzle.id}\n*React ✅ để duyệt, ❌ để từ chối.*`,
       embeds: [
         {
           title: "Dữ liệu Nonogram",
           description: `**Lời nhắn:** ${puzzle.message}\n**Hint hàng:** ${hintRows.map(h => h.join(' ')).join(' | ')}\n**Hint cột:** ${hintCols.map(h => h.join(' ')).join(' | ')}`,
-          fields: [
-            { name: "ID", value: puzzle.id, inline: true }
-          ],
+          fields: [{ name: "ID", value: puzzle.id, inline: true }],
           color: 15258703
         }
       ]
     };
 
-    const dataUrlToBlob = async (dataUrl) => {
-      const response = await fetch(dataUrl);
-      return await response.blob();
-    };
-    const imageBlob = await dataUrlToBlob(previewImageData);
-    const formData = new FormData();
-    formData.append('file', imageBlob, `nonogram_${puzzleId}.png`);
+    // Log để kiểm tra payload
+    console.log('Payload trước khi gửi:', JSON.stringify(payload));
+
     formData.append('payload_json', JSON.stringify(payload));
 
-    const response = await fetch(webhookUrl, {
+    // Log để kiểm tra FormData
+    for (let [key, value] of formData.entries()) {
+      console.log(`FormData entry: ${key} =`, value);
+    }
+
+    const imageBlob = await dataUrlToBlob(previewImageData);
+    formData.append('file', imageBlob, `nonogram_${puzzleId}.png`);
+
+    // Log để kiểm tra FormData sau khi thêm file
+    console.log('FormData sau khi thêm file:');
+    for (let [key, value] of formData.entries()) {
+      console.log(`FormData entry: ${key} =`, value);
+    }
+
+    const response = await fetch(webhookFunctionUrl, {
       method: 'POST',
       body: formData
     });
 
-    if (response.ok) {
-      console.log('Webhook sent successfully:', await response.json());
-      alert('Nonogram đã được gửi để duyệt! Admin sẽ xem xét trên Discord.');
-    } else {
+    if (!response.ok) {
       const errorText = await response.text();
-      console.error('Discord API Error:', errorText);
-      alert('Có lỗi khi gửi thông báo đến Discord: ' + errorText);
+      console.error('Response status:', response.status);
+      console.error('Response headers:', Object.fromEntries(response.headers));
+      console.error('Webhook gửi lỗi:', errorText);
+      alert('Lỗi khi gửi tới Discord: ' + errorText);
+    } else {
+      alert('Nonogram đã được gửi để duyệt! Admin sẽ xem xét trên Discord.');
     }
   } catch (error) {
-    console.error('Lỗi khi gửi Nonogram:', error);
-    alert('Đã xảy ra lỗi khi gửi Nonogram để duyệt. Vui lòng thử lại.');
+    console.error('Lỗi submit chi tiết:', error);
+    alert('Có lỗi khi gửi Nonogram. Vui lòng thử lại.');
   }
 }
 
@@ -499,3 +512,16 @@ async function checkAndFixFirestoreData() {
 }
 
 checkAndFixFirestoreData();
+
+
+function dataUrlToBlob(dataUrl) {
+  const arr = dataUrl.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+}

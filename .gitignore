@@ -27,3 +27,16 @@ node_modules/
 .env
 serviceAccount.json
 node_modules/
+
+# Firebase functions dependencies
+functions/
+
+# Firebase general
+.firebase
+.firebase/*
+.firebaserc
+
+# IDE / OS stuff
+.DS_Store
+*.log
+*.env
