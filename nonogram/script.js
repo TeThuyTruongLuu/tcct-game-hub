@@ -115,7 +115,7 @@ function initCreateGrid() {
 
 function generatePreviewImage() {
   const canvas = document.createElement('canvas');
-  const cellSize = 24;
+  const cellSize = 12;
   canvas.width = sizeC * cellSize;
   canvas.height = sizeR * cellSize;
   const ctx = canvas.getContext('2d');
@@ -199,84 +199,109 @@ function previewBoard() {
 }
 
 async function submitBoard() {
-  const name = document.getElementById('creatorName').value.trim();
-  const msg = document.getElementById('creatorMessage').value.trim();
-  const norm = data.map(row => row.map(val => val === 0 ? 0 : 1));
-  const hintRows = norm.map(getHints);
-  const hintCols = Array(sizeC).fill().map((_, i) => getHints(norm.map(row => row[i])));
-  const previewImageData = generatePreviewImage();
-  const puzzleId = 'puzzle_' + Date.now();
-
-  const puzzle = {
-    id: puzzleId,
-    title: 'Tác phẩm chưa đặt tên',
-    createdBy: name || 'anon',
-    message: msg,
-    solution: JSON.stringify(norm),
-    hintRows: JSON.stringify(hintRows),
-    hintCols: JSON.stringify(hintCols),
-    imageUrl: '',
-    coverUrl: '',
-    colorData: JSON.stringify(data),
-    status: 'pending',
-    createdAt: new Date().toISOString()
-  };
-
   try {
-    await window.db.collection('pendingNonograms').doc(puzzleId).set(puzzle);
+    const puzzleId = `puzzle_${Date.now()}`;
 
-    const webhookFunctionUrl = "https://senddiscordwebhook-tw5hilh7aa-uc.a.run.app";
-    const previewImageData = generatePreviewImage();
-    const formData = new FormData();
+    const creatorInput = document.getElementById("creatorName");
+    const messageInput = document.getElementById("creatorMessage");
 
-    const payload = {
-      content: `**Nonogram mới cần duyệt**\n**Tên:** ${puzzle.title}\n**Người tạo:** ${puzzle.createdBy}\n**ID:** ${puzzle.id}\n*React ✅ để duyệt, ❌ để từ chối.*`,
-      embeds: [
-        {
-          title: "Dữ liệu Nonogram",
-          description: `**Lời nhắn:** ${puzzle.message}\n**Hint hàng:** ${hintRows.map(h => h.join(' ')).join(' | ')}\n**Hint cột:** ${hintCols.map(h => h.join(' ')).join(' | ')}`,
-          fields: [{ name: "ID", value: puzzle.id, inline: true }],
-          color: 15258703
+    const norm = data.map(row => row.map(val => val === 0 ? 0 : 1));
+    const hintRows = norm.map(row => getHints(row));
+    const hintCols = Array(sizeC).fill().map((_, i) => getHints(norm.map(row => row[i])));
+
+    // Giảm kích thước ảnh preview
+    function generateSmallPreviewImage() {
+      const canvas = document.createElement('canvas');
+      const cellSize = 12; // nhỏ hơn
+      canvas.width = sizeC * cellSize;
+      canvas.height = sizeR * cellSize;
+      const ctx = canvas.getContext('2d');
+
+      for (let r = 0; r < sizeR; r++) {
+        for (let c = 0; c < sizeC; c++) {
+          ctx.fillStyle = colors[data[r][c]];
+          ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+          ctx.strokeStyle = '#999';
+          ctx.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
         }
-      ]
+      }
+
+      return canvas.toDataURL('image/png');
+    }
+
+    const previewImageDataUrl = generateSmallPreviewImage();
+    const previewBlob = dataUrlToBlob(previewImageDataUrl);
+
+    // Gửi log lên pendingNonograms
+    await window.db.collection('pendingNonograms').doc(puzzleId).set({
+      title: "Tác phẩm chưa đặt tên",
+      creator: creatorInput.value.trim() || "anon",
+      message: messageInput.value.trim() || "",
+      solution: JSON.stringify(norm),
+      hintRows: JSON.stringify(hintRows),
+      hintCols: JSON.stringify(hintCols),
+	  id: puzzleId,
+      colorData: JSON.stringify(data),
+      status: "pending",
+      imageUrl: "", // hiện chưa có URL
+      coverUrl: "", // để trống giống approved
+      createdAt: new Date().toISOString()
+    });
+
+    // Gửi message lên Discord
+    const payload = {
+      content: "**Nonogram mới cần duyệt**\n" +
+               `**Tên:** Tác phẩm chưa đặt tên\n` +
+               `**Người tạo:** ${creatorInput.value.trim() || "anon"}\n` +
+			   `**Lời nhắn:** ${messageInput.value.trim() || ""}\n` +
+               `**ID:** ${puzzleId}\n` +
+               "*React ✅ để duyệt, ❌ để từ chối.*",
+      embeds: [{
+        title: "Dữ liệu Nonogram",
+        description: `**Hint hàng:** ${hintRows.map(h => h.join(" ")).join(" | ")}\n` +
+                     `**Hint cột:** ${hintCols.map(h => h.join(" ")).join(" | ")}`,
+        fields: [{
+          name: "ID",
+          value: puzzleId,
+          inline: true
+        }],
+        color: 0xE9967A,
+        image: {
+          url: `attachment://${puzzleId}.png`
+        }
+      }]
     };
 
-    // Log để kiểm tra payload
-    console.log('Payload trước khi gửi:', JSON.stringify(payload));
+    console.log("Payload trước khi gửi:", payload);
 
-    formData.append('payload_json', JSON.stringify(payload));
+    const formData = new FormData();
+    formData.append("payload_json", JSON.stringify(payload));
+    formData.append("file", previewBlob, `${puzzleId}.png`);
 
-    // Log để kiểm tra FormData
-    for (let [key, value] of formData.entries()) {
-      console.log(`FormData entry: ${key} =`, value);
+    console.log("FormData sau khi chuẩn bị:");
+    for (let pair of formData.entries()) {
+      console.log("FormData entry:", pair[0], pair[1]);
     }
 
-    const imageBlob = await dataUrlToBlob(previewImageData);
-    formData.append('file', imageBlob, `nonogram_${puzzleId}.png`);
-
-    // Log để kiểm tra FormData sau khi thêm file
-    console.log('FormData sau khi thêm file:');
-    for (let [key, value] of formData.entries()) {
-      console.log(`FormData entry: ${key} =`, value);
-    }
-
-    const response = await fetch(webhookFunctionUrl, {
-      method: 'POST',
+    const response = await fetch("http://localhost:3001/send-message", {
+      method: "POST",
       body: formData
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Response status:', response.status);
-      console.error('Response headers:', Object.fromEntries(response.headers));
-      console.error('Webhook gửi lỗi:', errorText);
-      alert('Lỗi khi gửi tới Discord: ' + errorText);
+    console.log("Response status:", response.status);
+    console.log("Response headers:", [...response.headers.entries()]);
+
+    const resultText = await response.text();
+    console.log("Webhook gửi kết quả:", resultText);
+
+    if (response.ok) {
+      alert("Đã gửi Nonogram lên duyệt thành công!");
     } else {
-      alert('Nonogram đã được gửi để duyệt! Admin sẽ xem xét trên Discord.');
+      alert("Gửi Nonogram thất bại. Kiểm tra console log để biết chi tiết.");
     }
-  } catch (error) {
-    console.error('Lỗi submit chi tiết:', error);
-    alert('Có lỗi khi gửi Nonogram. Vui lòng thử lại.');
+  } catch (err) {
+    console.error("Lỗi submit chi tiết:", err);
+    alert("Gửi Nonogram thất bại do lỗi client.");
   }
 }
 
