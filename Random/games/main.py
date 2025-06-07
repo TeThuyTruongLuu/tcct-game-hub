@@ -88,7 +88,13 @@ def crawl_multi():
             title = title_tag.get_text(strip=True) if title_tag else f'Bài {idx}'
 
             # Lấy content bài
-            content_div = soup.select_one('div.post div.post-content, div.js-post div.post-content, div.post-content, div.js-post')
+            content_div = (
+                soup.select_one('div.post div.post-content')
+                or soup.select_one('div.js-post div.post-content')
+                or soup.select_one('div.post-content')
+                or soup.select_one('div.js-post')
+                or soup.select_one('div.main div.content div.text')  # <<< cái kiểu dongqiulizi này
+            )
             if not content_div:
                 continue
 
