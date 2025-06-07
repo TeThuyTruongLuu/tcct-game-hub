@@ -69,6 +69,53 @@ def crawl_thread():
         app.logger.error(f"Lỗi crawl thread: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/crawl_multi', methods=['POST'])
+def crawl_multi():
+    try:
+        data = request.get_json()
+        urls = data.get('urls', [])
+        if not urls:
+            return jsonify({'error': 'Thiếu URLs'}), 400
+
+        chapters = []
+        for idx, url in enumerate(urls, 1):
+            res = requests.get(url)
+            res.encoding = 'utf-8'
+            soup = BeautifulSoup(res.text, 'html.parser')
+
+            # Lấy title bài
+            title_tag = soup.find('title')
+            title = title_tag.get_text(strip=True) if title_tag else f'Bài {idx}'
+
+            # Lấy content bài
+            content_div = soup.select_one('div.post div.post-content, div.js-post div.post-content, div.post-content, div.js-post')
+            if not content_div:
+                continue
+
+            # Sửa ảnh lazy load
+            for img in content_div.find_all('img'):
+                src = img.get('data-origin-src') or img.get('src')
+                if src:
+                    img['src'] = src
+
+            content_html = str(content_div)
+
+            chapters.append({
+                'title': title,
+                'content': content_html
+            })
+
+        response = jsonify({
+            'title': f'Lofter Blog ({len(chapters)} bài)',
+            'chapters': chapters
+        })
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        return response
+    except Exception as e:
+        app.logger.error(f"Lỗi crawl multi: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/epub', methods=['POST', 'OPTIONS'])
 def epub_handler():
     if request.method == 'OPTIONS':
