@@ -93,8 +93,11 @@ def crawl_multi():
                 or soup.select_one('div.js-post div.post-content')
                 or soup.select_one('div.post-content')
                 or soup.select_one('div.js-post')
-                or soup.select_one('div.main div.content div.text')  # <<< cái kiểu dongqiulizi này
+                or soup.select_one('div.main div.content div.text')
+                or soup.select_one('div.content div.text')
+                or soup.select_one('div.content')  # fallback cuối cùng
             )
+
             if not content_div:
                 continue
 
