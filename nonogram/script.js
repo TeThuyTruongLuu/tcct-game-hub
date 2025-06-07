@@ -283,7 +283,7 @@ async function submitBoard() {
       console.log("FormData entry:", pair[0], pair[1]);
     }
 
-    const response = await fetch("https://shimmering-liberation-production.up.railway.app/send-message", {
+    const response = await fetch("https://serverjs-production-f2e0.up.railway.app/send-message", {
       method: "POST",
       body: formData
     });
