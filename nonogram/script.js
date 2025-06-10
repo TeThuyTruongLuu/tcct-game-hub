@@ -235,8 +235,8 @@ async function submitBoard() {
 
     // 🚀 Gửi log lên Firestore
     await window.db.collection('pendingNonograms').doc(puzzleId).set({
-      title: "Tác phẩm chưa đặt tên",
-      creator: creatorInput.value.trim() || "anon",
+      title: "Chưa đặt tên",
+      creator: creatorInput.value.trim() || "N/A",
       message: messageInput.value.trim() || "",
       solution: JSON.stringify(norm),
       hintRows: JSON.stringify(hintRows),
@@ -558,3 +558,7 @@ function dataUrlToBlob(dataUrl) {
   }
   return new Blob([u8arr], { type: mime });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  showSection('album');
+});
