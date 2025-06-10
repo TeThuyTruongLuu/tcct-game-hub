@@ -12,18 +12,12 @@
 </head>
 <body>
   <nav>
-    <button class="tab-btn" onclick="showSection('home')">Trang chủ</button>
     <button class="tab-btn" onclick="showSection('album')">Album</button>
     <button class="tab-btn" onclick="showSection('create')">Tạo Nonogram</button>
   </nav>
 
-  <section id="home">
-    <h2>Chào mừng đến với Nonogram</h2>
-    <p>Chọn mục bên trên để bắt đầu.</p>
-  </section>
-
-  <section id="album" style="display: none;">
-    <h2>Album Nonogram</h2>
+  <section id="album" style="display: block;">
+    <h2>Chọn một màn để chơi</h2>
     <div id="albumDiv" class="album-grid"></div>
   </section>
 
@@ -33,7 +27,7 @@
   </section>
 
   <section id="create" style="display: none;">
-    <h2>Tạo bảng</h2>
+    <h2>Tạo nonogram mới</h2>
     <input type="text" id="creatorName" placeholder="Tên của bạn">
     <textarea id="creatorMessage" placeholder="Lời nhắn"></textarea>
     <div id="controls">
@@ -51,10 +45,8 @@
     <div id="previewArea"></div>
   </section>
 
-  <!-- Load index.js first for Firebase initialization -->
   <script src="../js/index.js"></script>
 
-  <!-- Load script.js after index.js -->
   <script src="script.js"></script>
 </body>
 </html>
