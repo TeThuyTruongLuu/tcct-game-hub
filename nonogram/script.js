@@ -249,40 +249,6 @@ async function submitBoard() {
       createdAt: new Date().toISOString()
     });
 
-    // 🚀 Gửi message lên Discord
-    const webhookUrl = "https://discord.com/api/webhooks/1380368186339233813/OMQ0NY-uN6WLXM9ImnqhEblZV3K_L9EkdZWYqotFdfbyLsqtYPhJoPuuZSVoH87N0mH7";
-    const payload = {
-      content: "**Nonogram mới cần duyệt**\n" +
-               `**Tên:** Tác phẩm chưa đặt tên\n` +
-               `**Người tạo:** ${creatorInput.value.trim() || "anon"}\n` +
-               `**Lời nhắn:** ${messageInput.value.trim() || ""}\n` +
-               `**ID:** ${puzzleId}\n` +
-               "*Vui lòng vào Firestore để duyệt.*",
-      embeds: [{
-        title: "Dữ liệu Nonogram",
-        description:
-          `**Hint hàng:** ${hintRows.map(h => h.join(" ")).join(" | ")}\n` +
-          `**Hint cột:** ${hintCols.map(h => h.join(" ")).join(" | ")}`,
-        image: {
-          url: imgbbLink
-        },
-        fields: [{
-          name: "ID",
-          value: puzzleId,
-          inline: true
-        }],
-        color: 0xE9967A
-      }]
-    };
-
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-
     if (response.ok) {
       alert("Đã gửi Nonogram lên duyệt thành công!");
     } else {
