@@ -249,11 +249,8 @@ async function submitBoard() {
       createdAt: new Date().toISOString()
     });
 
-    if (response.ok) {
-      alert("Đã gửi Nonogram lên duyệt thành công!");
-    } else {
-      alert("Gửi Nonogram thất bại. Kiểm tra console log để biết chi tiết.");
-    }
+    // ✅ Thông báo thành công
+    alert("Đã gửi Nonogram lên duyệt thành công!");
   } catch (err) {
     console.error("Lỗi submit chi tiết:", err);
     alert("Gửi Nonogram thất bại do lỗi client.");
