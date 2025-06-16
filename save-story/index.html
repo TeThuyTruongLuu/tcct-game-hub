@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet" />
+    <title>Quản lý Truyện</title>
+    <link rel="stylesheet" href="style.css">
+	<script type="module" src="firebase.js"></script>
+	<script type="module" src="storage.js"></script>
+	<script type="module" src="main.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+</head>
+<body>
+    <div class="container">
+        <h2>Quản lý Truyện</h2>
+        <div class="toggle-container">
+            <button id="btn-upload" class="toggle-btn active" onclick="toggleSection('upload')">Lưu truyện</button>
+            <button id="btn-search" class="toggle-btn" onclick="toggleSection('search')">Tìm truyện</button>
+            <button id="btn-epub" class="toggle-btn" onclick="toggleSection('epub')">Tải EPUB</button>
+        </div>
+
+        <div id="upload" class="section active">
+            <div class="flex-row">
+                <label>Nhập link truyện: <input type="text" id="storyLink"></label>
+                <button id="saveStory">Lưu Truyện</button>
+            </div>
+            <div class="flex-row">
+                <label>Tag bổ sung:
+                    <input type="text" id="additionalTags" class="tag-input" oninput="suggestTags(event)" autocomplete="off">
+                    <div id="tagSuggestions" class="suggestions-box"></div>
+                </label>
+                <label class="rating-input">Đánh giá: <input type="number" id="rating" min="0" max="10" step="0.5"> / 10</label>
+            </div>
+            <div class="flex-row">
+                <label class="wide-input">Review: <input type="text" id="reviewText"></label>
+            </div>
+        </div>
+
+        <div id="epub" class="section">
+            <div class="input-container">
+                <div class="flex-row">
+                    <label>Nhập link: <textarea id="epubUrl" rows="4"></textarea></label>
+                </div>
+                <div class="flex-row">
+                    <label>Loại link: 
+                        <select id="urlType">
+                            <option value="ao3_tag">AO3 Tag</option>
+                            <option value="lofter_author">Lofter Author</option>
+                            <option value="lofter_tag">Lofter Tag</option>
+                            <option value="forum">Forum</option>
+                        </select>
+                    </label>
+                    <label>Định dạng: 
+                        <select id="outputFormat">
+                            <option value="epub">EPUB</option>
+                            <option value="pdf">PDF</option>
+                            <option value="docx">Word</option>
+                            <option value="rar">RAR</option>
+                        </select>
+                    </label>
+					<label style="flex:1;">Số bài tối đa:
+						<input type="number" id="maxPosts" value="50" min="1" placeholder="Số bài tối đa">
+					</label>
+                </div>
+				<div class="flex-row">
+					<label>Từ ngày:
+						<input type="date" id="startDate">
+					</label>
+					<label>Đến ngày:
+						<input type="date" id="endDate">
+					</label>
+					<label style="flex:1;">Thời gian chờ (giây):
+						<input type="number" id="waitTime" value="2" min="1" step="0.5" placeholder="Thời gian chờ">
+					</label>
+					<button id="fetchChaptersButton" onclick="fetchChapters(false)" style="flex:1; max-height: 42px;">Lấy danh sách</button>
+				</div>
+				<button id="continueFetchButton" style="display:none;" onclick="fetchChapters(true)">Fetch tiếp</button>
+				<textarea id="log" rows="10" cols="50" style="width: 100%; height: 200px;" readonly></textarea>
+                <div id="chapterList" class="table-container">
+                    <table id="chapterTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllChapters" onclick="window.toggleSelectAll()"></th>
+                                <th>Tiêu đề</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <button onclick="window.downloadSelected()">Tải</button>
+            </div>
+        </div>
+
+        <div id="search" class="section">
+            <div class="flex-row">
+                <label>Chọn tag muốn: <input type="text" id="desiredTags"></label>
+                <label>Chọn tag không muốn: <input type="text" id="excludedTags"></label>
+            </div>
+            <div class="flex-row">
+                <label>Tác giả: <select id="authorSelect"></select></label>
+                <label>Editor: <select id="editorSelect"></select></label>
+                <label>Trạng thái: <select id="statusSelect">
+                    <option value="">Tất cả</option>
+                    <option value="Hoàn">Hoàn</option>
+                    <option value="Đang cập nhật">Đang cập nhật</option>
+                </select></label>
+            </div>
+            <div class="button-container">
+                <button onclick="randomStory()">Random Truyện</button>
+                <button onclick="filterStories()">Lọc Truyện</button>
+            </div>
+        </div>
+
+        <div id="saved-stories" class="table-section">
+            <h3>Danh sách truyện đã lưu</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0, 'saved')">STT</th>
+                            <th onclick="sortTable(1, 'saved')">Tên truyện</th>
+                            <th onclick="sortTable(2, 'saved')">Tag</th>
+                            <th>Tác giả</th>
+                            <th>Edit / Beta</th>
+                            <th onclick="sortTable(3, 'saved')">Tình trạng</th>
+                            <th>Link</th>
+                            <th>Review</th>
+                            <th>Xóa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="storyTable"></tbody>
+                </table>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+
+        <div id="downloaded-stories" class="table-section hidden">
+            <h3>Danh sách truyện đã tải</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0, 'downloaded')">STT</th>
+                            <th onclick="sortTable(1, 'downloaded')">Tên truyện</th>
+                            <th onclick="sortTable(2, 'downloaded')">Tag</th>
+                            <th>Tác giả</th>
+                            <th>Edit / Beta</th>
+                            <th onclick="sortTable(3, 'downloaded')">Tình trạng</th>
+                            <th>Link</th>
+                            <th>Review</th>
+                            <th>Xóa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="downloadedStoryTable"></tbody>
+                </table>
+            </div>
+            <div class="pagination" id="downloadedPagination"></div>
+        </div>
+    </div>
+</body>
+</html>
