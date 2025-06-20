@@ -8,12 +8,11 @@ function onDeviceReady() {
 (function () {
     const username = localStorage.getItem("username");
     const isAnonymous = localStorage.getItem("anonymous") === "true";
-
-    // Bỏ qua nếu đang ở trang chủ (tránh chặn chính index.html)
+    const origin = localStorage.getItem("anonymousOrigin");
     const isHomepage = window.location.pathname === "/tcct-game-hub/" || window.location.pathname === "/tcct-game-hub/index.html";
 
-    if (!username && !isAnonymous && !isHomepage) {
-        alert("❌ Bồ chưa đăng nhập. Đang quay về trang chính...");
+    if (!username && !(isAnonymous && origin === "homepage") && !isHomepage) {
+        alert("❌ Bạn chưa đăng nhập hoặc truy cập sai cách. Đang quay về trang chính...");
         window.location.href = "/tcct-game-hub/";
     }
 })();
@@ -226,8 +225,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 function logout() {
     localStorage.clear();
-    localStorage.removeItem("username");
-    localStorage.removeItem("anonymous");
     location.reload();
 }
 
