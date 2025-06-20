@@ -12,15 +12,12 @@ function onDeviceReady() {
     const currentPath = window.location.pathname;
 
     // ❗ KHÔNG chặn nếu đang ở trang chính
-    const isHomepage =
-        currentPath === "/tcct-game-hub/" ||
-        currentPath === "/tcct-game-hub/index.html" ||
-        currentPath === "/tcct-game-hub"; // cho chắc
+	const isHomepage = currentPath.startsWith("/tcct-game-hub") && !currentPath.includes("/index.html");
 
-    if (!username && !(isAnonymous && origin === "homepage") && !isHomepage) {
-        alert("❌ Bồ chưa đăng nhập. Quay về trang chính nha!");
-        window.location.href = "/tcct-game-hub/";
-    }
+	if (!username && !(isAnonymous && origin === "homepage") && !isHomepage) {
+		alert("❌ Bồ chưa đăng nhập. Quay về trang chính nha!");
+		window.location.href = "/tcct-game-hub/";
+	}
 })();
 
 
