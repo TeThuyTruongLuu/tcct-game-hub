@@ -12,7 +12,7 @@ function onDeviceReady() {
     const isHomepage = window.location.pathname === "/tcct-game-hub/" || window.location.pathname === "/tcct-game-hub/index.html";
 
     if (!username && !(isAnonymous && origin === "homepage") && !isHomepage) {
-        alert("❌ Bạn chưa đăng nhập hoặc truy cập sai cách. Đang quay về trang chính...");
+        alert("❌ Bồ chưa đăng nhập. Đang quay về trang chính...");
         window.location.href = "/tcct-game-hub/";
     }
 })();
