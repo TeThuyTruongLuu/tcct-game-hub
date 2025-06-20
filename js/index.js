@@ -9,10 +9,9 @@ function onDeviceReady() {
     const username = localStorage.getItem("username");
     const isAnonymous = localStorage.getItem("anonymous") === "true";
     const origin = localStorage.getItem("anonymousOrigin");
-    const isHomepage = window.location.pathname === "/tcct-game-hub/" || window.location.pathname === "/tcct-game-hub/index.html";
 
-    if (!username && !(isAnonymous && origin === "homepage") && !isHomepage) {
-        alert("❌ Bồ chưa đăng nhập. Đang quay về trang chính...");
+    if (!username && !(isAnonymous && origin === "homepage")) {
+        alert("❌ Bồ chưa đăng nhập. Quay về trang chính nha!");
         window.location.href = "/tcct-game-hub/";
     }
 })();
