@@ -196,6 +196,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (playWithoutLoginButton) {
 	playWithoutLoginButton.addEventListener("click", () => {
 		localStorage.setItem("anonymous", "true");
+		localStorage.setItem("anonymousOrigin", "homepage");
 		document.getElementById("login-modal").style.display = "none";
 		document.querySelector(".game-list").style.display = "grid";
 		document.querySelector(".carousel-wrapper").style.display = "grid";
