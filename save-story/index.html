@@ -19,7 +19,7 @@
         <div class="toggle-container">
             <button id="btn-upload" class="toggle-btn active" onclick="toggleSection('upload')">Lưu truyện</button>
             <button id="btn-search" class="toggle-btn" onclick="toggleSection('search')">Tìm truyện</button>
-            <button id="btn-epub" class="toggle-btn" onclick="toggleSection('epub')">Tải EPUB</button>
+            <button id="btn-epub" class="toggle-btn" onclick="toggleSection('epub')">Tải truyện</button>
         </div>
 
         <div id="upload" class="section active">
@@ -39,9 +39,51 @@
             </div>
         </div>
 
-        <div id="epub" class="section">
-            <p>Nhập mật khẩu để lấy link file tải epub</p>
-        </div>
+		<div id="epub" class="section">
+			<p>
+				Nhập mật khẩu để lấy link tải công cụ tải truyện từ Lofter, 4rum, AO3: 
+				<span style="color: white;">
+					Not-for-profit-All-rights-reserved
+				</span>
+			</p>
+			<input type="password" id="epubPassword" placeholder="Nhập mật khẩu" style="width: 90%;"/>
+			<button onclick="checkPassword()">Xác nhận</button>
+
+			<div id="epubLinkContainer" style="margin-top: 20px; display: none;">
+				<p><strong>Link tải:</strong> 
+					<a href="https://drive.google.com/file/d/1gn4j7VQps20-6_6JYFOgCk4cFDGRfi02/view?usp=drive_link" 
+					   target="_blank">
+					   Google Drive - Công cụ tải truyện
+					</a>
+				</p>
+				<p style="font-style: italic; color: gray;">
+					Đây là công cụ được Phong tạo ra với sự hỗ trợ của ChatGPT, hoàn toàn chỉ để lưu trữ truyện để đọc cá nhân, vui lòng không sử dụng vì bất kỳ mục đích nào khác.
+				</p>
+
+				<details style="margin-top: 15px;">
+					<summary style="cursor: pointer; font-weight: bold;">Hướng dẫn sử dụng</summary>
+					<ol style="margin-top: 10px; padding-left: 20px;">
+						<li>Nhập link vào ô (bỏ các phần như <code>?page=</code>, <code>?fbid=</code>…)</li>
+						<li>Chọn loại link & định dạng (EPUB & PDF hoạt động tốt nhất)</li>
+						<li>
+							So sánh định dạng:
+							<ul>
+								<li><strong>EPUB</strong>: Tuỳ chỉnh cao, đọc bằng app ReadEra (điện thoại) hoặc 
+									<a href="https://chromewebstore.google.com/detail/beautiful-epub-reader/gbohfhccchgngoapncnfnpldhlkojifo?hl=vi" target="_blank">
+										Beautiful Epub Reader</a> (Chrome Extension)
+								</li>
+								<li><strong>PDF</strong>: Mở được mọi thiết bị, giao diện ổn định hơn EPUB nhưng ít tuỳ chỉnh</li>
+							</ul>
+						</li>
+						<li>Chọn số bài tối đa cần lấy</li>
+						<li>Tuỳ chọn khoảng thời gian (chưa test kỹ nên không khuyến khích)</li>
+						<li>Thời gian chờ: giữ mặc định (đây là delay giữa mỗi lần load bài viết)</li>
+						<li>Nhấn "Lấy danh sách" → chờ log và danh sách chương hiển thị</li>
+						<li>Chọn chương muốn tải → nhấn "Tải" → đặt tên và lưu file</li>
+					</ol>
+				</details>
+			</div>
+		</div>
 
         <div id="search" class="section">
             <div class="flex-row">
@@ -84,29 +126,6 @@
                 </table>
             </div>
             <div class="pagination" id="pagination"></div>
-        </div>
-
-        <div id="downloaded-stories" class="table-section hidden">
-            <h3>Danh sách truyện đã tải</h3>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th onclick="sortTable(0, 'downloaded')">STT</th>
-                            <th onclick="sortTable(1, 'downloaded')">Tên truyện</th>
-                            <th onclick="sortTable(2, 'downloaded')">Tag</th>
-                            <th>Tác giả</th>
-                            <th>Edit / Beta</th>
-                            <th onclick="sortTable(3, 'downloaded')">Tình trạng</th>
-                            <th>Link</th>
-                            <th>Review</th>
-                            <th>Xóa</th>
-                        </tr>
-                    </thead>
-                    <tbody id="downloadedStoryTable"></tbody>
-                </table>
-            </div>
-            <div class="pagination" id="downloadedPagination"></div>
         </div>
     </div>
 </body>

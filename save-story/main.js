@@ -14,10 +14,7 @@ export async function toggleSection(section) {
     document.getElementById('btn-' + section).classList.add('active');
 
     document.querySelectorAll('.table-section').forEach(t => t.classList.add('hidden'));
-    if (section === 'epub') {
-        document.getElementById('downloaded-stories').classList.remove('hidden');
-        storage.loadDownloadedStories();
-    } else {
+    if (section !== 'epub') {
         document.getElementById('saved-stories').classList.remove('hidden');
     }
 }
@@ -228,6 +225,19 @@ export async function randomStory() {
     if (stories.length > 0) {
         let randomIndex = Math.floor(Math.random() * stories.length);
         renderStories([stories[randomIndex]], "storyTable");
+    }
+}
+
+window.checkPassword = function () {
+    const input = document.getElementById("epubPassword").value.trim();
+    const correct = "Not-for-profit-All-rights-reserved";
+    const container = document.getElementById("epubLinkContainer");
+
+    if (input === correct) {
+        container.style.display = "block";
+    } else {
+        alert("Sai mật khẩu!");
+        container.style.display = "none";
     }
 }
 
