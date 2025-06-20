@@ -35,6 +35,20 @@ if (!window.indexedDB && !window.mozIndexedDB && !window.webkitIndexedDB && !win
   };
 }
 
+export async function waitForIndexedDB() {
+    return new Promise((resolve) => {
+        if (idb) {
+            resolve();
+        } else {
+            const checkInterval = setInterval(() => {
+                if (idb) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 100);
+        }
+    });
+}
 
 export async function fetchStory() {
 	let inputField = document.getElementById("storyLink");
@@ -190,6 +204,7 @@ export async function fetchStoryFromFirestore(url) {
 }
 
 export async function loadStories() {
+	await waitForIndexedDB();
 	let indexedDBStories = await loadStoriesFromIndexedDB("stories");
 	let storyMap = {};
 

@@ -329,4 +329,3 @@ window.renderStories = renderStories;
 window.suggestTags = suggestTags;
 window.filterStories = filterStories;
 window.randomStory = randomStory;
-window.fetchChapters = fetchChapters;
