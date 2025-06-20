@@ -5,6 +5,19 @@ function onDeviceReady() {
     document.getElementById('deviceready').classList.add('ready');
 }
 
+(function () {
+    const username = localStorage.getItem("username");
+    const isAnonymous = localStorage.getItem("anonymous") === "true";
+
+    // Bỏ qua nếu đang ở trang chủ (tránh chặn chính index.html)
+    const isHomepage = window.location.pathname === "/tcct-game-hub/" || window.location.pathname === "/tcct-game-hub/index.html";
+
+    if (!username && !isAnonymous && !isHomepage) {
+        alert("❌ Bồ chưa đăng nhập. Đang quay về trang chính...");
+        window.location.href = "/tcct-game-hub/";
+    }
+})();
+
 document.addEventListener("deviceready", function() {
     document.addEventListener("backbutton", function(e) {
         const loginModal = document.getElementById("login-modal");
@@ -183,6 +196,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const playWithoutLoginButton = document.getElementById("play-without-login");
     if (playWithoutLoginButton) {
 	playWithoutLoginButton.addEventListener("click", () => {
+		localStorage.setItem("anonymous", "true");
 		document.getElementById("login-modal").style.display = "none";
 		document.querySelector(".game-list").style.display = "grid";
 		document.querySelector(".carousel-wrapper").style.display = "grid";
@@ -212,6 +226,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 function logout() {
     localStorage.clear();
+    localStorage.removeItem("username");
+    localStorage.removeItem("anonymous");
     location.reload();
 }
 
