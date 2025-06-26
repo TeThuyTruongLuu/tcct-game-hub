@@ -1,8 +1,13 @@
 let data = [], sizeR = 10, sizeC = 10, selectedColor = 1;
 const colors = ['#ffffff', '#000000', '#008000', '#0000ff', '#ffff00', '#800080', '#ffa600'];
 let isMouseDown = false;
+document.addEventListener('mouseup', () => {
+  isMouseDown = false;
+});
+
 
 const puzzles = [];
+const { FieldValue } = firebase.firestore;
 
 function showSection(id) {
   document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
@@ -243,6 +248,7 @@ async function submitBoard() {
       hintCols: JSON.stringify(hintCols),
       id: puzzleId,
       colorData: JSON.stringify(data),
+	  colorPalette: JSON.stringify(colors),
       status: "pending",
       imageUrl: imgbbLink,
       coverUrl: "",
@@ -295,35 +301,35 @@ async function checkAndMigrateApproved() {
 async function renderAlbum() {
   const albumDiv = document.getElementById('albumDiv');
   albumDiv.innerHTML = '';
+  const username = localStorage.getItem("username");
 
   try {
-	await checkAndMigrateApproved();
+    await checkAndMigrateApproved();
     const approvedSnapshot = await window.db.collection('approvedNonograms').get();
+    const solvedSnapshot = username
+      ? await window.db.collection('nonogramSolved')
+          .where('solved', '==', true)
+          .get()
+      : { docs: [] };
+
+    const solvedMap = {};
+    solvedSnapshot.docs.forEach(doc => {
+      const id = doc.id.split('-')[1];
+      solvedMap[id] = doc.data().coverUrl;
+    });
+
     const approvedPuzzles = [];
 
     approvedSnapshot.forEach(doc => {
       const puzzleData = doc.data();
       try {
-        puzzleData.solution = puzzleData.solution && typeof puzzleData.solution === 'string' ? JSON.parse(puzzleData.solution) : [];
-        puzzleData.hintRows = puzzleData.hintRows && typeof puzzleData.hintRows === 'string' ? JSON.parse(puzzleData.hintRows) : [];
-        puzzleData.hintCols = puzzleData.hintCols && typeof puzzleData.hintCols === 'string' ? JSON.parse(puzzleData.hintCols) : [];
-        puzzleData.colorData = puzzleData.colorData && typeof puzzleData.colorData === 'string' ? JSON.parse(puzzleData.colorData) : [];
+        puzzleData.solution = typeof puzzleData.solution === 'string' ? JSON.parse(puzzleData.solution) : [];
+        puzzleData.hintRows = typeof puzzleData.hintRows === 'string' ? JSON.parse(puzzleData.hintRows) : [];
+        puzzleData.hintCols = typeof puzzleData.hintCols === 'string' ? JSON.parse(puzzleData.hintCols) : [];
+        puzzleData.colorData = typeof puzzleData.colorData === 'string' ? JSON.parse(puzzleData.colorData) : [];
         approvedPuzzles.push(puzzleData);
-      } catch (parseError) {
-        console.warn(`Lỗi parse dữ liệu Nonogram ${doc.id}:`, parseError);
-      }
-    });
-
-    puzzles.forEach(puzzle => {
-      const parsedPuzzle = { ...puzzle };
-      try {
-        parsedPuzzle.solution = puzzle.solution && typeof puzzle.solution === 'string' ? JSON.parse(puzzle.solution) : [];
-        parsedPuzzle.hintRows = puzzle.hintRows && typeof puzzle.hintRows === 'string' ? JSON.parse(puzzle.hintRows) : [];
-        parsedPuzzle.hintCols = puzzle.hintCols && typeof puzzle.hintCols === 'string' ? JSON.parse(puzzle.hintCols) : [];
-        parsedPuzzle.colorData = puzzle.colorData && typeof puzzle.colorData === 'string' ? JSON.parse(puzzle.colorData) : [];
-        approvedPuzzles.push(parsedPuzzle);
-      } catch (parseError) {
-        console.warn(`Lỗi parse dữ liệu puzzle mẫu ${puzzle.id}:`, parseError);
+      } catch (err) {
+        console.warn('Lỗi parse puzzle:', doc.id, err);
       }
     });
 
@@ -333,13 +339,17 @@ async function renderAlbum() {
     }
 
     approvedPuzzles.forEach(puzzle => {
+      const isSolved = solvedMap[puzzle.id];
+      const finalCover = isSolved || puzzle.coverUrl || '../img/coming (7).webp';
       const card = document.createElement('div');
       card.className = 'card';
-      card.innerHTML = `
-        <img src="${puzzle.coverUrl || '../img/coming (7).png'}" alt="cover" />
-        <p>${puzzle.title || 'Không có tiêu đề'}</p>
-        <a href="#" onclick="startGame('${puzzle.id}')">Chơi</a>
-      `;
+	  card.innerHTML = `
+	    <img src="${finalCover}" alt="cover" class="preview-img" />
+	    <p>${puzzle.title || 'Không có tiêu đề'}</p>
+	    <a href="#" onclick="startGame('${puzzle.id}', ${isSolved ? 'true' : 'false'})">
+		  ${isSolved ? 'Xem' : 'Chơi'}
+	    </a>
+	  `;
       albumDiv.appendChild(card);
     });
   } catch (error) {
@@ -348,105 +358,74 @@ async function renderAlbum() {
   }
 }
 
-function startGame(id) {
-  const puzzle = puzzles.find(p => p.id === id) || (async () => {
-    const snapshot = await window.db.collection('approvedNonograms').doc(id).get();
-    if (!snapshot.exists) return null;
+async function startGame(id, viewOnly = false) {
+  const username = localStorage.getItem("username");
+  let puzzle = puzzles.find(p => p.id === id);
+  if (!puzzle) {
+    const snapshot = await window.db.collection("approvedNonograms").doc(id).get();
+    if (!snapshot.exists) {
+      alert("Không tìm thấy bảng!");
+      return;
+    }
     const data = snapshot.data();
-    data.solution = JSON.parse(data.solution);
-    data.hintRows = JSON.parse(data.hintRows);
-    data.hintCols = JSON.parse(data.hintCols);
-    data.colorData = JSON.parse(data.colorData);
-    return data;
-  })();
-
-  if (!puzzle) return alert("Không tìm thấy bảng!");
-
-  Promise.resolve(puzzle).then(p => {
-    const solution = p.solution;
-    const rowHints = p.hintRows;
-    const colHints = p.hintCols;
-    const colorData = p.colorData;
-    let currentMark = 'x';
-    let playerBoard = Array(solution.length).fill().map(() => Array(solution[0].length).fill(null));
-
-    const table = document.createElement('table');
-    table.className = 'nonogram-table';
-
-    function updateTable() {
-      table.innerHTML = '';
-
-      for (let r = -1; r < solution.length; r++) {
-        const tr = document.createElement('tr');
-        for (let c = -1; c < solution[0].length; c++) {
-          const td = document.createElement('td');
-          td.style.width = '32px';
-          td.style.height = '32px';
-          td.style.textAlign = 'center';
-          td.style.fontSize = '12px';
-          td.style.border = '1px solid #ccc';
-
-          if (r === -1 && c === -1) {
-            td.style.background = '#f0f0f0';
-          } else if (r === -1 && c >= 0) {
-            td.innerHTML = (colHints[c] || []).join('<br>');
-            td.classList.add('hint-cell');
-          } else if (r >= 0 && c === -1) {
-            td.textContent = (rowHints[r] || []).join(' ');
-            td.classList.add('hint-cell');
-          } else {
-            const val = playerBoard[r][c];
-
-            if (val === 'x') {
-              if (solution[r][c] === 1) {
-                td.classList.add('cell-error-o');
-                td.style.background = colors[colorData[r][c]];
-              } else {
-                td.textContent = '×';
-                td.style.opacity = 0.2;
-              }
-            } else if (val === 'o') {
-              if (solution[r][c] === 1) {
-                td.classList.add('solution-cell');
-                td.style.background = colors[colorData[r][c]];
-              } else {
-                td.textContent = '×';
-                td.classList.add('cell-error-x');
-              }
-            }
-
-            if (val === null) {
-              td.addEventListener('mousedown', (e) => {
-                isMouseDown = true;
-                playerBoard[r][c] = currentMark;
-                updateTable();
-                e.preventDefault();
-              });
-              td.addEventListener('mouseover', () => {
-                if (isMouseDown) {
-                  playerBoard[r][c] = currentMark;
-                  updateTable();
-                }
-              });
-              td.addEventListener('click', () => {
-                playerBoard[r][c] = currentMark;
-                updateTable();
-              });
-            }
-          }
-
-          tr.appendChild(td);
-        }
-        table.appendChild(tr);
+    puzzle = {
+      ...data,
+      solution: JSON.parse(data.solution),
+      hintRows: JSON.parse(data.hintRows),
+      hintCols: JSON.parse(data.hintCols),
+      colorData: JSON.parse(data.colorData),
+    };
+    if (data.colorPalette) {
+      try {
+        window.colors = JSON.parse(data.colorPalette);
+      } catch (e) {
+        console.warn("Lỗi parse colorPalette:", e);
       }
     }
+  }
 
-    const toggleDiv = document.createElement('div');
+  const solution = puzzle.solution;
+  const rowHints = puzzle.hintRows;
+  const colHints = puzzle.hintCols;
+  const colorData = puzzle.colorData;
+  const colors = window.colors || ['#ffffff', '#000000', '#008000', '#0000ff', '#ffff00', '#800080', '#ffa600'];
+  let currentMark = 'o';
+  let errorCount = 0;
+  let errorMarked = Array(solution.length).fill().map(() => Array(solution[0].length).fill(false));
+  const maxErrors = 5;
+  let solved = false;
+  let isMouseDown = false;
+
+  const playerBoard = Array(solution.length).fill().map(() => Array(solution[0].length).fill(null));
+  let alreadyGuessed = false;
+
+  if (viewOnly) {
+    for (let r = 0; r < solution.length; r++) {
+      for (let c = 0; c < solution[0].length; c++) {
+        playerBoard[r][c] = solution[r][c] === 1 ? 'o' : 'x';
+      }
+    }
+    if (username && puzzle.id) {
+      const doc = await window.db.collection("nonogramSolved").doc(`${username}-${puzzle.id}`).get();
+      if (doc.exists) alreadyGuessed = doc.data().guessedCreator || false;
+    }
+  }
+
+  const playArea = document.getElementById('playArea');
+  playArea.innerHTML = '';
+
+  const resultDiv = document.createElement('div');
+  resultDiv.className = 'puzzle-result';
+  const guessWrapper = document.createElement('div');
+  guessWrapper.className = 'guess-wrapper';
+
+  const toggleDiv = document.createElement('div');
+  if (!viewOnly) {
     toggleDiv.style.marginBottom = '12px';
     toggleDiv.innerHTML = `
       <span>Đánh dấu: </span>
-      <button id="markX" class="tab-mark selected">×</button>
-      <button id="markO" class="tab-mark">O</button>
+      <button id="markO" class="tab-mark selected">O</button>
+      <button id="markX" class="tab-mark">×</button>
     `;
     const btnX = toggleDiv.querySelector('#markX');
     const btnO = toggleDiv.querySelector('#markO');
@@ -460,19 +439,192 @@ function startGame(id) {
       btnO.classList.add('selected');
       btnX.classList.remove('selected');
     };
-	
-    const playArea = document.getElementById('playArea');
-    playArea.innerHTML = '';
     playArea.appendChild(toggleDiv);
-    playArea.appendChild(table);
+  }
 
+  const table = document.createElement('table');
+  table.className = 'nonogram-table';
+
+  function checkCompletion() {
+    for (let r = 0; r < solution.length; r++) {
+      for (let c = 0; c < solution[0].length; c++) {
+        if (solution[r][c] === 1 && playerBoard[r][c] !== 'o') return false;
+      }
+    }
+    return errorCount < maxErrors;
+  }
+
+  async function handleSolved() {
+    if (solved) return;
+    solved = true;
+    resultDiv.innerHTML = '';
+    guessWrapper.innerHTML = '';
+
+    for (let r = 0; r < solution.length; r++) {
+      for (let c = 0; c < solution[0].length; c++) {
+        if (solution[r][c] === 0 && playerBoard[r][c] === null) {
+          playerBoard[r][c] = 'x';
+        }
+      }
+    }
     updateTable();
-    window.addEventListener('mouseup', () => { isMouseDown = false; });
 
-    document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
-    document.getElementById('play').style.display = 'block';
-    document.getElementById('playTitle').innerText = p.title;
-  });
+    const coverUrl = generatePreviewImageFromBoard();
+    await window.db.collection('nonogramSolved').doc(`${username}-${puzzle.id}`).set({
+      solved: true,
+      timestamp: new Date().toISOString(),
+      coverUrl
+    }, { merge: true });
+
+    if (username && !viewOnly) {
+      await window.db.collection('userScores').doc(`${username}-nonogram`).set({
+        username,
+        game: 'nonogram',
+        score: firebase.firestore.FieldValue.increment(10),
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    }
+
+    if (puzzle.message) {
+      const msg = document.createElement('p');
+      msg.innerHTML = `<b>${puzzle.message}</b>`;
+      resultDiv.appendChild(msg);
+    }
+
+    const doc = await window.db.collection("nonogramSolved").doc(`${username}-${puzzle.id}`).get();
+    alreadyGuessed = doc.exists && doc.data().guessedCreator;
+
+    if (puzzle.creator && !alreadyGuessed) {
+      const label = document.createElement('p');
+      label.textContent = 'Đoán tên người gửi lời nhắn:';
+      const input = document.createElement('input');
+      input.placeholder = 'Nhập tên người tạo';
+      const button = document.createElement('button');
+      button.textContent = 'Gửi';
+      button.onclick = async () => {
+        const guess = input.value.trim().toLowerCase();
+        const actual = puzzle.creator.trim().toLowerCase();
+        if (guess === actual) {
+          alert('✅ Đoán đúng! +5 điểm');
+          await window.db.collection('userScores').doc(`${username}-nonogram`).set({
+            username,
+            game: 'nonogram',
+            score: firebase.firestore.FieldValue.increment(5),
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+          await window.db.collection('nonogramSolved').doc(`${username}-${puzzle.id}`).set({
+            guessedCreator: true
+          }, { merge: true });
+          startGame(puzzle.id, true);
+        } else {
+          alert('❌ Sai rồi, thử lại nha!');
+        }
+      };
+      guessWrapper.append(label, input, button);
+    }
+    playArea.append(resultDiv, guessWrapper);
+  }
+
+  function generatePreviewImageFromBoard() {
+    const cellSize = 12;
+    const canvas = document.createElement('canvas');
+    canvas.width = solution[0].length * cellSize;
+    canvas.height = solution.length * cellSize;
+    const ctx = canvas.getContext('2d');
+    for (let r = 0; r < solution.length; r++) {
+      for (let c = 0; c < solution[0].length; c++) {
+        ctx.fillStyle = playerBoard[r][c] === 'o' ? (colors[colorData[r][c]] || '#000') : '#fff';
+        ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+        ctx.strokeStyle = '#000';
+        ctx.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
+      }
+    }
+    return canvas.toDataURL('image/png');
+  }
+
+  function updateTable() {
+    table.innerHTML = '';
+    for (let r = -1; r < solution.length; r++) {
+      const tr = document.createElement('tr');
+      for (let c = -1; c < solution[0].length; c++) {
+        const td = document.createElement('td');
+        td.style.width = '32px';
+        td.style.height = '32px';
+        td.style.textAlign = 'center';
+        td.style.fontSize = '12px';
+        td.style.border = '1px solid #ccc';
+        if (r === -1 && c === -1) td.style.background = '#f0f0f0';
+        else if (r === -1) td.innerHTML = (colHints[c] || []).join('<br>');
+        else if (c === -1) td.innerHTML = (rowHints[r] || []).join(' ');
+        else {
+          const mark = playerBoard[r][c];
+          const filled = solution[r][c] === 1;
+          const color = colors[colorData[r][c]];
+          if (mark === 'x') {
+            if (filled && !viewOnly && !errorMarked[r][c]) {
+              errorCount++;
+              errorMarked[r][c] = true;
+              if (errorCount >= maxErrors) return startGame(puzzle.id, false);
+            }
+            td.textContent = '×';
+            td.style.opacity = 0.2;
+          } else if (mark === 'o') {
+            if (filled) {
+              td.style.background = color;
+              td.classList.add('solution-cell');
+            } else if (!viewOnly && !errorMarked[r][c]) {
+              errorCount++;
+              errorMarked[r][c] = true;
+              if (errorCount >= maxErrors) return startGame(puzzle.id, false);
+              td.textContent = '×';
+              td.classList.add('cell-error-x');
+            }
+          }
+          if (!viewOnly && !solved) {
+            td.addEventListener('mousedown', (e) => {
+              isMouseDown = true;
+              playerBoard[r][c] = currentMark;
+              updateTable();
+              if (!solved && checkCompletion()) handleSolved();
+              e.preventDefault();
+            });
+            td.addEventListener('mouseover', (e) => {
+              if (isMouseDown) {
+                playerBoard[r][c] = currentMark;
+                updateTable();
+                if (!solved && checkCompletion()) handleSolved();
+                e.preventDefault();
+              }
+            });
+            td.addEventListener('mouseup', () => isMouseDown = false);
+            td.addEventListener('click', () => {
+              playerBoard[r][c] = currentMark;
+              updateTable();
+              if (!solved && checkCompletion()) handleSolved();
+            });
+          }
+        }
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    }
+  }
+
+  document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
+  document.getElementById('play').style.display = 'block';
+
+  let showCreator = viewOnly;
+  if (username && puzzle.id) {
+    const doc = await window.db.collection("nonogramSolved").doc(`${username}-${puzzle.id}`).get();
+    if (doc.exists && doc.data().guessedCreator) showCreator = true;
+  }
+  const solvedDoc = await window.db.collection("nonogramSolved").doc(`${username}-${puzzle.id}`).get();
+  const guessed = solvedDoc.exists && solvedDoc.data().guessedCreator;
+  document.getElementById('playTitle').innerText = `${puzzle.title}${(guessed ? ` — ${puzzle.creator}` : '')}`;
+
+  playArea.append(table, resultDiv, guessWrapper);
+  updateTable();
+  if (viewOnly && checkCompletion()) handleSolved();
 }
 
 async function checkAndFixFirestoreData() {

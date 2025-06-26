@@ -110,6 +110,7 @@ td.hint-cell {
   color: red;
   font-weight: bold;
 }
+
 .cell-error-o {
   border: 2px solid red;
   box-shadow: 0 0 4px red;
@@ -164,17 +165,25 @@ button.submit:hover {
   gap: 16px;
   padding: 10px;
 }
+
 .album-grid .card {
-  background: #f9f9f9;
+  background: white;
   border-radius: 10px;
   padding: 12px;
   box-shadow: 0 2px 6px #ddd;
   text-align: center;
 }
+
 .album-grid .card img {
-  width: 100%;
-  border-radius: 6px;
+  width: 100px !important;
+  height: 100px !important;
+  object-fit: contain !important;
+  display: block;
+  margin: 0 auto;
+  border-radius: 8px;
+  background-color: white;
 }
+
 .album-grid .card p {
   margin: 8px 0;
   font-weight: bold;
