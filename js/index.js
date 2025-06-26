@@ -279,7 +279,7 @@ async function loadLeaderboard(game) {
         return;
     }
 
-    let html = `<h3>Bảng xếp hạng</h3>`; // Start with the header
+    let html = `<h3>Bảng xếp hạng</h3>`;
 
     const scoresRef = firebase.firestore().collection("userScores");
 
