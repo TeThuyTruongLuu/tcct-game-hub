@@ -18,12 +18,12 @@ let shuffleCount = currentLevel === 0 ? 3 : 10;
 //Khai báo các hằng (Ảnh, bảng, setting, nhạc, levels)
 const imageFolderPath = "../matching_game/images/";
 const imageNames = [
-    "Cá Dụ 1.png", "Cáo Diệp 1.png", "Cáo tuyết Lam 1.png", "Cao.jpg", "Chu.jpg", "Chung.jpg",
-    "Chuột Duệ 1.png", "Corgi Lư 1.png", "Cú An 1.png", "Cún bự Bao 1.png", "Cún La 1.png", 
-    "Cụt Chu 1.png", "Diệp.jpg", "Đới.jpg", "Dụ 2.jpg", "Duệ.jpg", "Giang.jpg", "Hạ.jpg", 
-    "Hải ly Quan 1.png", "Hamster Tranh 1.png", "Hàn.jpg", "Hổ con Tống 1.png", "Hổ Hàn 1.png", 
-    "Hổ trắng Lâu 1.png", "Hoàng.jpg", "Khưu.jpg", "Kiều.jpg", "Lạc.jpg", "Lam.jpg", "Lâm.jpg",
-    "Lão cẩu Ngụy 1.png", "Lâu.jpg", "Linh miêu bự Phương 1.png", "Lư.jpg", "Lý.jpg", "Mèo Nhu 1.png"
+    "Cá Dụ 1.webp", "Cáo Diệp 1.webp", "Cáo tuyết Lam 1.webp", "Cao.webp", "Chu.webp", "Chung.webp",
+    "Chuột Duệ 1.webp", "Corgi Lư 1.webp", "Cú An 1.webp", "Cún bự Bao 1.webp", "Cún La 1.webp", 
+    "Cụt Chu 1.webp", "Diệp.webp", "Đới.webp", "Dụ 2.webp", "Duệ.webp", "Giang.webp", "Hạ.webp", 
+    "Hải ly Quan 1.webp", "Hamster Tranh 1.webp", "Hàn.webp", "Hổ con Tống 1.webp", "Hổ Hàn 1.webp", 
+    "Hổ trắng Lâu 1.webp", "Hoàng.webp", "Khưu.webp", "Kiều.webp", "Lạc.webp", "Lam.webp", "Lâm.webp",
+    "Lão cẩu Ngụy 1.webp", "Lâu.webp", "Linh miêu bự Phương 1.webp", "Lư.webp", "Lý.webp", "Mèo Nhu 1.webp"
 ];
 
 const gameBoard = document.getElementById("game-board");
@@ -649,14 +649,23 @@ function checkGameOver() {
         updateScoreUI();
         alert(`🎉 Hết game! Bạn nhận được ${bonus} điểm thưởng. Tổng điểm: ${playerScore}`);
         
-        if (currentLevel === 0) {
-            localStorage.setItem("savedLevel", 1);
-            localStorage.setItem("savedScore", playerScore);
-            loadLevel(1);
-			alert("Nhấn reset khi vừa vào level Max để load lại bảng!");
-        } else {
-            alert("🎉 Bạn đã hoàn thành toàn bộ game!");
-        }
+		//Testplay 
+//        if (currentLevel === 0) {
+//            localStorage.setItem("savedLevel", 1);
+//            localStorage.setItem("savedScore", playerScore);
+//            loadLevel(1);
+//			alert("Nhấn reset khi vừa vào level Max để load lại bảng!");
+//        } else {
+//            alert("🎉 Bạn đã hoàn thành toàn bộ game!");
+//        }
+
+		if (currentLevel === 0) {
+			stopTimer();
+			alert("🎉 Mừng bạn đã hoàn thành demo. Bạn đạt tổng điểm: " + playerScore);
+			saveScoreToDB("Nối hình", playerScore);
+			return;
+		}
+
     }
 }
 
