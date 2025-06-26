@@ -501,7 +501,7 @@ async function startGame(id, viewOnly = false) {
     if (username && !viewOnly) {
       await window.db.collection('userScores').doc(`${username}-nonogram`).set({
         username,
-        game: 'nonogram',
+        game: 'Nonogram',
         score: firebase.firestore.FieldValue.increment(10),
         updatedAt: new Date().toISOString()
       }, { merge: true });
