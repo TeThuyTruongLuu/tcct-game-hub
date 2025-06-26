@@ -228,29 +228,36 @@ function createBoard() {
     gameBoard.style.display = "grid";
     gameBoard.style.gridTemplateColumns = `repeat(${boardSize.cols}, ${tileSize}px)`;
     gameBoard.style.gridTemplateRows = `repeat(${boardSize.rows}, ${tileSize}px)`;
-        
+
+    // Đồng bộ tileSize với kích thước thực tế của tile
+    const sampleTile = document.createElement("div");
+    sampleTile.classList.add("tile");
+    gameBoard.appendChild(sampleTile);
+    const tileRect = sampleTile.getBoundingClientRect();
+    tileSize = Math.min(tileRect.width, tileRect.height); // Cập nhật tileSize
+    gameBoard.removeChild(sampleTile);
+
     for (let row = 0; row < boardSize.rows; row++) {
         board[row] = [];
         for (let col = 0; col < boardSize.cols; col++) {
             const tile = document.createElement("div");
             tile.classList.add("tile");
-			tile.dataset.row = row;
+            tile.dataset.row = row;
             tile.dataset.col = col;
-                
+
             if (row === 0 || row === boardSize.rows - 1 || col === 0 || col === boardSize.cols - 1) {
                 tile.classList.add("hidden");
                 board[row][col] = { element: tile, x: col * tileSize + tileSize / 2, y: row * tileSize + tileSize / 2, hidden: true };
             } else {
-
                 const centerX = col * tileSize + tileSize / 2;
                 const centerY = row * tileSize + tileSize / 2;
                 board[row][col] = { element: tile, x: centerX, y: centerY, hidden: false };
-                    
+
                 const img = document.createElement("img");
                 img.style.width = "100%";
                 img.style.height = "100%";
                 tile.appendChild(img);
-                    
+
                 tile.addEventListener("click", () => handleTileClick(row, col));
             }
             gameBoard.appendChild(tile);
@@ -487,7 +494,7 @@ function pathIntersectsOnlyHiddenTiles(path) {
 function drawConnection(path) {
     let lineContainer = document.createElement("div");
     lineContainer.classList.add("line-container");
-    document.body.appendChild(lineContainer);
+    gameBoard.appendChild(lineContainer); // Gắn vào gameBoard thay vì body để tọa độ tương đối
 
     let boardRect = gameBoard.getBoundingClientRect();
 
@@ -498,74 +505,32 @@ function drawConnection(path) {
         let tile1 = board[row1][col1].element.getBoundingClientRect();
         let tile2 = board[row2][col2].element.getBoundingClientRect();
 
-        let x1 = ((tile1.left + tileSize / 2) / window.innerWidth) * 100;		
-		let y1 = ((tile1.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.03 : boardRect.top)) / window.innerWidth) * 100;
-        
-		let x2 = ((tile2.left + tileSize / 2) / window.innerWidth) * 100;
-		let y2 = ((tile2.top + tileSize / 2 + (window.innerWidth < 700 ? boardRect.top*0.03 : boardRect.top)) / window.innerWidth) * 100;
+        // Tính toán tọa độ trung tâm của tile trong pixel, tương đối với gameBoard
+        let x1 = tile1.left + tile1.width / 2 - boardRect.left;
+        let y1 = tile1.top + tile1.height / 2 - boardRect.top;
+        let x2 = tile2.left + tile2.width / 2 - boardRect.left;
+        let y2 = tile2.top + tile2.height / 2 - boardRect.top;
 
         let line = document.createElement("div");
         line.classList.add("line");
 
         if (row1 === row2) { // Đường ngang
-            line.style.width = `${Math.abs(x2 - x1)}vw`;
-            line.style.height = "0.4vw";
-            line.style.left = `${Math.min(x1, x2)}vw`;
-            line.style.top = `${y1 - 0.35}vw`;
+            line.style.width = `${Math.abs(x2 - x1)}px`;
+            line.style.height = currentLevel === 0 ? "4px" : "3px";
+            line.style.left = `${Math.min(x1, x2)}px`;
+            line.style.top = `${y1}px`;
         } else if (col1 === col2) { // Đường dọc
-            line.style.width = "0.4vw";
-            line.style.height = `${Math.abs(y2 - y1)}vw`;
-            line.style.left = `${x1 - 0.35}vw`;
-            line.style.top = `${Math.min(y1, y2)}vw`;
+            line.style.width = currentLevel === 0 ? "4px" : "3px";
+            line.style.height = `${Math.abs(y2 - y1)}px`;
+            line.style.left = `${x1}px`;
+            line.style.top = `${Math.min(y1, y2)}px`;
         }
 
         lineContainer.appendChild(line);
     }
 
     setTimeout(() => lineContainer.remove(), 1000);
-} 
-
-function drawConnectionUpdated(path) {
-    let lineContainer = document.createElement("div");
-    lineContainer.classList.add("line-container");
-    document.body.appendChild(lineContainer);
-
-    let boardRect = gameBoard.getBoundingClientRect();
-
-    for (let i = 0; i < path.length - 1; i++) {
-        let [row1, col1] = path[i];
-        let [row2, col2] = path[i + 1];
-
-        let tile1 = board[row1][col1].element.getBoundingClientRect();
-        let tile2 = board[row2][col2].element.getBoundingClientRect();
-
-        let x1 = ((tile1.left + tileSize / 2) / window.innerWidth) * 100;
-        let y1 = ((tile1.top + tileSize / 2 + boardRect.top*4.5) / window.innerWidth) * 100;
-        let x2 = ((tile2.left + tileSize / 2) / window.innerWidth) * 100;
-        let y2 = ((tile2.top + tileSize / 2 + boardRect.top*4.5) / window.innerWidth) * 100;
-		
-
-        let line = document.createElement("div");
-        line.classList.add("line2");
-
-        if (row1 === row2) { // Đường ngang
-            line.style.width = `${Math.abs(x2 - x1)}vw`;
-            line.style.height = "0.3vw";
-            line.style.left = `${Math.min(x1, x2)}vw`;
-            line.style.top = `${y1 - 0.35}vw`;
-        } else if (col1 === col2) { // Đường dọc
-            line.style.width = "0.4vw";
-            line.style.height = `${Math.abs(y2 - y1)}vw`;
-            line.style.left = `${x1 - 0.35}vw`;
-            line.style.top = `${Math.min(y1, y2)}vw`;
-        }
-
-        lineContainer.appendChild(line);
-    }
-
-    setTimeout(() => lineContainer.remove(), 1000);
-} 
-
+}
 
 //Part 4: Xóa match, xóa select, update vị trí tile
 function removeMatchedTiles() {
@@ -605,8 +570,8 @@ function updateTilePositions() {
 
             if (!tile.hidden) {
                 let tileRect = tile.element.getBoundingClientRect();
-                tile.x = ((tileRect.left + tileSize / 2) - boardRect.left) / window.innerWidth * 100;
-                tile.y = ((tileRect.top + tileSize / 2) + boardRect.top) / window.innerHeight * 100;
+                tile.x = tileRect.left + tileRect.width / 2 - boardRect.left;
+                tile.y = tileRect.top + tileRect.height / 2 - boardRect.top;
             }
         }
     }

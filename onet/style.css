@@ -1,6 +1,6 @@
 @font-face {
-    font-family: 'AmpleSoft'; /* Tên bạn muốn đặt cho font */
-    src: url('../css/fonts/AmpleSoft.ttf') format('truetype'); /* Đường dẫn đến file font */
+    font-family: 'AmpleSoft';
+    src: url('../css/fonts/AmpleSoft.ttf') format('truetype');
 }
 
 body {
@@ -30,7 +30,7 @@ p {
 }
 
 #shuffle-button {
-	font-family: AmpleSoft;
+    font-family: AmpleSoft;
     margin-top: 15px;
     padding: 10px 20px;
     font-size: 18px;
@@ -48,9 +48,9 @@ p {
 }
 
 #reset-button {
-	font-family: AmpleSoft;
+    font-family: AmpleSoft;
     margin-top: 15px;
-	margin-left: 15px;
+    margin-left: 15px;
     padding: 10px 20px;
     font-size: 18px;
     font-weight: bold;
@@ -60,15 +60,15 @@ p {
     border-radius: 5px;
     cursor: pointer;
     transition: 0.3s;
-	display: inline block;
+    display: inline-block;
 }
 
 #reset-button:hover {
     background-color: #e64a19;
 }
 
-
 #game-board {
+    position: relative;
     display: grid;
     grid-gap: 0px;
     background: rgba(255, 255, 255, 0.2);
@@ -78,10 +78,9 @@ p {
     justify-content: center;
     align-items: center;
     max-width: 90vw;
-	height: max-content;
+    height: max-content;
     margin: auto;
-    position: relative;
-	grid-template-columns: repeat(90vw, minmax(calc(90vw / 30), 1fr));
+    grid-template-columns: repeat(90vw, minmax(calc(90vw / 30), 1fr));
 }
 
 .tile {
@@ -95,7 +94,7 @@ p {
     transition: box-shadow 0.2s;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
     position: relative;
-	align-items: center;
+    align-items: center;
 }
 
 .tile img {
@@ -104,7 +103,6 @@ p {
     object-fit: contain;
     border-radius: 2vw;
 }
-
 
 .tile:hover {
     box-shadow: 0px 0px 15px rgba(255, 235, 59, 0.8);
@@ -123,17 +121,18 @@ p {
 .line {
     position: absolute;
     background-color: #FF5733;
-    height: 4px;
     border-radius: 2px;
     transition: all 0.3s ease-in-out;
     box-shadow: 0px 0px 10px rgba(255, 87, 51, 0.8);
-    left: 0;
-    top: 0;
-    transform-origin: center;
 }
 
-.line2 {
-	opacity: 0;
+.line-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
 
 #settings-modal {
@@ -152,12 +151,11 @@ p {
     z-index: 1000;
 }
 
-/* Căn giữa nội dung bên trong */
 #settings-content {
     display: flex;
     flex-direction: column;
-    align-items: center;  /* Căn giữa theo chiều ngang */
-    justify-content: center;  /* Căn giữa theo chiều dọc */
+    align-items: center;
+    justify-content: center;
     width: 100%;
 }
 
@@ -181,7 +179,7 @@ p {
 }
 
 #play-music, #stop-music {
-	font-family: AmpleSoft;
+    font-family: AmpleSoft;
     padding: 8px 16px;
     font-size: 16px;
     border: none;
@@ -213,7 +211,7 @@ p {
     position: absolute;
     top: 10px;
     right: 10px;
-	font-family: AmpleSoft;
+    font-family: AmpleSoft;
     font-size: 20px;
     color: red;
     background: none;
@@ -228,7 +226,6 @@ p {
     transition: all 0.3s ease-in-out;
 }
 
-
 #settings-btn {
     width: 50px;
     height: 50px;
@@ -242,89 +239,69 @@ p {
     transition: background-color 0.3s ease-in-out;
 }
 
-/* Icon bên trong */
 #settings-icon {
     width: 80%;
     height: auto;
-	object-fit: contain;
+    object-fit: contain;
 }
 
-/* Hover: đổi màu */
 #settings-btn:hover {
     background: #3e4043;
 }
 
-
-/* Đảm bảo modal hiển thị đúng trên màn hình nhỏ */
 @media (max-width: 700px) {
-	#settings-btn {
-		width: 6vw;
-		height: 6vw;
-	}
-	#settings-icon {
-		width: 4vw;
-		height: 4vw;
-	}
+    #settings-btn {
+        width: 6vw;
+        height: 6vw;
+    }
+    #settings-icon {
+        width: 4vw;
+        height: 4vw;
+    }
     #settings-modal {
-		top: 40vw;
+        top: 40vw;
         width: 70%;
     }
-	#play-music, #stop-music {
-		font-size: 4vw;
-	}
+    #play-music, #stop-music {
+        font-size: 4vw;
+    }
     .line {
-		position: absolute;
-        border-radius: 1vw;
-        box-shadow: 0px 0px 2vw rgba(255, 87, 51, 0.8);
-		transform: translateX(-0.5vw);
+        border-radius: 1px;
+        box-shadow: 0px 0px 2px rgba(255, 87, 51, 0.8);
     }
     body {
         padding: 5vw;
     }
-
     h1 {
         font-size: 6vw;
         margin-bottom: 2vw;
     }
-
     p, #reset-button, #shuffle-button {
         font-size: 4vw;
         margin: 1vw 0;
     }
-
-	#reset-button {
-		margin-left: 2vw;
-	}
-	
+    #reset-button {
+        margin-left: 2vw;
+    }
     #game-board {
         width: 90vw;
-		max-width: 90vw;
+        max-width: 90vw;
         display: grid;
         grid-gap: 0px;
         border-radius: 3vw;
         box-shadow: 0px 0.2vw 0.2vw rgba(0, 0, 0, 0.2);
-        grid-template-columns: repeat(90vw, minmax(calc(90vw / 30), 1fr)); /* 🔥 Chia cột theo số lượng hợp lý */
-		height: max-content;
+        grid-template-columns: repeat(90vw, minmax(calc(90vw / 30), 1fr));
+        height: max-content;
     }
-
     .tile {
-        width: 95%; /* 🔥 Tự động điều chỉnh kích thước theo số cột */
+        width: 95%;
         height: 95%;
         border-radius: 1vw;
         font-size: 0.1vw;
     }
-
     .tile img {
         width: 100%;
         height: 100%;
         border-radius: 2vw;
-    }
-}
-
-
-
-@media (max-width: 700px) and (orientation: landscape) {
-    .line {
-		opacity: 0;
     }
 }
