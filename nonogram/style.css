@@ -1,10 +1,15 @@
+/* Reset & base */
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: 'Quicksand', sans-serif;
   background: #fff5f7;
-  color: black;
+  color: #000;
+  margin: 0 auto;
   padding: 40px 20px;
   max-width: 800px;
-  margin: auto;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -29,6 +34,7 @@ nav button:hover {
   background: #ffd1e3;
 }
 
+/* Controls */
 #controls button {
   background: #bae8e8;
   border: none;
@@ -42,9 +48,10 @@ nav button:hover {
   background: #a0d8d8;
 }
 
+/* Palette */
 .color-picker {
-  justify-content: center;
   display: flex;
+  justify-content: center;
   gap: 8px;
   margin-top: 10px;
 }
@@ -59,20 +66,19 @@ nav button:hover {
   outline: 2px solid #f18bb1;
 }
 
+/* Tables */
 table {
   border-collapse: collapse;
-  margin: 0 auto;
-  margin-top: 10px;
+  margin: 10px auto 0;
 }
 td {
   border: 1px solid #ccc;
-  vertical-align: middle;
-  text-align: center;
   padding: 2px;
+  text-align: center;
+  vertical-align: middle;
   font-size: 12px;
   line-height: 1.1;
 }
-
 td.hint-cell {
   font-size: 10px;
   line-height: 1.2;
@@ -85,71 +91,94 @@ td.hint-cell {
   width: 32px;
   height: 32px;
   border: 1px solid #999;
-  padding: 2px;
-  text-align: center;
-  vertical-align: middle;
 }
-
 .nonogram-table td.hint-cell {
   font-size: 12px;
   font-weight: bold;
   opacity: 0.7;
 }
-
 .nonogram-table td.solution-cell {
-  opacity: 1;
   box-shadow: inset 0 0 3px #00000022;
 }
-
 .nonogram-table td.error-cell {
   background-color: #ff0000;
   opacity: 0.7;
 }
-
 .cell-error-x {
   color: red;
   font-weight: bold;
 }
-
 .cell-error-o {
   border: 2px solid red;
   box-shadow: 0 0 4px red;
 }
 
-button {
+/* Buttons */
+button,
+button.preview,
+button.submit {
   font-family: 'Quicksand', sans-serif;
-}
-button.preview, button.submit {
-  background: #fcd34d;
-  border: none;
   border-radius: 6px;
-  padding: 10px 16px;
-  margin: 10px 5px;
+  border: none;
   font-weight: bold;
   cursor: pointer;
   transition: background 0.3s;
+}
+button.preview {
+  background: #fcd34d;
+  padding: 10px 16px;
+  margin: 10px 5px;
 }
 button.preview:hover {
   background: #fbbf24;
 }
 button.submit {
   background: #60a5fa;
+  padding: 10px 16px;
+  margin: 10px 5px;
 }
 button.submit:hover {
   background: #3b82f6;
 }
 
-#creatorName, #creatorMessage {
-  margin-top: 10px;
-  margin-bottom: 12px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-family: 'Quicksand', sans-serif;
+/* Guess */
+.guess-box {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.guess-select {
   width: 80%;
-  max-width: 400px;
+  max-width: 300px;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+.guess-button {
+  background: #60a5fa;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+.guess-button:hover {
+  background: #3b82f6;
 }
 
+/* Input fields */
+#creatorName,
+#creatorMessage {
+  width: 80%;
+  max-width: 400px;
+  margin: 10px auto;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* Preview */
 #previewArea {
   margin-top: 20px;
 }
@@ -159,13 +188,13 @@ button.submit:hover {
   border-radius: 6px;
 }
 
+/* Album */
 .album-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 16px;
   padding: 10px;
 }
-
 .album-grid .card {
   background: white;
   border-radius: 10px;
@@ -173,17 +202,15 @@ button.submit:hover {
   box-shadow: 0 2px 6px #ddd;
   text-align: center;
 }
-
 .album-grid .card img {
-  width: 100px !important;
-  height: 100px !important;
-  object-fit: contain !important;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
   display: block;
   margin: 0 auto;
   border-radius: 8px;
-  background-color: white;
+  background: white;
 }
-
 .album-grid .card p {
   margin: 8px 0;
   font-weight: bold;
@@ -202,14 +229,46 @@ button.submit:hover {
   background: #3b82f6;
 }
 
+/* Tabs */
 .tab-mark {
   padding: 6px 12px;
   margin: 0 4px;
   border-radius: 6px;
-  border: none;
   background: #eee;
   cursor: pointer;
 }
 .tab-mark.selected {
   background: #fcd34d;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  body {
+    padding: 20px 10px;
+  }
+
+  nav button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  #controls button,
+  button.preview,
+  button.submit,
+  .guess-button {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .color-picker {
+    flex-wrap: wrap;
+  }
+
+  .guess-box {
+    flex-direction: column;
+  }
+
+  .album-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
 }

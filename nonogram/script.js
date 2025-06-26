@@ -1,10 +1,18 @@
 let data = [], sizeR = 10, sizeC = 10, selectedColor = 1;
 const colors = ['#ffffff', '#000000', '#008000', '#0000ff', '#ffff00', '#800080', '#ffa600'];
 let isMouseDown = false;
-document.addEventListener('mouseup', () => {
+
+document.addEventListener('pointerdown', (e) => {
+  if (e.button === 0) isMouseDown = true;
+});
+
+document.addEventListener('pointerup', () => {
   isMouseDown = false;
 });
 
+document.addEventListener('pointercancel', () => {
+  isMouseDown = false;
+});
 
 const puzzles = [];
 const { FieldValue } = firebase.firestore;
@@ -89,23 +97,26 @@ function updateGrid() {
       td.style.cursor = 'pointer';
       td.style.width = '24px';
       td.style.height = '24px';
-      td.addEventListener('mousedown', (e) => {
-        isMouseDown = true;
-        data[r][c] = selectedColor;
-        td.style.background = colors[selectedColor];
-        e.preventDefault();
-      });
+      td.dataset.row = r;
+      td.dataset.col = c;
 
-      td.addEventListener('mouseover', () => {
-        if (isMouseDown) {
+      td.addEventListener('pointerdown', (e) => {
+        if (e.button === 0) {
+          isMouseDown = true;
           data[r][c] = selectedColor;
           td.style.background = colors[selectedColor];
+          e.preventDefault();
         }
       });
 
-      td.addEventListener('mouseup', () => {
-        isMouseDown = false;
+      td.addEventListener('pointermove', (e) => {
+        if (isMouseDown) {
+          data[r][c] = selectedColor;
+          td.style.background = colors[selectedColor];
+          e.preventDefault();
+        }
       });
+
       tr.appendChild(td);
     }
     table.appendChild(tr);
@@ -358,6 +369,18 @@ async function renderAlbum() {
   }
 }
 
+async function getCreatorsFromFirestore() {
+  const snapshot = await window.db.collection("approvedNonograms").get();
+  const creators = new Set();
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if (data.creator) {
+      creators.add(data.creator.trim());
+    }
+  });
+  return [...creators].sort();
+}
+
 async function startGame(id, viewOnly = false) {
   const username = localStorage.getItem("username");
   let puzzle = puzzles.find(p => p.id === id);
@@ -392,9 +415,8 @@ async function startGame(id, viewOnly = false) {
   let currentMark = 'o';
   let errorCount = 0;
   let errorMarked = Array(solution.length).fill().map(() => Array(solution[0].length).fill(false));
-  const maxErrors = 5;
+  const maxErrors = 10;
   let solved = false;
-  let isMouseDown = false;
 
   const playerBoard = Array(solution.length).fill().map(() => Array(solution[0].length).fill(null));
   let alreadyGuessed = false;
@@ -494,34 +516,49 @@ async function startGame(id, viewOnly = false) {
     const doc = await window.db.collection("nonogramSolved").doc(`${username}-${puzzle.id}`).get();
     alreadyGuessed = doc.exists && doc.data().guessedCreator;
 
-    if (puzzle.creator && !alreadyGuessed) {
-      const label = document.createElement('p');
-      label.textContent = 'Đoán tên người gửi lời nhắn:';
-      const input = document.createElement('input');
-      input.placeholder = 'Nhập tên người tạo';
-      const button = document.createElement('button');
-      button.textContent = 'Gửi';
-      button.onclick = async () => {
-        const guess = input.value.trim().toLowerCase();
-        const actual = puzzle.creator.trim().toLowerCase();
-        if (guess === actual) {
-          alert('✅ Đoán đúng! +5 điểm');
-          await window.db.collection('userScores').doc(`${username}-nonogram`).set({
-            username,
-            game: 'nonogram',
-            score: firebase.firestore.FieldValue.increment(5),
-            updatedAt: new Date().toISOString()
-          }, { merge: true });
-          await window.db.collection('nonogramSolved').doc(`${username}-${puzzle.id}`).set({
-            guessedCreator: true
-          }, { merge: true });
-          startGame(puzzle.id, true);
-        } else {
-          alert('❌ Sai rồi, thử lại nha!');
-        }
-      };
-      guessWrapper.append(label, input, button);
-    }
+	if (puzzle.creator && !alreadyGuessed) {
+	  const creators = await getCreatorsFromFirestore();
+
+	  const wrapper = document.createElement('div');
+	  wrapper.className = 'guess-box';
+
+	  const label = document.createElement('p');
+	  label.textContent = 'Đoán tên người gửi lời nhắn:';
+
+	  const select = document.createElement('select');
+	  select.className = 'guess-select';
+	  select.innerHTML = creators.map(name => `<option value="${name.toLowerCase()}">${name}</option>`).join('');
+
+	  const button = document.createElement('button');
+	  button.textContent = 'Gửi';
+	  button.className = 'guess-button';
+
+	  button.onclick = async () => {
+		const guess = select.value.trim().toLowerCase();
+		const actual = puzzle.creator.trim().toLowerCase();
+		if (guess === actual) {
+		  alert('✅ Đoán đúng! +5 điểm');
+		  await window.db.collection('userScores').doc(`${username}-nonogram`).set({
+			username,
+			game: 'nonogram',
+			score: firebase.firestore.FieldValue.increment(5),
+			updatedAt: new Date().toISOString()
+		  }, { merge: true });
+
+		  await window.db.collection('nonogramSolved').doc(`${username}-${puzzle.id}`).set({
+			guessedCreator: true
+		  }, { merge: true });
+
+		  startGame(puzzle.id, true);
+		} else {
+		  alert('❌ Sai rồi, thử lại nha!');
+		}
+	  };
+
+	  wrapper.append(label, select, button);
+	  guessWrapper.appendChild(wrapper);
+	}
+
     playArea.append(resultDiv, guessWrapper);
   }
 
@@ -560,54 +597,79 @@ async function startGame(id, viewOnly = false) {
           const mark = playerBoard[r][c];
           const filled = solution[r][c] === 1;
           const color = colors[colorData[r][c]];
-          if (mark === 'x') {
-            if (filled && !viewOnly && !errorMarked[r][c]) {
-              errorCount++;
-              errorMarked[r][c] = true;
-              if (errorCount >= maxErrors) return startGame(puzzle.id, false);
-            }
-            td.textContent = '×';
-            td.style.opacity = 0.2;
-          } else if (mark === 'o') {
-            if (filled) {
-              td.style.background = color;
-              td.classList.add('solution-cell');
-            } else if (!viewOnly && !errorMarked[r][c]) {
-              errorCount++;
-              errorMarked[r][c] = true;
-              if (errorCount >= maxErrors) return startGame(puzzle.id, false);
-              td.textContent = '×';
-              td.classList.add('cell-error-x');
-            }
-          }
-          if (!viewOnly && !solved) {
-            td.addEventListener('mousedown', (e) => {
-              isMouseDown = true;
-              playerBoard[r][c] = currentMark;
-              updateTable();
-              if (!solved && checkCompletion()) handleSolved();
-              e.preventDefault();
-            });
-            td.addEventListener('mouseover', (e) => {
-              if (isMouseDown) {
-                playerBoard[r][c] = currentMark;
-                updateTable();
-                if (!solved && checkCompletion()) handleSolved();
-                e.preventDefault();
-              }
-            });
-            td.addEventListener('mouseup', () => isMouseDown = false);
-            td.addEventListener('click', () => {
-              playerBoard[r][c] = currentMark;
-              updateTable();
-              if (!solved && checkCompletion()) handleSolved();
-            });
-          }
+			if (mark === 'x') {
+			  if (filled && !viewOnly) {
+				if (!errorMarked[r][c]) {
+				  errorCount++;
+				  errorMarked[r][c] = true;
+				  if (errorCount >= maxErrors) {
+					alert('Bồ đã hết mạng! Chơi lại từ đầu nhé.');
+					startGame(puzzle.id, false);
+					return;
+				  }
+				}
+				td.style.background = color;
+				td.classList.add('cell-error-o');
+			  } else {
+				td.textContent = '×';
+				td.style.opacity = 0.2;
+			  }
+			}
+
+			if (mark === 'o') {
+			  if (filled) {
+				td.style.background = color;
+				td.classList.add('solution-cell');
+			  } else if (!viewOnly) {
+				if (!errorMarked[r][c]) {
+				  errorCount++;
+				  errorMarked[r][c] = true;
+				  if (errorCount >= maxErrors) {
+					alert('Bồ đã hết mạng! Chơi lại từ đầu nhé.');
+					startGame(puzzle.id, false);
+					return;
+				  }
+				}
+				td.textContent = '×';
+				td.classList.add('cell-error-x');
+			  }
+			}
+
+		if (!viewOnly && !solved && playerBoard[r][c] === null) {
+				  td.dataset.row = r;
+				  td.dataset.col = c;
+				  td.addEventListener('pointerdown', (e) => {
+					if (e.button === 0) {
+					  isMouseDown = true;
+					  playerBoard[r][c] = currentMark;
+					  updateTable();
+					  e.preventDefault();
+					}
+				  });
+				  td.addEventListener('pointermove', (e) => {
+					if (isMouseDown) {
+					  playerBoard[r][c] = currentMark;
+					  updateTable();
+					  e.preventDefault();
+					}
+				  });
+				  td.addEventListener('pointerup', () => {
+					isMouseDown = false;
+					if (!solved && checkCompletion()) handleSolved();
+				  });
+				  td.addEventListener('pointercancel', () => {
+					isMouseDown = false;
+				  });
+				}
+		  
         }
         tr.appendChild(td);
       }
       table.appendChild(tr);
     }
+	if (!solved && checkCompletion()) {
+	  handleSolved();
+	}
   }
 
   document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
