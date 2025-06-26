@@ -1,18 +1,17 @@
-const characterImages = {}; // Lưu hình gán cho các giá trị tile
+const characterImages = {};
 const tileValues = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048];
 const gridSize = 5;
 let grid = [];
-let timer = 0; // Biến đếm thời gian
-let timerInterval; // Biến lưu interval để dừng/khởi động timer
+let timer = 0;
+let timerInterval;
 let timerStarted = false;
 let draggedImage = null;
-let touchStartX = 0; // Tọa độ X khi bắt đầu vuốt
-let touchStartY = 0; // Tọa độ Y khi bắt đầu vuốt
-let touchEndX = 0; // Tọa độ X khi kết thúc vuốt
-let touchEndY = 0; // Tọa độ Y khi kết thúc vuốt
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
 
-// Biến lưu trạng thái
-let youtubePlayer; // Player YouTube
+let youtubePlayer;
 let youtubeReady = false;
 let currentMusicSource = null;
 let playerScore = 0;
@@ -547,29 +546,27 @@ function compressAndMerge(line) {
 
 // Kiểm tra điều kiện thắng/thua
 function checkGameOver() {
-    // Kiểm tra còn ô trống hay không
     for (let i = 0; i < gridSize.rows; i++) {
         for (let j = 0; j < gridSize.cols; j++) {
-            if (grid[i][j] === 0) return false; // Còn ô trống, không thua
+            if (grid[i][j] === 0) return false;
         }
     }
 
-    // Kiểm tra có thể gộp ô không
     for (let i = 0; i < gridSize.rows; i++) {
         for (let j = 0; j < gridSize.cols; j++) {
-            if (j < gridSize.cols - 1 && grid[i][j] === grid[i][j + 1]) return false; // Gộp ngang
-            if (i < gridSize.rows - 1 && grid[i][j] === grid[i + 1][j]) return false; // Gộp dọc
+            if (j < gridSize.cols - 1 && grid[i][j] === grid[i][j + 1]) return false;
+            if (i < gridSize.rows - 1 && grid[i][j] === grid[i + 1][j]) return false;
         }
     }
 	
-    // Kiểm tra có ô nào đạt 2048 không
+    // Kiểm tra có ô nào đạt 2048 không (testplay => 128)
     for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col < gridSize; col++) {
-            if (grid[row][col] === 2048) {
+            if (grid[row][col] === 128) {
 				stopTimer();
 				const minutes = Math.floor(timer / 60);
 				const seconds = timer % 60;
-                alert(`Hooray! Chúc mừng bồ tu thành chính quả 2048 vẻ mặt sau ${formatTime(minutes)}:${formatTime(seconds)} bị bào mòn bởi tư bản!`);
+                alert(`Hooray! Chúc mừng bồ tu thành chính quả 128 vẻ mặt sau ${formatTime(minutes)}:${formatTime(seconds)} bị bào mòn bởi tư bản!`);
 				saveScoreToDB("2048", playerScore);
                 restartGame();
                 return;
@@ -577,7 +574,6 @@ function checkGameOver() {
         }
     }
 
-    // Kiểm tra còn nước đi nào không
     if (!canMove()) {
 		stopTimer();
 		stopMusic();
@@ -594,20 +590,20 @@ function checkGameOver() {
 function canMove() {
     for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col < gridSize; col++) {
-            if (grid[row][col] === 0) return true; // Còn ô trống
-            if (col < gridSize - 1 && grid[row][col] === grid[row][col + 1]) return true; // Có thể gộp ngang
-            if (row < gridSize - 1 && grid[row][col] === grid[row + 1][col]) return true; // Có thể gộp dọc
+            if (grid[row][col] === 0) return true;
+            if (col < gridSize - 1 && grid[row][col] === grid[row][col + 1]) return true;
+            if (row < gridSize - 1 && grid[row][col] === grid[row + 1][col]) return true;
         }
     }
-    return false; // Không còn nước đi
+    return false;
 }
 
 function checkWin() {
     for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col < gridSize; col++) {
-            if (grid[row][col] === 2048) {  // Ô giá trị cao nhất
+            if (grid[row][col] === 128) {  // Ô giá trị cao nhất (Testplay)
                 stopTimer();
-                alert(`🎉 Hooray! Chúc mừng bồ tu thành chính quả 2048 vẻ mặt sau ${formatTime(Math.floor(timer / 60))}:${formatTime(timer % 60)} bị bào mòn bởi tư bản!`);
+                alert(`🎉 Hooray! Chúc mừng bồ tu thành chính quả 128 vẻ mặt sau ${formatTime(Math.floor(timer / 60))}:${formatTime(timer % 60)} bị bào mòn bởi tư bản!`);
 				saveScoreToDB("2048", playerScore);
                 restartGame();
                 return true;
