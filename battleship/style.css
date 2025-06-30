@@ -61,8 +61,8 @@ h1 {
   overflow-x: auto;
   margin: 10px auto 0;
   display: grid;
-  grid-template-columns: repeat(20, 28px);
-  grid-template-rows: repeat(15, 28px);
+  grid-template-columns: repeat(10, 28px);
+  grid-template-rows: repeat(10, 28px);
   gap: 1px;
 }
 
