@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TCG Layout Combat Zone</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- PLAYER 2 -->
+  <div class="player-row top">
+    <div class="player-info">
+      <img src="img/avatar_p2.png" class="avatar">
+      <div class="score">22</div>
+    </div>
+
+    <div class="zone-col discard">
+      <div class="card small">Bỏ 1</div>
+      <div class="card small stacked">Bỏ 2</div>
+      <div class="card small stacked">Bỏ 3</div>
+    </div>
+
+    <div class="zone-col combat" id="opponent-combat">
+      <div class="slot" data-slot="0"></div>
+      <div class="slot" data-slot="1"></div>
+      <div class="slot" data-slot="2"></div>
+    </div>
+
+    <div class="zone-col right-side">
+      <div class="card tall">Bộ bài</div>
+      <div class="card wide">Phụ trợ</div>
+    </div>
+  </div>
+
+  <!-- PLAYER 1 -->
+  <div class="player-row bottom">
+    <div class="player-info">
+      <img src="img/avatar_p1.png" class="avatar">
+      <div class="score">17</div>
+    </div>
+
+    <div class="zone-col discard">
+      <div class="card small">Bỏ 1</div>
+      <div class="card small stacked">Bỏ 2</div>
+      <div class="card small stacked">Bỏ 3</div>
+    </div>
+
+    <div class="zone-col combat" id="player-combat">
+      <div class="slot" data-slot="0"></div>
+      <div class="slot" data-slot="1"></div>
+      <div class="slot" data-slot="2"></div>
+    </div>
+
+    <div class="zone-col right-side">
+      <div class="card tall">Bộ bài</div>
+      <div class="card wide">Phụ trợ</div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
