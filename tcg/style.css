@@ -197,3 +197,48 @@ body {
   transform: scale(2.2);
   z-index: 20;
 }
+
+/* Ẩn phần tử */
+.hidden {
+  display: none;
+}
+
+/* Giao diện lobby nền hồng mờ */
+#lobby {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(255, 192, 203, 0.95); /* pastel pink */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+#lobby input,
+#lobby button {
+  margin: 0.5rem;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.4rem;
+  border: none;
+}
+
+#lobby input {
+  width: 200px;
+}
+
+#lobby button {
+  background-color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#lobby.hidden {
+  opacity: 0;
+  pointer-events: none;
+  display: none;
+}
