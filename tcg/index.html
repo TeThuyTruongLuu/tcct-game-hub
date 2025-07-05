@@ -1,61 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>TCG Layout Combat Zone</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bàn chơi TCG</title>
+  <link rel="stylesheet" href="style.css" />
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="script.js"></script>
 </head>
 <body>
-  <!-- PLAYER 2 -->
-  <div class="player-row top">
-    <div class="player-info">
-      <img src="img/avatar_p2.png" class="avatar">
-      <div class="score">22</div>
-    </div>
+  <div class="play-area">
+	<div class="card-container" id="cardList"></div>
+    <!-- Góc trái trên -->
+    <div class="card-slot dashed z1p1"></div>
+    <div class="card-slot solid z2p1"></div>
+	<div class="card-slot solid z3p1"></div>
+	<div class="card-stack z4p1">
+	  <div class="card" style="--i: 0;"></div>
+	  <div class="card" style="--i: 1;"></div>
+	  <div class="card" style="--i: 2;"></div>
+	</div>
+	<div class="card-vstack z5p1" style="transform: rotate(90deg);">
+	  <div class="card" style="--i: 0"></div>
+	  <div class="card" style="--i: 1;"></div>
+	  <div class="card" style="--i: 2;"></div>
+	</div>
+	<div class="card-hand p1 dashed z6p1"></div>
 
-    <div class="zone-col discard">
-      <div class="card small">Bỏ 1</div>
-      <div class="card small stacked">Bỏ 2</div>
-      <div class="card small stacked">Bỏ 3</div>
-    </div>
+	<div class="line-group" style="transform: translateY(42vh);">
+	  <div class="line" style="width: 18%;"></div>
+	  <div class="line" style="width: 8%;"></div>
+	  <div class="line" style="width: 5%;"></div>
+	</div>
 
-    <div class="zone-col combat" id="opponent-combat">
-      <div class="slot" data-slot="0"></div>
-      <div class="slot" data-slot="1"></div>
-      <div class="slot" data-slot="2"></div>
-    </div>
+	<div class="line-group" style="transform: translateY(41vh) rotate(180deg);">
+	  <div class="line" style="width: 18%;"></div>
+	  <div class="line" style="width: 8%;"></div>
+	  <div class="line" style="width: 5%;"></div>
+	</div>
+	
+    <!-- Góc phải dưới -->
+    <div class="card-slot dashed z1p2"></div>
+    <div class="card-slot solid z2p2"></div>
+	<div class="card-slot solid z3p2"></div>
+	<div class="card-stack z4p2">
+	  <div class="card" style="--i: 0;"></div>
+	  <div class="card" style="--i: 1;"></div>
+	  <div class="card" style="--i: 2;"></div>
+	</div>
+	<div class="card-vstack z5p2" style="transform: rotate(90deg);">
+	  <div class="card" style="--i: 0"></div>
+	  <div class="card" style="--i: 1;"></div>
+	  <div class="card" style="--i: 2;"></div>
+	</div>
+	<div class="card-hand p2 dashed z6p2"></div>
 
-    <div class="zone-col right-side">
-      <div class="card tall">Bộ bài</div>
-      <div class="card wide">Phụ trợ</div>
-    </div>
   </div>
-
-  <!-- PLAYER 1 -->
-  <div class="player-row bottom">
-    <div class="player-info">
-      <img src="img/avatar_p1.png" class="avatar">
-      <div class="score">17</div>
-    </div>
-
-    <div class="zone-col discard">
-      <div class="card small">Bỏ 1</div>
-      <div class="card small stacked">Bỏ 2</div>
-      <div class="card small stacked">Bỏ 3</div>
-    </div>
-
-    <div class="zone-col combat" id="player-combat">
-      <div class="slot" data-slot="0"></div>
-      <div class="slot" data-slot="1"></div>
-      <div class="slot" data-slot="2"></div>
-    </div>
-
-    <div class="zone-col right-side">
-      <div class="card tall">Bộ bài</div>
-      <div class="card wide">Phụ trợ</div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
 </body>
 </html>

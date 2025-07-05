@@ -1,0 +1,56 @@
+[
+  {
+    "id": "TCG-JS-07",
+    "name": "Nhất Thương Xuyên Vân",
+    "char": "Chu Trạch Khải",
+    "main": 7,
+    "support": 2,
+    "skill": "Khi nhân vật này là chiến tướng, đưa 2 lá bài đầu từ tay đối thủ vào khu bỏ bài.",
+    "image": "img/1.jpg"
+  },
+  {
+    "id": "TCG-JS-05",
+    "name": "Vương Bất Lưu Hành",
+    "char": "Vương Kiệt Hi",
+    "main": 8,
+    "support": 1,
+    "skill": "Khi nhân vật này là chiến tướng, cả hai người chơi không thể sử dụng nhân vật có điểm hỗ trợ ≥ 2 để hỗ trợ.",
+    "image": "img/2.jpg"
+  },
+  {
+    "id": "TCG-JS-18",
+    "name": "Hàn Yên Nhu",
+    "char": "Đường Nhu",
+    "main": 6,
+    "support": 2,
+    "skill": "Khi nhân vật này hỗ trợ “Quân Mạc Tiếu”, điểm hỗ trợ +1.",
+    "image": "img/3.jpg"
+  },
+  {
+    "id": "TCG-JS-03",
+    "name": "Dạ Vũ Thanh Phiền",
+    "char": "Hoàng Thiếu Thiên",
+    "main": 6,
+    "support": 3,
+    "skill": "Khi nhân vật này là bài cuối, nếu chiến tướng là “Sách Khắc Tát Nhĩ”, điểm hỗ trợ +2.",
+    "image": "img/4.jpg"
+  },
+  {
+    "id": "TCG-JS-01",
+    "name": "Quân Mạc Tiếu",
+    "char": "Diệp Tu",
+    "main": 9,
+    "support": 1,
+    "skill": "Khi nhân vật này là chiến tướng, bạn sẽ được đặt thêm 1 lá bài úp.",
+    "image": "img/5.jpg"
+  },
+  {
+    "id": "TCG-JS-09",
+    "name": "Nhất Diệp Chi Thu",
+    "char": "Tôn Tường",
+    "main": 6,
+    "support": 2,
+    "skill": "Khi nhân vật này hỗ trợ, nếu số bài trong khu bỏ bài của đối thủ > của bạn, điểm hỗ trợ +2.",
+    "image": "img/6.jpg"
+  }
+]
