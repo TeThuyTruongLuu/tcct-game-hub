@@ -194,7 +194,11 @@ h1, h2 {
 }
 
 #youtubePlayer {
-    display: none; /* Ẩn video */
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    position: absolute;
+    left: -9999px;
 }
 
 #youtubeUrl {
