@@ -55,15 +55,12 @@ window.addEventListener("beforeunload", async function (event) {
     }
 });
 
-
-
-
-// Hàm tách video ID từ URL YouTube
 function extractYouTubeVideoID(url) {
-    const regex = /(?:https?:\/\/)?(?:www\.)?(youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]+)/;
+    const regex = /(?:youtube\.com\/.*[?&]v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const match = url.match(regex);
-    return match ? match[2] : null;
+    return match ? match[1] : null;
 }
+
 
 // Hàm xử lý chọn nhạc từ dropdown
 function handleMusicSelection() {
