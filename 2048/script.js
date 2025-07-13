@@ -34,6 +34,7 @@ function onYouTubeIframeAPIReady() {
         }
     });
 }
+window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 
 function checkYouTubeAPI(callback) {
     if (youtubeReady) {
