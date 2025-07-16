@@ -85,11 +85,11 @@ export async function fetchStory() {
 			let authorMatch = text.match(/Tác giả:\s*(.+)|Author:\s*(.+)/i);
 			if (authorMatch) author = authorMatch[1] || authorMatch[2];
 
-			let editorMatch = text.match(/Editor:\s*(.+)|Edit:\s*(.+)|Edit\s*\+\s*beta:\s*(.+)/i);
-			if (editorMatch) editor = editorMatch[1] || editorMatch[2] || editorMatch[3];
-		});
-
-		editor = editor.replace(/^@/, "").trim();
+			let editorMatch = text.match(/Editor:\s*(.+)|Edit:\s*(.+)|Edit\s*\+\s*beta:\s*(.+)|Beta:\s*(.+)|Editor\s*\+\s*beta:\s*(.+)|Edit bởi:\s*(.+)/i);
+			if (editorMatch) {
+				editor = editorMatch[1] || editorMatch[2] || editorMatch[3] || editorMatch[4] || editorMatch[5] || editorMatch[6];
+			}
+			editor = (editor || "").replace(/^@/, "").trim();
 
 		let story = {
 			title,
