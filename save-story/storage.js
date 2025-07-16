@@ -94,8 +94,8 @@ export async function fetchStory() {
 			if (editorMatch) {
 				editor = editorMatch[1] || editorMatch[2] || editorMatch[3] || editorMatch[4] || editorMatch[5] || editorMatch[6];
 			}
-			editor = (editor || "").replace(/^@/, "").trim();
-
+		});
+		editor = (editor || "").replace(/^@/, "").trim();
 
 		let story = {
 			title,
