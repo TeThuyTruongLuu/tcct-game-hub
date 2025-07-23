@@ -1,0 +1,177 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background: #c9e4df;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 60px;
+}
+
+.top-bar {
+  position: fixed;
+  top: 10px;
+  background: white;
+  border-radius: 12px;
+  padding: 8px 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.toggle-button {
+  background: #4CAF50;
+  color: white;
+  padding: 10px 24px;
+  margin: 0 6px;
+  border: none;
+  border-radius: 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.toggle-button.active,
+.toggle-button:hover {
+  background: #388e3c;
+}
+
+.hidden {
+  display: none;
+}
+
+.section-box {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 32px;
+  width: 90%;
+  max-width: 700px;
+  margin: 80px auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+input {
+  width: 100%;
+  max-width: 480px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+button[type="submit"] {
+  background-color: #2196f3;
+  color: white;
+  font-weight: bold;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+button[type="submit"]:hover {
+  background-color: #1976d2;
+}
+
+#status {
+  margin-top: 12px;
+  font-weight: bold;
+  color: green;
+}
+
+.section-box.album {
+  padding: 40px;
+  max-width: 960px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  overflow: hidden;
+  position: relative;
+}
+.book-container {
+  position: relative;
+  width: 80vw;
+  max-width: 800px;
+  height: 400px;
+  margin: auto;
+  perspective: 1200px;
+}
+
+.book {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 1s;
+}
+.book.closed {
+  transform: rotateY(0deg);
+}
+.book.opened {
+  transform: rotateY(-180deg);
+}
+
+.cover {
+  width: 50%;
+  height: 100%;
+  background: url('cover.jpg') no-repeat center center;
+  background-size: cover;
+  position: absolute;
+  left: 50%;
+  backface-visibility: hidden;
+  border-radius: 12px;
+}
+
+.pages {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  background: white;
+  border-radius: 12px;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+}
+
+.page-left, .page-right {
+  width: 50%;
+  padding: 20px;
+  background: #faedcb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  overflow: hidden;
+}
+.page-left img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #666;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 10;
+}
+.prev {
+  left: -60px;
+}
+.next {
+  right: -60px;
+}

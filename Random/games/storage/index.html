@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Gallery Ảnh</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="top-bar">
+    <button class="toggle-button" id="toggleAlbum">📖 Album</button>
+    <button class="toggle-button" id="toggleUpload">📤 Upload</button>
+  </div>
+
+  <section id="uploadSection" class="section-box">
+    <h2>Upload ảnh mới</h2>
+		<form id="uploadForm">
+		  <input type="file" id="photo" accept="image/*" required>
+		  <input type="text" id="title" placeholder="Caption (nếu có)">
+		  <input type="text" id="artist" placeholder="Artist (tác giả)">
+		  <input type="text" id="source" placeholder="Source (link gốc)">
+		  <input type="text" id="category" placeholder="Category (phân loại lớn)">
+		  <input type="text" id="tags" placeholder="Tags (tên nhân vật, cách nhau dấu phẩy)">
+		  <input type="text" id="otherTags" placeholder="Other tags (chibi, normal...)">
+		  <button type="submit">Upload</button>
+		</form>
+		<div id="status"></div>
+  </section>
+
+  <section id="albumSection" class="hidden section-box album">
+    <div class="book-container">
+      <button class="nav-button prev" onclick="prevPage()">‹</button>
+      <div class="book closed" id="book">
+        <div class="cover"></div>
+        <div class="pages">
+          <div class="page-left" id="leftPage"></div>
+          <div class="page-right" id="rightPage"></div>
+        </div>
+      </div>
+      <button class="nav-button next" onclick="nextPage()">›</button>
+    </div>
+  </section>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
