@@ -92,7 +92,6 @@ form.addEventListener("submit", async (e) => {
 	const commissionedBy = document.getElementById("commissionedBy").value;
 	const tags = document.getElementById("tags").value.split(",").map(t => t.trim());
 	const otherTags = document.getElementById("otherTags").value.split(",").map(t => t.trim());
-	const id = Date.now().toString();
 	const storageRef = storage.ref(`photos/originals/${id}_${file.name}`);
 
 	try {
@@ -252,6 +251,7 @@ async function loadBook() {
 						<li><b>Category:</b> ${data.Category || "-" }</li>
 						<li><b>Tags khác:</b> ${data["Other tags"]?.join(", ") || "-" }</li>
 						<li><a href="${data.Source}" target="_blank">Link gốc</a></li>
+						<li><b>Ảnh gốc:</b> <a href="${data["URL backup"]}" target="_blank">Link</a></li>
 					</ul>`
 			});
 		});
