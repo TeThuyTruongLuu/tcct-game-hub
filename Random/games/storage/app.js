@@ -207,7 +207,7 @@ async function loadBook() {
 					<strong>${data.Caption || "(Không có caption)"}</strong><br>
 					<ul>
 						<li><b>Artist:</b> ${data.Artist || "Không rõ tác giả"}</li>
-						<li><b>Commissioned by:</b> ${data.CommissionedBy || "-"}</li>
+						${data.CommissionedBy ? `<li><b>Commissioned by:</b> ${data.CommissionedBy}</li>` : ""}
 						<li><b>Nhân vật:</b> ${data.Tags?.join(", ") || "?"}</li>
 						<li><b>Category:</b> ${data.Category || "-" }</li>
 						<li><b>Tags khác:</b> ${data["Other tags"]?.join(", ") || "-" }</li>

@@ -306,3 +306,8 @@ button[type="submit"]:hover {
 #commissionedBy.hidden {
     display: none;
 }
+
+.page-right li {
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
