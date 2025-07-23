@@ -71,6 +71,21 @@ form.addEventListener("submit", async (e) => {
 	e.preventDefault();
 	const file = document.getElementById("photo").files[0];
 	const title = document.getElementById("title").value;
+
+	// Tạo file nén WebP
+	const webpBlob = await compressImageToWebp(file);
+
+	// Upload ảnh gốc
+	const id = Date.now().toString();
+	const storageRefOriginal = storage.ref(`photos/originals/${id}_${file.name}`);
+	const snapshotOriginal = await storageRefOriginal.put(file);
+	const originalURL = await snapshotOriginal.ref.getDownloadURL();
+
+	// Upload ảnh webp
+	const storageRefWebp = storage.ref(`photos/previews/${id}.webp`);
+	const snapshotWebp = await storageRefWebp.put(webpBlob);
+	const previewURL = await snapshotWebp.ref.getDownloadURL();
+
 	const artist = document.getElementById("artist").value;
 	const source = document.getElementById("source").value;
 	const category = Array.from(document.querySelectorAll('input[name="uploadCategory"]:checked')).map(cb => cb.value);
@@ -91,7 +106,8 @@ form.addEventListener("submit", async (e) => {
 			CommissionedBy: commissionedBy,
 			Tags: tags,
 			"Other tags": otherTags,
-			"URL backup": url,
+			"URL backup": originalURL,
+			"URL preview": previewURL,
 			created_at: firebase.firestore.FieldValue.serverTimestamp()
 		});
 		document.getElementById("status").innerText = "✅ Upload thành công!";
@@ -185,20 +201,44 @@ function prevPage() {
 	}
 }
 
+async function compressImageToWebp(file, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const img = new Image();
+            img.src = reader.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                }, 'image/webp', quality);
+            };
+            img.onerror = reject;
+        };
+        reader.onerror = reject;
+    });
+}
+
+
 async function loadBook() {
 	currentPage = 0;
 	photoList = [];
 
 	try {
 		const snapshot = await db.collection("photos_metadata")
-			.orderBy("created_at", "desc")
-			.limit(50)
+			.orderBy("Caption", "asc")
 			.get();
 
 		snapshot.forEach(doc => {
 			const data = doc.data();
 			photoList.push({
-				img: data["URL backup"],
+				img: data["URL preview"] || data["URL backup"],
 				artist: data.Artist || "",
 				category: data.Category || "",
 				tags: data.Tags || [],
