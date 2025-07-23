@@ -46,8 +46,10 @@ function filterPhotos() {
 	const filtered = photoList.filter(photo => {
 		const characterMatch = characterSearch === "" || photo.tags.some(tag => tag.toLowerCase().includes(characterSearch));
 		const artistMatch = artistSearch === "" || photo.artist.toLowerCase().includes(artistSearch);
-		const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(photo.category);
-		const tagMatch = selectedTags.length === 0 || selectedTags.some(tag => photo.otherTags.includes(tag));
+		const categoryMatch = selectedCategories.length === 0 || 
+			selectedCategories.some(cat => photo.category.includes(cat));
+		const tagMatch = selectedTags.length === 0 || 
+			selectedTags.some(tag => photo.otherTags.includes(tag));
 		return characterMatch && artistMatch && categoryMatch && tagMatch;
 	});
 
@@ -266,3 +268,7 @@ async function loadBook() {
 		console.error("Lỗi khi load ảnh:", err);
 	}
 }
+
+document.getElementById("applyFilter").addEventListener("click", () => {
+    filterPhotos();
+});

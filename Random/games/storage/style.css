@@ -311,3 +311,18 @@ button[type="submit"]:hover {
     margin-bottom: 6px;
     line-height: 1.4;
 }
+
+#applyFilter {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  max-width: 200px;
+}
+
+#applyFilter:hover {
+  background: #43a047;
+}
