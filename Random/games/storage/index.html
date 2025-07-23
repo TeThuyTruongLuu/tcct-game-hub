@@ -1,48 +1,97 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Gallery Ảnh</title>
-  <link rel="stylesheet" href="style.css">
+	<meta charset="UTF-8">
+	<title>Gallery Ảnh</title>
+	<link rel="stylesheet" href="style.css">
+	<link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="top-bar">
-    <button class="toggle-button" id="toggleAlbum">📖 Album</button>
-    <button class="toggle-button" id="toggleUpload">📤 Upload</button>
-  </div>
 
-  <section id="uploadSection" class="section-box">
-    <h2>Upload ảnh mới</h2>
+	<div class="toggle-container">
+		<button class="toggle-btn active" id="toggleAlbum">Album</button>
+		<button class="toggle-btn" id="toggleUpload">Upload</button>
+	</div>
+
+	<!-- Search + Filter -->
+	<div id="filterSection">
+		<!-- Category -->
+		<div class="filter-group">
+			<span>Category</span>
+			<label><input type="checkbox" value="Fanart" class="filter-category"> Fanart</label>
+			<label><input type="checkbox" value="Official art" class="filter-category"> Official art</label>
+			<label><input type="checkbox" value="Commission" class="filter-category"> Commission</label>
+			<label><input type="checkbox" value="Goods off" class="filter-category"> Goods off</label>
+			<label><input type="checkbox" value="Goods artist" class="filter-category"> Goods artist</label>
+			<label><input type="checkbox" value="Goods artist" class="filter-category"> Toàn viên</label>
+			<label><input type="checkbox" value="Goods artist" class="filter-category"> Art lẻ</label>
+			<label><input type="checkbox" value="Goods artist" class="filter-category"> Series</label>
+		</div>
+
+		<div class="filter-group input-inline">
+			<span>Nhân vật: </span>
+			<input type="text" id="characterInput" placeholder="Nhập tên nhân vật...">
+			<div id="characterSuggestions" class="suggestions"></div>
+		</div>
+
+		<!-- Tags -->
+		<div class="filter-group">
+			<span>Tags</span>
+			<label><input type="checkbox" value="Chibi" class="filter-tag"> Chibi</label>
+			<label><input type="checkbox" value="Động vật" class="filter-tag"> Động vật</label>
+			<label><input type="checkbox" value="Normal" class="filter-tag"> Normal</label>
+		</div>
+
+		<div class="filter-group input-inline">
+			<span>Artist: </span>
+			<input type="text" id="artistInput" placeholder="Nhập tên artist...">
+			<div id="artistSuggestions" class="suggestions"></div>
+		</div>
+	</div>
+
+	<section id="albumSection" class="section-box album">
+		<div class="book-container">
+			<button class="nav-button prev" onclick="prevPage()">‹</button>
+			<div class="book closed" id="book">
+				<div class="cover"></div>
+				<div class="pages">
+					<div class="page-left" id="leftPage"></div>
+					<div class="page-right" id="rightPage"></div>
+				</div>
+			</div>
+			<button class="nav-button next" onclick="nextPage()">›</button>
+		</div>
+	</section>
+
+	<section id="uploadSection" class="hidden section-box upload">
+		<h2>Upload ảnh mới</h2>
 		<form id="uploadForm">
-		  <input type="file" id="photo" accept="image/*" required>
-		  <input type="text" id="title" placeholder="Caption (nếu có)">
-		  <input type="text" id="artist" placeholder="Artist (tác giả)">
-		  <input type="text" id="source" placeholder="Source (link gốc)">
-		  <input type="text" id="category" placeholder="Category (phân loại lớn)">
-		  <input type="text" id="tags" placeholder="Tags (tên nhân vật, cách nhau dấu phẩy)">
-		  <input type="text" id="otherTags" placeholder="Other tags (chibi, normal...)">
-		  <button type="submit">Upload</button>
+			<input type="file" id="photo" accept="image/*" required>
+			<input type="text" id="title" placeholder="Caption (nếu có)">
+			<input type="text" id="artist" placeholder="Artist">
+			<input type="text" id="source" placeholder="Source (link gốc)">
+			<div class="filter-group">
+				<span>Category</span>
+				<label><input type="checkbox" name="uploadCategory" value="Fanart"> Fanart</label>
+				<label><input type="checkbox" name="uploadCategory" value="Official art"> Official art</label>
+				<label><input type="checkbox" name="uploadCategory" value="Commission"> Commission</label>
+				<label><input type="checkbox" name="uploadCategory" value="Goods off"> Goods off</label>
+				<label><input type="checkbox" name="uploadCategory" value="Goods artist"> Goods artist</label>
+				<label><input type="checkbox" name="uploadCategory" value="Toàn viên"> Toàn viên</label>
+				<label><input type="checkbox" name="uploadCategory" value="Art lẻ"> Art lẻ</label>
+				<label><input type="checkbox" name="uploadCategory" value="Series"> Series</label>
+			</div>
+			<input type="text" id="commissionedBy" placeholder="Commissioned by" class="hidden">
+			<input type="text" id="tags" placeholder="Tags (tên nhân vật, chiến đội, cách nhau dấu phẩy)">
+			<input type="text" id="otherTags" placeholder="Tags khác (Chibi, Động vật, Bé trai...)">
+			<button type="submit">Upload</button>
 		</form>
 		<div id="status"></div>
-  </section>
+	</section>
 
-  <section id="albumSection" class="hidden section-box album">
-    <div class="book-container">
-      <button class="nav-button prev" onclick="prevPage()">‹</button>
-      <div class="book closed" id="book">
-        <div class="cover"></div>
-        <div class="pages">
-          <div class="page-left" id="leftPage"></div>
-          <div class="page-right" id="rightPage"></div>
-        </div>
-      </div>
-      <button class="nav-button next" onclick="nextPage()">›</button>
-    </div>
-  </section>
-
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="app.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+	<script src="app.js"></script>
 </body>
 </html>
