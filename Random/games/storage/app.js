@@ -38,28 +38,34 @@ uploadBtn.onclick = () => {
 };
 
 function filterPhotos() {
-	const characterSearch = document.getElementById("characterInput").value.toLowerCase();
-	const artistSearch = document.getElementById("artistInput").value.toLowerCase();
-	const selectedCategories = Array.from(document.querySelectorAll(".filter-category:checked")).map(cb => cb.value);
-	const selectedTags = Array.from(document.querySelectorAll(".filter-tag:checked")).map(cb => cb.value);
+    const characterSearch = document.getElementById("characterInput").value.trim().toLowerCase();
+    const artistSearch = document.getElementById("artistInput").value.trim().toLowerCase();
+    const selectedCategories = Array.from(document.querySelectorAll(".filter-category:checked")).map(cb => cb.value.toLowerCase());
+    const selectedTags = Array.from(document.querySelectorAll(".filter-tag:checked")).map(cb => cb.value.toLowerCase());
 
-	const filtered = photoList.filter(photo => {
-		const characterMatch = characterSearch === "" || photo.tags.some(tag => tag.toLowerCase().includes(characterSearch));
-		const artistMatch = artistSearch === "" || photo.artist.toLowerCase().includes(artistSearch);
-		const categoryMatch = selectedCategories.length === 0 || 
-			selectedCategories.some(cat => photo.category.includes(cat));
-		const tagMatch = selectedTags.length === 0 || 
-			selectedTags.some(tag => photo.otherTags.includes(tag));
-		return characterMatch && artistMatch && categoryMatch && tagMatch;
-	});
+    const filtered = photoList.filter(photo => {
+        // Chuẩn hóa dữ liệu
+        const photoTags = Array.isArray(photo.tags) ? photo.tags.map(t => t.toLowerCase()) : [];
+        const photoOtherTags = Array.isArray(photo.otherTags) ? photo.otherTags.map(t => t.toLowerCase()) : [];
+        const photoCategories = Array.isArray(photo.category) ? photo.category.map(c => c.toLowerCase()) : [photo.category.toLowerCase()];
+        const photoArtist = (photo.artist || "").toLowerCase();
 
-	if (filtered.length > 0) {
-		currentPage = 0;
-		showFilteredBook(filtered);
-	} else {
-		document.getElementById("leftPage").innerHTML = "";
-		document.getElementById("rightPage").innerHTML = "<p>Không tìm thấy ảnh phù hợp.</p>";
-	}
+        // Kiểm tra từng điều kiện
+        const characterMatch = !characterSearch || photoTags.includes(characterSearch);
+        const artistMatch = !artistSearch || photoArtist.includes(artistSearch);
+        const categoryMatch = selectedCategories.length === 0 || selectedCategories.some(cat => photoCategories.includes(cat));
+        const tagMatch = selectedTags.length === 0 || selectedTags.every(tag => photoOtherTags.includes(tag));
+
+        return characterMatch && artistMatch && categoryMatch && tagMatch;
+    });
+
+    if (filtered.length > 0) {
+        currentPage = 0;
+        showFilteredBook(filtered);
+    } else {
+        document.getElementById("leftPage").innerHTML = "";
+        document.getElementById("rightPage").innerHTML = "<p>Không tìm thấy ảnh phù hợp.</p>";
+    }
 }
 
 function showFilteredBook(list) {
