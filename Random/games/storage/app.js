@@ -256,7 +256,7 @@ async function loadBook() {
 						<li><b>Artist:</b> ${data.Artist || "Không rõ tác giả"}</li>
 						${data.CommissionedBy ? `<li><b>Commissioned by:</b> ${data.CommissionedBy}</li>` : ""}
 						<li><b>Nhân vật/Chiến đội:</b> ${data.Tags?.join(", ") || "?"}</li>
-						<li><b>Category:</b> ${data.Category || "-" }</li>
+						<li><b>Category:</b> ${data.Category?.join(", ") || "-" }</li>
 						<li><b>Tags khác:</b> ${data["Other tags"]?.join(", ") || "-" }</li>
 						<li><a href="${data.Source}" target="_blank">Link gốc</a></li>
 						<li><b>Ảnh gốc:</b> <a href="${data["URL backup"]}" target="_blank">Link</a></li>
