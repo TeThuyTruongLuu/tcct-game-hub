@@ -25,12 +25,12 @@ body {
   border-radius: 0.1rem;
 }
 
-/* Slot chung */
 .card-slot {
   position: absolute;
   width: var(--card-width);
   aspect-ratio: var(--card-aspect);
   border-radius: 0.4rem;
+  background-color: white;
 }
 
 .card-container {
@@ -42,12 +42,10 @@ body {
   justify-content: center;
 }
 
-/* Nét đứt */
 .card-slot.dashed {
   border: 2px dashed black;
 }
 
-/* Nét liền */
 .card-slot.solid {
   border: 2px solid black;
 }
@@ -64,7 +62,6 @@ body {
   background-color: black;
 }
 
-/* Vị trí cụ thể */
 .z1p1 {
   top: -1%;
   left: 3%;
@@ -128,12 +125,10 @@ body {
   border: 2px solid black;
   border-radius: 0.5rem;
   background: white;
-
   left: calc(var(--i) * 10%);
   top: 0;
   z-index: calc(var(--i) + 1);
 }
-
 
 .z1p2 {
   bottom: -1%;
@@ -198,19 +193,17 @@ body {
   z-index: 20;
 }
 
-/* Ẩn phần tử */
 .hidden {
   display: none;
 }
 
-/* Giao diện lobby nền hồng mờ */
 #lobby {
   position: absolute;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(255, 192, 203, 0.95); /* pastel pink */
+  background-color: rgba(255, 192, 203, 0.95);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -241,4 +234,25 @@ body {
   opacity: 0;
   pointer-events: none;
   display: none;
+}
+
+.player-area {
+  z-index: -1;
+  position: absolute;
+  background: rgba(255, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+.player2-area {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
+}
+
+.player1-area {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
 }

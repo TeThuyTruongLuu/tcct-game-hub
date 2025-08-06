@@ -1,7 +1,6 @@
 import { db } from './firebase.js';
 import { ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// Biến toàn cục
 let cardData = [];
 let myDeck = [];
 let myHand = [];
@@ -10,10 +9,10 @@ let roomId = '';
 let playerRole = '';
 let playerName = '';
 let currentTurn = 'player1';
-let opponentCards = { main: null, supports: [] };
-let myCards = { main: null, supports: [] };
+let opponentCards = { main: null, bottom: null, supports: [] };
+let myCards = { main: null, bottom: null, supports: [] };
+let mainCardsLocked = false;
 
-// Lắng nghe nút tham gia phòng
 document.getElementById('joinBtn').addEventListener('click', async () => {
   const name = document.getElementById('nameInput').value.trim();
   roomId = document.getElementById('roomInput').value.trim();
@@ -37,92 +36,125 @@ document.getElementById('joinBtn').addEventListener('click', async () => {
   document.querySelector('.play-area').classList.remove('hidden');
   alert(`Bạn là ${playerRole.toUpperCase()}!`);
 
-  // Load card data
   const res = await fetch('cards.json');
   cardData = await res.json();
-  console.log('Loaded cardData:', cardData);
 
-  // Chia deck ngẫu nhiên
-  myDeck = cardData.sort(() => Math.random() - 0.5).slice(0, 3);
+  myDeck = createDeck(cardData);
   await set(ref(db, `rooms/${roomId}/${playerRole}`), {
     name,
-    cards: myDeck.map(c => c.id),
+    deck: myDeck.map(c => c.id),
     hand: [],
     main: null,
+    bottom: null,
     supports: [],
     ready: false
   });
 
-  // Khởi tạo giao diện
   initDeckView();
   initDropZones();
+  initPlayerArea();
   listenToRoomChanges();
 });
 
-// Khởi tạo nút rút bài và các khu vực
-function initDeckView() {
-  const zoneSelector = playerRole === 'player1' ? '.z2p1' : '.z2p2';
-  const btnId = playerRole === 'player1' ? 'deckP1' : 'deckP2';
-  const drawFn = playerRole === 'player1' ? drawCardP1 : drawCardP2;
+function createDeck(cards) {
+  const deck = [];
+  const availableCards = [...cards];
+  const cardCount = {};
+  let pairCount = 0;
 
-  const z = document.querySelector(zoneSelector);
-  z.innerHTML = `<img src="img/card-back.jpg" style="width:100%;height:100%;border-radius:0.5rem;cursor:pointer;" id="${btnId}">`;
-  document.getElementById(btnId).addEventListener('click', drawFn);
+  while (deck.length < 14 && availableCards.length > 0) {
+    const randomIndex = Math.floor(Math.random() * availableCards.length);
+    const card = availableCards[randomIndex];
+    const cardId = card.id;
+
+    if (!cardCount[cardId]) cardCount[cardId] = 0;
+    if (cardCount[cardId] < 2 && (cardCount[cardId] === 0 || pairCount < 3)) {
+      deck.push({ ...card });
+      cardCount[cardId]++;
+      if (cardCount[cardId] === 2) pairCount++;
+    }
+    availableCards.splice(randomIndex, 1);
+  }
+
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+
+  return deck;
 }
 
-// Khởi tạo các khu vực thả bài
-function initDropZones() {
-  const mainZone = playerRole === 'player1' ? '.z3p1' : '.z3p2';
-  const supportZone = playerRole === 'player1' ? '.z4p1' : '.z4p2';
+function initDeckView() {
+  const zoneP1 = document.querySelector('.z2p1');
+  const zoneP2 = document.querySelector('.z2p2');
+  zoneP1.innerHTML = `<img src="img/card-back.jpg" style="width:100%;height:100%;border-radius:0.5rem;cursor:pointer;" id="deckP1">`;
+  zoneP2.innerHTML = `<img src="img/card-back.jpg" style="width:100%;height:100%;border-radius:0.5rem;cursor:pointer;" id="deckP2">`;
 
-  [mainZone, supportZone].forEach(zone => {
+  document.getElementById('deckP1').addEventListener('click', drawCardP1);
+  document.getElementById('deckP2').addEventListener('click', drawCardP2);
+}
+
+function initPlayerArea() {
+  const playArea = document.querySelector('.play-area');
+  const playerArea = document.createElement('div');
+  playerArea.classList.add('player-area', playerRole === 'player1' ? 'player1-area' : 'player2-area');
+  playArea.appendChild(playerArea);
+}
+
+function initDropZones() {
+  const mainZone = playerRole === 'player1' ? '.z4p1' : '.z4p2';
+  const bottomZone = playerRole === 'player1' ? '.z3p1' : '.z3p2';
+
+  [mainZone, bottomZone].forEach(zone => {
     const z = document.querySelector(zone);
+    z.classList.add('dashed');
     z.addEventListener('dragover', (e) => e.preventDefault());
     z.addEventListener('drop', (e) => handleDrop(e, zone));
   });
 }
 
-// Lắng nghe thay đổi trạng thái phòng
 function listenToRoomChanges() {
   const roomRef = ref(db, `rooms/${roomId}`);
   onValue(roomRef, (snap) => {
     const data = snap.val();
     if (!data) return;
-    console.log('Firebase room data:', data);
 
     const opponentRole = playerRole === 'player1' ? 'player2' : 'player1';
     opponentCards = {
       main: data[opponentRole]?.main || null,
+      bottom: data[opponentRole]?.bottom || null,
       supports: data[opponentRole]?.supports || []
     };
+    myDeck = data[playerRole]?.deck ? data[playerRole].deck.map(id => cardData.find(c => c.id === id)) : myDeck;
     currentTurn = data.currentTurn || 'player1';
 
     updateOpponentBoard();
+    checkHandAndStartTurn(data);
     updateTurnIndicator();
   });
 }
 
-// Cập nhật bàn của đối thủ
 function updateOpponentBoard() {
-  const mainZone = playerRole === 'player1' ? '.z3p2' : '.z3p1';
-  const supportZone = playerRole === 'player1' ? '.z4p2' : '.z4p1';
+  const mainZone = playerRole === 'player1' ? '.z4p2' : '.z4p1';
+  const bottomZone = playerRole === 'player1' ? '.z3p2' : '.z3p1';
 
-  // Cập nhật bài chủ chiến
   const mainZ = document.querySelector(mainZone);
   mainZ.innerHTML = '';
   if (opponentCards.main) {
-    appendCardToZone(opponentCards.main, mainZone, false);
+    appendCardToZone(opponentCards.main, mainZone, false, mainCardsLocked);
+  } else if (!mainCardsLocked) {
+    mainZ.innerHTML = `<img src="img/card-back.jpg" style="width:100%;height:100%;border-radius:0.5rem;">`;
   }
 
-  // Cập nhật bài hỗ trợ
-  const supportZ = document.querySelector(supportZone);
-  supportZ.innerHTML = '';
-  opponentCards.supports.forEach(cardId => {
-    appendCardToZone(cardId, supportZone, false);
-  });
+  const bottomZ = document.querySelector(bottomZone);
+  bottomZ.innerHTML = '';
+  if (opponentCards.bottom) {
+    appendCardToZone(opponentCards.bottom, bottomZone, false, false);
+  } else {
+    bottomZ.innerHTML = `<img src="img/card-back.jpg" style="width:100%;height:100%;border-radius:0.5rem;">`;
+  }
 }
 
-// Cập nhật chỉ báo lượt
 function updateTurnIndicator() {
   const turnIndicator = document.createElement('div');
   turnIndicator.style.position = 'absolute';
@@ -130,46 +162,40 @@ function updateTurnIndicator() {
   turnIndicator.style.left = '50%';
   turnIndicator.style.transform = 'translate(-50%, -50%)';
   turnIndicator.style.padding = '10px';
-  turnIndicator.style.background = 'rgba(0,0,0,0.7)';
+  turnIndicator.style.background = 'rgba(0, 0, 0, 0.7)';
   turnIndicator.style.color = 'white';
-  turnIndicator.textContent = currentTurn === playerRole ? 'Lượt của bạn' : 'Lượt của đối thủ';
+  turnIndicator.textContent = mainCardsLocked ? (currentTurn === playerRole ? 'Lượt của bạn' : 'Lượt của đối thủ') : 'Đang đặt bài lượt 1';
   document.querySelector('.play-area').appendChild(turnIndicator);
   setTimeout(() => turnIndicator.remove(), 2000);
 }
 
-// Rút bài player1
 function drawCardP1() {
-  if (currentTurn !== 'player1' || myDeck.length === 0) return;
-  const card = myDeck.shift();
-  myHand.push(card);
-  appendCardToHand(card, '.z6p1');
-  updateFirebaseState();
+  if (playerRole !== 'player1' || myHand.length >= 7 || myDeck.length === 0) return;
+  drawCard();
+  if (myHand.length === 7) alert('Bạn đã rút đủ 7 lá bài!');
 }
 
-// Rút bài player2
 function drawCardP2() {
-  if (currentTurn !== 'player2' || myDeck.length === 0) return;
+  if (playerRole !== 'player2' || myHand.length >= 7 || myDeck.length === 0) return;
+  drawCard();
+  if (myHand.length === 7) alert('Bạn đã rút đủ 7 lá bài!');
+}
+
+async function drawCard() {
+  if (myDeck.length === 0) return;
   const card = myDeck.shift();
   myHand.push(card);
-  appendCardToHand(card, '.z6p2');
-  updateFirebaseState();
+  appendCardToHand(card, playerRole === 'player1' ? '.z6p1' : '.z6p2');
+  await updateFirebaseState();
 }
 
-// Tìm thông tin card theo id
 function findCard(cardId) {
-  const card = cardData.find(c => c.id === cardId);
-  if (!card) console.error('Card not found for ID:', cardId);
-  return card;
+  return cardData.find(c => c.id === cardId) || null;
 }
 
-// Gắn thẻ vào khu tay bài
 function appendCardToHand(cardOrId, zoneSelector) {
   const card = typeof cardOrId === 'string' ? findCard(cardOrId) : cardOrId;
-  if (!card) {
-    console.error('Card not found:', cardOrId);
-    return;
-  }
-  console.log('appendCardToHand:', card);
+  if (!card) return;
   const z6 = document.querySelector(zoneSelector);
   const div = document.createElement('div');
   div.classList.add('card');
@@ -187,17 +213,15 @@ function appendCardToHand(cardOrId, zoneSelector) {
   z6.appendChild(div);
 }
 
-// Gắn thẻ vào khu vực chơi
-function appendCardToZone(cardId, zoneSelector, isDraggable) {
+function appendCardToZone(cardId, zoneSelector, isDraggable, showFace = true) {
   const card = findCard(cardId);
-  if (!card) {
-    console.error('Card not found:', cardId);
-    return;
-  }
-  console.log('appendCardToZone:', card);
+  if (!card) return;
   const zone = document.querySelector(zoneSelector);
+  zone.innerHTML = '';
+
   const div = document.createElement('div');
   div.classList.add('card');
+  div.style.setProperty('--i', '0');
   if (isDraggable) {
     div.setAttribute('draggable', 'true');
     div.addEventListener('dragstart', (e) => {
@@ -207,147 +231,146 @@ function appendCardToZone(cardId, zoneSelector, isDraggable) {
   div.dataset.id = card.id;
 
   const cardNumber = card.id.split('-').pop().padStart(2, '0');
-  const imagePath = `img/${cardNumber}.jpg`;
+  const imagePath = showFace ? `img/${cardNumber}.jpg` : 'img/card-back.jpg';
 
   div.innerHTML = `<img src="${imagePath}" alt="${card.name}" style="width:100%; height:100%; border-radius: 0.5rem;">`;
   zone.appendChild(div);
 }
 
-// Xử lý thả bài
 async function handleDrop(e, zoneSelector) {
   e.preventDefault();
-  if (currentTurn !== playerRole) return alert('Không phải lượt của bạn!');
+  if (mainCardsLocked) return alert('Đã chốt bài lượt 1!');
 
   const cardId = e.dataTransfer.getData('text/plain');
   const card = findCard(cardId);
   if (!card) return;
 
   const handZone = playerRole === 'player1' ? '.z6p1' : '.z6p2';
-  const mainZone = playerRole === 'player1' ? '.z3p1' : '.z3p2';
-  const supportZone = playerRole === 'player1' ? '.z4p1' : '.z4p2';
+  const mainZone = playerRole === 'player1' ? '.z4p1' : '.z4p2';
+  const bottomZone = playerRole === 'player1' ? '.z3p1' : '.z3p2';
 
   if (zoneSelector === mainZone && !myCards.main) {
     myCards.main = cardId;
     myHand = myHand.filter(c => c.id !== cardId);
-    document.querySelector(handZone).querySelector(`[data-id="${cardId}"]`).remove();
-    appendCardToZone(cardId, mainZone, true);
-    applySkill(card, 'main');
-  } else if (zoneSelector === supportZone && myCards.supports.length < 2) {
-    myCards.supports.push(cardId);
+    const cardElement = document.querySelector(handZone).querySelector(`[data-id="${cardId}"]`);
+    if (cardElement) cardElement.remove();
+    appendCardToZone(cardId, mainZone, false, true);
+  } else if (zoneSelector === bottomZone && !myCards.bottom) {
+    myCards.bottom = cardId;
     myHand = myHand.filter(c => c.id !== cardId);
-    document.querySelector(handZone).querySelector(`[data-id="${cardId}"]`).remove();
-    appendCardToZone(cardId, supportZone, true);
-    applySkill(card, 'support');
+    const cardElement = document.querySelector(handZone).querySelector(`[data-id="${cardId}"]`);
+    if (cardElement) cardElement.remove();
+    appendCardToZone(cardId, bottomZone, false, true);
+  } else {
+    return;
   }
 
   await updateFirebaseState();
-  await endTurn();
 }
 
-// Cập nhật trạng thái lên Firebase
-async function updateFirebaseState() {
-  await set(ref(db, `rooms/${roomId}/${playerRole}`), {
-    name: playerName,
-    cards: myDeck.map(c => c.id),
-    hand: myHand.map(c => c.id),
-    main: myCards.main,
-    supports: myCards.supports,
-    ready: true
-  });
-}
+async function checkHandAndStartTurn(data) {
+  if (data.player1 && data.player2 && data.player1.hand && data.player2.hand && data.player1.hand.length === 7 && data.player2.hand.length === 7 && !data.turnStarted) {
+    await set(ref(db, `rooms/${roomId}/turnStarted`), true);
+    const turnIndicator = document.createElement('div');
+    turnIndicator.style.position = 'absolute';
+    turnIndicator.style.top = '50%';
+    turnIndicator.style.left = '50%';
+    turnIndicator.style.transform = 'translate(-50%, -50%)';
+    turnIndicator.style.padding = '10px';
+    turnIndicator.style.background = 'rgba(0, 0, 0, 0.7)';
+    turnIndicator.style.color = 'white';
+    turnIndicator.textContent = 'Bắt đầu lượt 1!';
+    document.querySelector('.play-area').appendChild(turnIndicator);
+    setTimeout(() => turnIndicator.remove(), 2000);
+  }
 
-// Kết thúc lượt
-async function endTurn() {
-  const newTurn = playerRole === 'player1' ? 'player2' : 'player1';
-  await set(ref(db, `rooms/${roomId}/currentTurn`), newTurn);
-
-  // Tính điểm và kiểm tra chiến thắng
-  const roomRef = ref(db, `rooms/${roomId}`);
-  const snap = await get(roomRef);
-  const data = snap.val();
-  if (data.player1.ready && data.player2.ready) {
-    const result = calculateBattleResult(data);
-    if (result.winner) {
-      alert(`Người chiến thắng: ${result.winner}`);
-      resetGame();
-    }
+  if (data.player1?.ready && data.player2?.ready && !mainCardsLocked) {
+    lockMainCards(data);
   }
 }
 
-// Tính kết quả chiến đấu
-function calculateBattleResult(data) {
+async function lockMainCards(data) {
+  mainCardsLocked = true;
+  const mainZone = playerRole === 'player1' ? '.z4p1' : '.z4p2';
+  const opponentMainZone = playerRole === 'player1' ? '.z4p2' : '.z4p1';
+
+  if (myCards.main) {
+    appendCardToZone(myCards.main, mainZone, false, true);
+    applySkill(findCard(myCards.main), 'main');
+  }
+  if (opponentCards.main) {
+    appendCardToZone(opponentCards.main, opponentMainZone, false, true);
+    applySkill(findCard(opponentCards.main), 'main');
+  }
+
   const p1Main = findCard(data.player1.main);
   const p2Main = findCard(data.player2.main);
-  let p1Points = p1Main ? p1Main.main : 0;
-  let p2Points = p2Main ? p2Main.main : 0;
+  const p1Points = p1Main ? p1Main.main : 0;
+  const p2Points = p2Main ? p2Main.main : 0;
 
-  data.player1.supports.forEach(cardId => {
-    const card = findCard(cardId);
-    p1Points += card.support;
-  });
-  data.player2.supports.forEach(cardId => {
-    const card = findCard(cardId);
-    p2Points += card.support;
-  });
-
-  if (p1Points > p2Points) return { winner: data.player1.name };
-  if (p2Points > p1Points) return { winner: data.player2.name };
-  return { winner: null };
+  const newTurn = p1Points >= p2Points ? 'player1' : 'player2';
+  await set(ref(db, `rooms/${roomId}/currentTurn`), newTurn);
+  currentTurn = newTurn;
+  updateTurnIndicator();
 }
 
-// Áp dụng kỹ năng lá bài
+async function updateFirebaseState() {
+  const state = {
+    name: playerName,
+    deck: myDeck.map(c => c.id),
+    hand: myHand.map(c => c.id),
+    main: myCards.main,
+    bottom: myCards.bottom,
+    supports: myCards.supports,
+    ready: myCards.main && myCards.bottom
+  };
+  await set(ref(db, `rooms/${roomId}/${playerRole}`), state);
+}
+
 function applySkill(card, role) {
+  if (!card) return;
   const opponentRole = playerRole === 'player1' ? 'player2' : 'player1';
   if (role === 'main') {
     if (card.id === 'TCG-JS-01') {
-      // Quân Mạc Tiếu: Đặt thêm 1 lá bài úp
       if (myDeck.length > 0) {
         const card = myDeck.shift();
         myCards.supports.push(card.id);
-        appendCardToZone(card.id, playerRole === 'player1' ? '.z4p1' : '.z4p2', true);
+        appendCardToZone(card.id, playerRole === 'player1' ? '.z4p1' : '.z4p2', false, false);
+        updateFirebaseState();
       }
     } else if (card.id === 'TCG-JS-06') {
-      // Sách Khắc Tát Nhĩ: Rút 2 thẻ, bỏ 1 thẻ
-      if (myDeck.length > 0) drawCard();
-      if (myDeck.length > 0) drawCard();
+      if (myDeck.length > 0) {
+        drawCard();
+      }
+      if (myDeck.length > 0) {
+        drawCard();
+      }
       if (myHand.length > 0) {
         const cardToDiscard = myHand.shift();
         discardPile.push(cardToDiscard);
       }
+      updateFirebaseState();
     } else if (card.id === 'TCG-JS-07') {
-      // Nhất Thương Xuyên Vân: Đưa 2 lá bài đầu từ tay đối thủ vào khu bỏ bài
       const opponentHand = opponentCards.hand || [];
       if (opponentHand.length > 0) opponentHand.shift();
       if (opponentHand.length > 0) opponentHand.shift();
       updateFirebaseState();
     }
-  } else if (role === 'support') {
-    if (card.id === 'TCG-JS-18' && myCards.main === 'TCG-JS-01') {
-      // Hàn Yên Nhu hỗ trợ Quân Mạc Tiếu: +1 điểm hỗ trợ
-      card.support += 1;
-    }
   }
 }
 
-// Rút bài chung
-function drawCard() {
-  if (myDeck.length === 0) return;
-  const card = myDeck.shift();
-  myHand.push(card);
-  appendCardToHand(card, playerRole === 'player1' ? '.z6p1' : '.z6p2');
-}
-
-// Reset game
 async function resetGame() {
-  myDeck = cardData.sort(() => Math.random() - 0.5).slice(0, 3);
+  myDeck = createDeck(cardData);
   myHand = [];
   discardPile = [];
-  myCards = { main: null, supports: [] };
+  myCards = { main: null, bottom: null, supports: [] };
+  mainCardsLocked = false;
   await set(ref(db, `rooms/${roomId}/${playerRole}`), {
     name: playerName,
-    cards: myDeck.map(c => c.id),
+    deck: myDeck.map(c => c.id),
     hand: [],
     main: null,
+    bottom: null,
     supports: [],
     ready: false
   });
