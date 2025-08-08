@@ -426,15 +426,11 @@ function findPath(tile1, tile2) {
     let path = getShortestPath(tile1, tile2);
     console.log("Path found:", path);
 
-    if (path && path.length > 1) {
-        // 🔥 Gọi đúng hàm vẽ theo level
-        if (currentLevel === 1) {
-            drawConnectionUpdated(path);
-        } else {
-            drawConnection(path);
-        }
-        return path;
-    }
+	if (path && path.length > 1) {
+		drawConnection(path);
+		return path;
+	}
+
 
     console.log("No valid path found.");
     return null;
