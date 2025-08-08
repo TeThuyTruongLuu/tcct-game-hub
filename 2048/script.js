@@ -531,7 +531,7 @@ function checkGameOver() {
     // Kiểm tra có ô nào đạt 2048 không (testplay => 128)
     for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col < gridSize; col++) {
-            if (grid[row][col] === 128) {
+            if (grid[row][col] === 2048) {
 				stopTimer();
 				const minutes = Math.floor(timer / 60);
 				const seconds = timer % 60;

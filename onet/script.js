@@ -23,7 +23,8 @@ const imageNames = [
     "Cụt Chu 1.webp", "Diệp.webp", "Đới.webp", "Dụ 2.webp", "Duệ.webp", "Giang.webp", "Hạ.webp", 
     "Hải ly Quan 1.webp", "Hamster Tranh 1.webp", "Hàn.webp", "Hổ con Tống 1.webp", "Hổ Hàn 1.webp", 
     "Hổ trắng Lâu 1.webp", "Hoàng.webp", "Khưu.webp", "Kiều.webp", "Lạc.webp", "Lam.webp", "Lâm.webp",
-    "Lão cẩu Ngụy 1.webp", "Lâu.webp", "Linh miêu bự Phương 1.webp", "Lư.webp", "Lý.webp", "Mèo Nhu 1.webp"
+    "Lão cẩu Ngụy 1.webp", "Lâu.webp", "Linh miêu bự Phương 1.webp", "Lư.webp", "Lý.webp", "Mèo Nhu 1.webp", "Cá Trịnh 1.webp",
+	"Hồ ly Tán.webp", "Sóc chuột Tiêu.webp"
 ];
 
 const gameBoard = document.getElementById("game-board");
@@ -40,7 +41,8 @@ const youtubePlayer = document.getElementById("youtube-player");
 
 const levels = [
     { rows: 6, cols: 9, tileSize: window.innerWidth < 700 ? window.innerWidth * 0.1 : 80 }, // Level 1
-    { rows: 9, cols: 12, tileSize: window.innerWidth < 700 ? window.innerWidth * 0.01 : 10 } // Level Max
+	 rows: 8, cols: 10, tileSize: window.innerWidth < 700 ? window.innerWidth * 0.09 : 72 }, // Level 2
+    { rows: 9, cols: 12, tileSize: window.innerWidth < 700 ? window.innerWidth * 0.01 : 10 } // Level 3
 ];
 
 
@@ -93,7 +95,7 @@ settingsBtn.addEventListener("click", () => { // 🔥 Khi mở cài đặt
 closeSettings.addEventListener("click", () => { // 🔥 Khi đóng cài đặt
     settingsModal.style.display = "none";
     if (timerPaused) {
-        startTimer(); // 🔥 Tiếp tục thời gian thay vì reset
+        startTimer();
     }
 });
 
@@ -184,15 +186,14 @@ function updateTimerUI() { //UI hiển thị
 }
 
 function startTimer() {
-    stopTimer(); // Đảm bảo không có timer cũ chạy
+    stopTimer();
 
-    if (currentLevel === 0) { // 🔥 Level 1: Đếm ngược
+    if (currentLevel === 0) { // 🔥 Level 1: Đếm ngược 120s
         if (timerPaused) {
             timerPaused = false;
         } else {
-            timeLeft = 120; // 🔥 Chỉ đặt lại nếu KHÔNG phải tiếp tục từ tạm dừng
+            timeLeft = 120;
         }
-        
         timer = setInterval(() => {
             timeLeft--;
             updateTimerUI();
@@ -201,23 +202,39 @@ function startTimer() {
                 handleGameLoss();
             }
         }, 1000);
-    } else { // 🔥 Level Max: Đếm lên
+
+    } else if (currentLevel === 1) { // 🔥 Level 2: Đếm ngược 300s
         if (timerPaused) {
             timerPaused = false;
         } else {
-            timeElapsed = 0; // 🔥 Chỉ đặt lại nếu KHÔNG phải tiếp tục từ tạm dừng
+            timeLeft = 300;
         }
+        timer = setInterval(() => {
+            timeLeft--;
+            updateTimerUI();
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                handleGameLoss();
+            }
+        }, 1000);
 
+    } else { // 🔥 Level 3 (Max): Đếm lên
+        if (timerPaused) {
+            timerPaused = false;
+        } else {
+            timeElapsed = 0;
+        }
         timer = setInterval(() => {
             timeElapsed++;
             let minutes = Math.floor(timeElapsed / 60);
             let seconds = timeElapsed % 60;
-            document.getElementById("timer").textContent = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+            document.getElementById("timer").textContent =
+                `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
         }, 1000);
     }
 }
 
-function stopTimer() { //Stop timer
+function stopTimer() {
     clearInterval(timer);
 }
 
@@ -301,10 +318,13 @@ function loadLevel(levelIndex) {
     };
     tileSize = levels[levelIndex].tileSize;
 
-    document.getElementById("level").textContent = levelIndex === 1 ? "Max" : levelIndex + 1;
+	document.getElementById("level").textContent = 
+		levelIndex === levels.length - 1 ? "Max" : levelIndex + 1;
 
-    shuffleCount = currentLevel === 0 ? 3 : 10; // Cập nhật số lần shuffle khi load level
-    updateShuffleButton(); // Cập nhật giao diện shuffle
+	shuffleCount = (currentLevel === 0) ? 3 :
+				   (currentLevel === 1) ? 5 : 10;
+
+    updateShuffleButton();
 
     document.getElementById("game-board").style.gridTemplateColumns = `repeat(${boardSize.cols}, ${tileSize}px)`;
 
@@ -585,11 +605,14 @@ function updateScoreUI() {
 }
 
 function updateScore() {
-    if (currentLevel === 0) {
-        playerScore += 10; // Level 1: Mỗi cặp +10 điểm
-    } else {
-        playerScore += 1; // Level Max: Mỗi cặp +1 điểm
-    }
+	if (currentLevel === 0) {
+		playerScore += 5; // Level 1: Mỗi cặp +5 điểm
+	} else if (currentLevel === 1) {
+		playerScore += 3; // Level 2: Mỗi cặp +3 điểm
+	} else {
+		playerScore += 1; // Level Max: Mỗi cặp +1 điểm
+	}
+
     updateScoreUI();
 	saveScoreToDB("Nối hình", playerScore);
 }
@@ -609,28 +632,21 @@ function checkIfAllTilesMatched() {
 function checkGameOver() {   
     if (checkIfAllTilesMatched()) {
         stopTimer();
-        let bonus = (currentLevel === 0) ? timeLeft : Math.max(0, 1000 - timeElapsed);
+        let bonus = (currentLevel === 0 || currentLevel === 1)
+            ? timeLeft
+            : Math.max(0, 1000 - timeElapsed);
         playerScore += bonus;
         updateScoreUI();
         alert(`🎉 Hết game! Bạn nhận được ${bonus} điểm thưởng. Tổng điểm: ${playerScore}`);
         
-		//Testplay 
-//        if (currentLevel === 0) {
-//            localStorage.setItem("savedLevel", 1);
-//            localStorage.setItem("savedScore", playerScore);
-//            loadLevel(1);
-//			alert("Nhấn reset khi vừa vào level Max để load lại bảng!");
-//        } else {
-//            alert("🎉 Bạn đã hoàn thành toàn bộ game!");
-//        }
-
-		if (currentLevel === 0) {
-			stopTimer();
-			alert("🎉 Mừng bạn đã hoàn thành demo. Bạn đạt tổng điểm: " + playerScore);
-			saveScoreToDB("Nối hình", playerScore);
-			return;
-		}
-
+        if (currentLevel < levels.length - 1) {
+            localStorage.setItem("savedLevel", currentLevel + 1);
+            localStorage.setItem("savedScore", playerScore);
+            loadLevel(currentLevel + 1);
+        } else {
+            alert("🎉 Bạn đã hoàn thành toàn bộ game!");
+            saveScoreToDB("Nối hình", playerScore);
+        }
     }
 }
 
@@ -640,11 +656,11 @@ function handleGameLoss() {
 }
 
 function resetGameAfterLoss() {
-    stopTimer(); // Dừng bất kỳ timer nào đang chạy
+    stopTimer();
     currentLevel = 0;
     playerScore = 0;
     timeLeft = 120;
-    shuffleCount = 3; // Reset số lần shuffle về mặc định
+    shuffleCount = (currentLevel === 0) ? 3 : (currentLevel === 1 ? 5 : 10);
     updateShuffleButton();
     updateScoreUI();
     updateTimerUI();
@@ -771,20 +787,25 @@ document.getElementById("shuffle-button").addEventListener("click", shuffleBoard
 function resetGame() {
     stopTimer();
 
-    if (currentLevel === 0) { // Level 1: Reset về mặc định
-        playerScore = 0;
-        timeLeft = 120;
+	if (currentLevel === 0) {
+		playerScore = 0;
+		timeLeft = 120;
 		loadLevel(0);
-    } else { // Level Max: Giữ điểm của Level 1, reset thời gian về 0
-        let savedScore = localStorage.getItem("savedScore");
-        playerScore = savedScore ? parseInt(savedScore) : 0;
-        timeElapsed = 0;
+	} else if (currentLevel === 1) {
+		let savedScore = localStorage.getItem("savedScore");
+		playerScore = savedScore ? parseInt(savedScore) : 0;
+		timeLeft = 300;
 		loadLevel(1);
-    }
+	} else {
+		let savedScore = localStorage.getItem("savedScore");
+		playerScore = savedScore ? parseInt(savedScore) : 0;
+		timeElapsed = 0;
+		loadLevel(2);
+	}
 
     updateScoreUI();
     updateTimerUI();
-    setTimeout(() => { // ✅ Đợi một chút để cập nhật layout trước khi gọi resize
+    setTimeout(() => {
         window.dispatchEvent(new Event("resize"));
     }, 50);
     startTimer();
