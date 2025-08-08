@@ -41,7 +41,7 @@ const youtubePlayer = document.getElementById("youtube-player");
 
 const levels = [
     { rows: 6, cols: 9, tileSize: window.innerWidth < 700 ? window.innerWidth * 0.1 : 80 }, // Level 1
-	 rows: 8, cols: 10, tileSize: window.innerWidth < 700 ? window.innerWidth * 0.09 : 72 }, // Level 2
+	{ rows: 8, cols: 10, tileSize: window.innerWidth < 700 ? window.innerWidth * 0.09 : 72 }, // Level 2
     { rows: 9, cols: 12, tileSize: window.innerWidth < 700 ? window.innerWidth * 0.01 : 10 } // Level 3
 ];
 
