@@ -12,6 +12,7 @@ let currentTurn = 'player1';
 let opponentCards = { main: null, bottom: null, supports: [] };
 let myCards = { main: null, bottom: null, supports: [] };
 let mainCardsLocked = false;
+let scores = { player1: { main: 0, support: 0 }, player2: { main: 0, support: 0 } };
 
 document.getElementById('joinBtn').addEventListener('click', async () => {
   const name = document.getElementById('nameInput').value.trim();
@@ -53,6 +54,7 @@ document.getElementById('joinBtn').addEventListener('click', async () => {
   initDeckView();
   initDropZones();
   initPlayerArea();
+  initScoreDisplay();
   listenToRoomChanges();
 });
 
@@ -101,6 +103,19 @@ function initPlayerArea() {
   playArea.appendChild(playerArea);
 }
 
+function initScoreDisplay() {
+  const playArea = document.querySelector('.play-area');
+  const scoreP1 = document.createElement('div');
+  scoreP1.classList.add('score-display', 'score-p1');
+  scoreP1.innerHTML = `Player 1 - Main: 0, Support: 0`;
+  playArea.appendChild(scoreP1);
+
+  const scoreP2 = document.createElement('div');
+  scoreP2.classList.add('score-display', 'score-p2');
+  scoreP2.innerHTML = `Player 2 - Main: 0, Support: 0`;
+  playArea.appendChild(scoreP2);
+}
+
 function initDropZones() {
   const mainZone = playerRole === 'player1' ? '.z4p1' : '.z4p2';
   const bottomZone = playerRole === 'player1' ? '.z3p1' : '.z3p2';
@@ -120,15 +135,17 @@ function listenToRoomChanges() {
     if (!data) return;
 
     const opponentRole = playerRole === 'player1' ? 'player2' : 'player1';
-    opponentCards = {
-      main: data[opponentRole]?.main || null,
-      bottom: data[opponentRole]?.bottom || null,
-      supports: data[opponentRole]?.supports || []
-    };
+	opponentCards = {
+	  main: data[opponentRole]?.main || null,
+	  bottom: data[opponentRole]?.bottom || null,
+	  supports: data[opponentRole]?.supports || [],
+	  hand: data[opponentRole]?.hand || []
+	};
     myDeck = data[playerRole]?.deck ? data[playerRole].deck.map(id => cardData.find(c => c.id === id)) : myDeck;
     currentTurn = data.currentTurn || 'player1';
 
     updateOpponentBoard();
+    updateScoreDisplay(data);
     checkHandAndStartTurn(data);
     updateTurnIndicator();
   });
@@ -137,6 +154,7 @@ function listenToRoomChanges() {
 function updateOpponentBoard() {
   const mainZone = playerRole === 'player1' ? '.z4p2' : '.z4p1';
   const bottomZone = playerRole === 'player1' ? '.z3p2' : '.z3p1';
+  const opponentHandZone = playerRole === 'player1' ? '.z6p2' : '.z6p1';
 
   const mainZ = document.querySelector(mainZone);
   mainZ.innerHTML = '';
@@ -153,6 +171,39 @@ function updateOpponentBoard() {
   } else {
     bottomZ.innerHTML = `<img src="img/card-back.jpg" style="width:100%;height:100%;border-radius:0.5rem;">`;
   }
+
+  const handZ = document.querySelector(opponentHandZone);
+  handZ.innerHTML = '';
+  if (opponentCards.hand && opponentCards.hand.length > 0) {
+    opponentCards.hand.forEach(() => {
+      const div = document.createElement('div');
+      div.classList.add('card');
+      div.innerHTML = `<img src="img/card-back.jpg" style="width:100%;height:100%;border-radius:0.5rem;">`;
+      handZ.appendChild(div);
+    });
+  }
+}
+
+function updateScoreDisplay(data) {
+  const p1Name = data.player1?.name || 'Player 1';
+  const p2Name = data.player2?.name || 'Player 2';
+
+  const p1Main = data.player1?.main ? findCard(data.player1.main) : null;
+  const p2Main = data.player2?.main ? findCard(data.player2.main) : null;
+  scores.player1.main = p1Main ? p1Main.main : 0;
+  scores.player2.main = p2Main ? p2Main.main : 0;
+
+  scores.player1.support = Array.isArray(data.player1?.supports)
+    ? data.player1.supports.reduce((sum, id) => sum + (findCard(id)?.support || 0), 0)
+    : 0;
+  scores.player2.support = Array.isArray(data.player2?.supports)
+    ? data.player2.supports.reduce((sum, id) => sum + (findCard(id)?.support || 0), 0)
+    : 0;
+
+  document.querySelector('.score-p1').innerHTML =
+    `${p1Name} - Main: ${scores.player1.main}, Support: ${scores.player1.support}`;
+  document.querySelector('.score-p2').innerHTML =
+    `${p2Name} - Main: ${scores.player2.main}, Support: ${scores.player2.support}`;
 }
 
 function updateTurnIndicator() {
@@ -209,8 +260,28 @@ function appendCardToHand(cardOrId, zoneSelector) {
   div.addEventListener('dragstart', (e) => {
     e.dataTransfer.setData('text/plain', card.id);
   });
+  div.addEventListener('mouseenter', () => showCardInfo(card));
+  div.addEventListener('mouseleave', hideCardInfo);
 
   z6.appendChild(div);
+}
+
+function showCardInfo(card) {
+  const infoBox = document.createElement('div');
+  infoBox.classList.add('card-info', playerRole === 'player1' ? 'p1' : 'p2');
+  infoBox.innerHTML = `
+    <h3>${card.name}</h3>
+    <p>Nhân vật: ${card.char}</p>
+    <p>Điểm chiến tướng: ${card.main}</p>
+    <p>Điểm hỗ trợ: ${card.support}</p>
+    <p>${card.describe}</p>
+  `;
+  document.querySelector('.play-area').appendChild(infoBox);
+}
+
+function hideCardInfo() {
+  const infoBox = document.querySelector('.card-info');
+  if (infoBox) infoBox.remove();
 }
 
 function appendCardToZone(cardId, zoneSelector, isDraggable, showFace = true) {
@@ -264,7 +335,7 @@ async function handleDrop(e, zoneSelector) {
   } else {
     return;
   }
-
+  hideCardInfo();
   await updateFirebaseState();
 }
 
@@ -285,7 +356,7 @@ async function checkHandAndStartTurn(data) {
   }
 
   if (data.player1?.ready && data.player2?.ready && !mainCardsLocked) {
-    lockMainCards(data);
+    await lockMainCards(data);
   }
 }
 
@@ -303,8 +374,8 @@ async function lockMainCards(data) {
     applySkill(findCard(opponentCards.main), 'main');
   }
 
-  const p1Main = findCard(data.player1.main);
-  const p2Main = findCard(data.player2.main);
+  const p1Main = findCard(data.player1?.main);
+  const p2Main = findCard(data.player2?.main);
   const p1Points = p1Main ? p1Main.main : 0;
   const p2Points = p2Main ? p2Main.main : 0;
 
@@ -328,35 +399,97 @@ async function updateFirebaseState() {
 }
 
 function applySkill(card, role) {
-  if (!card) return;
-  const opponentRole = playerRole === 'player1' ? 'player2' : 'player1';
-  if (role === 'main') {
-    if (card.id === 'TCG-JS-01') {
-      if (myDeck.length > 0) {
-        const card = myDeck.shift();
-        myCards.supports.push(card.id);
-        appendCardToZone(card.id, playerRole === 'player1' ? '.z4p1' : '.z4p2', false, false);
-        updateFirebaseState();
-      }
-    } else if (card.id === 'TCG-JS-06') {
-      if (myDeck.length > 0) {
-        drawCard();
-      }
-      if (myDeck.length > 0) {
-        drawCard();
-      }
-      if (myHand.length > 0) {
-        const cardToDiscard = myHand.shift();
-        discardPile.push(cardToDiscard);
-      }
-      updateFirebaseState();
-    } else if (card.id === 'TCG-JS-07') {
-      const opponentHand = opponentCards.hand || [];
-      if (opponentHand.length > 0) opponentHand.shift();
-      if (opponentHand.length > 0) opponentHand.shift();
-      updateFirebaseState();
-    }
+  if (!card || !card.skill || card.skill.trigger !== role) return;
+
+  const s = card.skill;
+  const context = {
+    player: { hand: myHand, deck: myDeck, discard: discardPile, cards: myCards },
+    opponent: { hand: opponentCards.hand || [], deck: opponentCards.deck || [], discard: [], cards: opponentCards },
+    mainCard: myCards.main ? findCard(myCards.main) : null,
+    bottomCard: myCards.bottom ? findCard(myCards.bottom) : null,
+    supportCard: myCards.supports.length > 0 ? findCard(myCards.supports[0]) : null,
+    gameState: { currentTurn, mainCardsLocked },
+    updateStateCallback: updateFirebaseState
+  };
+
+  if (s.condition) {
+    if (s.condition.main_id && context.mainCard?.id !== s.condition.main_id) return;
+    if (s.condition.main_name && context.mainCard?.name !== s.condition.main_name) return;
+    if (s.condition.opponentDiscardMore && context.opponent.discard.length <= context.player.discard.length) return;
+    if (s.condition.opponentWinsAtLeast && context.gameState.opponentWins < s.condition.opponentWinsAtLeast) return;
+    if (s.condition.source === 'not_hand' && context.supportCard?.source === 'hand') return;
   }
+
+  s.actions.forEach(action => {
+    switch (action.action) {
+      case 'add_bottom_card':
+        if (context.player.deck.length > 0 && action.target === 'self') {
+          const card = context.player.deck.shift();
+          context.player.cards.bottom = card.id;
+          appendCardToZone(card.id, playerRole === 'player1' ? '.z3p1' : '.z3p2', false, false);
+          context.updateStateCallback();
+        }
+        break;
+      case 'add_support':
+        if (action.target === 'self' && context.supportCard) {
+          context.supportCard.support += action.amount;
+          updateScoreDisplay({ [playerRole]: context.player.cards, [playerRole === 'player1' ? 'player2' : 'player1']: context.opponent.cards });
+        }
+        break;
+      case 'draw':
+        if (action.target === 'self' && context.player.deck.length > 0) {
+          for (let i = 0; i < action.amount; i++) {
+            if (context.player.deck.length > 0) {
+              const card = context.player.deck.shift();
+              context.player.hand.push(card);
+              appendCardToHand(card, playerRole === 'player1' ? '.z6p1' : '.z6p2');
+            }
+          }
+          context.updateStateCallback();
+        }
+        break;
+      case 'discard_from_hand_top':
+        if (action.target === 'opponent' && context.opponent.hand.length > 0) {
+          for (let i = 0; i < action.amount; i++) {
+            if (context.opponent.hand.length > 0) {
+              const card = context.opponent.hand.shift();
+              context.opponent.discard.push(card);
+            }
+          }
+          context.updateStateCallback();
+        } else if (action.target === 'self' && context.player.hand.length > 0) {
+          for (let i = 0; i < action.amount; i++) {
+            if (context.player.hand.length > 0) {
+              const card = context.player.hand.shift();
+              context.player.discard.push(card);
+            }
+          }
+          context.updateStateCallback();
+        }
+        break;
+      case 'discard_from_opponent_hand_select':
+        if (action.target === 'opponent' && context.opponent.hand.length > 0) {
+          for (let i = 0; i < action.amount && context.opponent.hand.length > 0; i++) {
+            const card = context.opponent.hand.shift();
+            context.opponent.discard.push(card);
+          }
+          context.updateStateCallback();
+        }
+        break;
+      case 'limit_support_from_hand':
+        if (action.target === 'both') {
+          context.gameState.supportLimit = action.amount;
+          context.updateStateCallback();
+        }
+        break;
+      case 'ban_support_with_support_gte':
+        if (action.target === 'both') {
+          context.gameState.supportBanThreshold = action.threshold;
+          context.updateStateCallback();
+        }
+        break;
+    }
+  });
 }
 
 async function resetGame() {
@@ -365,6 +498,7 @@ async function resetGame() {
   discardPile = [];
   myCards = { main: null, bottom: null, supports: [] };
   mainCardsLocked = false;
+  scores = { player1: { main: 0, support: 0 }, player2: { main: 0, support: 0 } };
   await set(ref(db, `rooms/${roomId}/${playerRole}`), {
     name: playerName,
     deck: myDeck.map(c => c.id),

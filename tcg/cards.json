@@ -5,7 +5,11 @@
 		"char": "Diệp Tu",
 		"main": 9,
 		"support": 1,
-		"skill": "Khi nhân vật này là chiến tướng, bạn sẽ được đặt thêm 1 lá bài úp.",
+		"describe": "Khi nhân vật này là chiến tướng, bạn được đặt thêm 1 lá bài tẩy.",
+		"skill": {
+			"trigger": "main",
+			"actions": [{ "action": "add_bottom_card", "target": "self", "amount": 1 }]
+		},
 		"image": "img/01.jpg"
 	},
 	{
@@ -14,7 +18,12 @@
 		"char": "Tô Mộc Tranh",
 		"main": 7,
 		"support": 1,
-		"skill": "Khi nhân vật này là thẻ đáy, nếu nhân vật chủ chiến là 'Quân Mạc Tiếu', số điểm hỗ trợ tăng thêm 4.",
+		"describe": "Khi nhân vật này là bài tẩy và chiến tướng là 'Quân Mạc Tiếu', điểm hỗ trợ +4.",
+		"skill": {
+			"trigger": "bottom",
+			"condition": { "main_id": "TCG-JS-01" },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 4 }]
+		},
 		"image": "img/02.jpg"
 	},
 	{
@@ -23,17 +32,26 @@
 		"char": "Hoàng Thiếu Thiên",
 		"main": 6,
 		"support": 3,
-		"skill": "Khi nhân vật này là bài cuối, nếu chiến tướng là “Sách Khắc Tát Nhĩ”, điểm hỗ trợ +2.",
+		"describe": "Khi nhân vật này là bài tẩy và chiến tướng là 'Sách Khắc Tát Nhĩ', điểm hỗ trợ +2.",
+		"skill": {
+			"trigger": "bottom",
+			"condition": { "main_id": "TCG-JS-06" },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 2 }]
+		},
 		"image": "img/03.jpg"
 	},
 	{
-	  "id": "TCG-JS-04",
-	  "name": "Đại Mạc Cô Yên",
-	  "char": "Hàn Văn Thanh",
-	  "main": 8,
-	  "support": 1,
-	  "skill": "Khi nhân vật này là chủ chiến, trong lượt chiến đấu này cả hai người chơi chỉ được dùng tối đa 2 lá hỗ trợ từ tay.",
-	  "image": "img/04.jpg"
+		"id": "TCG-JS-04",
+		"name": "Đại Mạc Cô Yên",
+		"char": "Hàn Văn Thanh",
+		"main": 8,
+		"support": 1,
+		"describe": "Khi nhân vật này là chiến tướng, trong lượt này cả hai người chơi chỉ được dùng tối đa 2 lá hỗ trợ từ tay.",
+		"skill": {
+			"trigger": "main",
+			"actions": [{ "action": "limit_support_from_hand", "target": "both", "amount": 2 }]
+		},		
+		"image": "img/04.jpg"
 	},
 	{
 		"id": "TCG-JS-05",
@@ -41,17 +59,26 @@
 		"char": "Vương Kiệt Hi",
 		"main": 8,
 		"support": 1,
-		"skill": "Khi nhân vật này là chiến tướng, cả hai người chơi không thể sử dụng nhân vật có điểm hỗ trợ ≥ 2 để hỗ trợ.",
+		"describe": "Khi nhân vật này là chiến tướng, cả hai người chơi không thể sử dụng nhân vật có điểm hỗ trợ ≥ 2 để hỗ trợ.",
+		"skill": {
+			"trigger": "main",
+			"actions": [{ "action": "ban_support_with_support_gte", "target": "both", "threshold": 2 }]
+		},	
 		"image": "img/05.jpg"
 	},
 	{
-	  "id": "TCG-JS-06",
-	  "name": "Sách Khắc Tát Nhĩ",
-	  "char": "Dụ Văn Châu",
-	  "main": 8,
-	  "support": 1,
-	  "skill": "Khi nhân vật này là chủ chiến, bạn rút 2 thẻ. Sau đó bỏ 1 thẻ trên tay.",
-	  "image": "img/06.jpg"
+		"id": "TCG-JS-06",
+		"name": "Sách Khắc Tát Nhĩ",
+		"char": "Dụ Văn Châu",
+		"main": 8,
+		"support": 1,
+		"describe": "Khi nhân vật này là chiến tướng, bạn rút 2 thẻ. Sau đó bỏ 1 thẻ trên tay.",
+		"skill": {
+			"trigger": "main",
+			"actions": [{ "action": "draw", "target": "self", "amount": 2 },
+			{ "action": "discard_from_hand_top", "target": "self", "amount": 1 }]
+		},
+		"image": "img/06.jpg"
 	},
 	{
 		"id": "TCG-JS-07",
@@ -59,7 +86,11 @@
 		"char": "Chu Trạch Khải",
 		"main": 7,
 		"support": 2,
-		"skill": "Khi nhân vật này là chiến tướng, đưa 2 lá bài đầu từ tay đối thủ vào khu bỏ bài.",
+		"describe": "Khi nhân vật này là chiến tướng, đưa 2 lá bài đầu từ tay đối thủ vào khu bỏ bài.",
+		"skill": {
+			"trigger": "main",
+			"actions": [{ "action": "discard_from_hand_top", "target": "opponent", "amount": 2 }]
+		},
 		"image": "img/07.jpg"
 	},
 	{
@@ -68,17 +99,27 @@
 		"char": "Tôn Tường",
 		"main": 6,
 		"support": 2,
-		"skill": "Khi nhân vật này hỗ trợ, nếu số bài trong khu bỏ bài của đối thủ > của bạn, điểm hỗ trợ +2.",
+		"describe": "Khi nhân vật này hỗ trợ, nếu số bài trong khu bỏ bài của đối thủ > của bạn, điểm hỗ trợ +2.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "opponentDiscardMore": true },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 2 }]
+		},
 		"image": "img/09.jpg"
 	},
 	{
-	  "id": "TCG-JS-10",
-	  "name": "Bách Hoa Liễu Loạn",
-	  "char": "Trương Giai Lạc",
-	  "main": 7,
-	  "support": 1,
-	  "skill": "Khi nhân vật này hỗ trợ, nếu không phải từ tay hỗ trợ, số điểm hỗ trợ tăng thêm 3.",
-	  "image": "img/10.jpg"
+		"id": "TCG-JS-10",
+		"name": "Bách Hoa Liễu Loạn",
+		"char": "Trương Giai Lạc",
+		"main": 7,
+		"support": 1,
+		"describe": "Khi nhân vật này hỗ trợ, nếu không phải từ tay hỗ trợ, điểm hỗ trợ +3.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "source": "not_hand" },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 3 }]
+		},
+		"image": "img/10.jpg"
 	},
 	{
 		"id": "TCG-JS-18",
@@ -86,53 +127,81 @@
 		"char": "Đường Nhu",
 		"main": 6,
 		"support": 2,
-		"skill": "Khi nhân vật này hỗ trợ “Quân Mạc Tiếu”, điểm hỗ trợ +1.",
+		"describe": "Khi nhân vật này hỗ trợ 'Quân Mạc Tiếu', điểm hỗ trợ +1.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-01" },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 1 }]
+		},
 		"image": "img/18.jpg"
 	},
 	{
-	  "id": "TCG-JS-20",
-	  "name": "Hại Người Không Mệt",
-	  "char": "Mạc Phàm",
-	  "main": 4,
-	  "support": 3,
-	  "skill": "Khi nhân vật này là thẻ đáy, số điểm hỗ trợ tăng thêm 2.",
-	  "image": "img/20.jpg"
+		"id": "TCG-JS-20",
+		"name": "Hại Người Không Mệt",
+		"char": "Mạc Phàm",
+		"main": 4,
+		"support": 3,
+		"describe": "Khi nhân vật này là bài tẩy, điểm hỗ trợ +2.",
+		"skill": {
+			"trigger": "bottom",
+			"actions": [{ "action": "add_support", "target": "self", "amount": 2 }]
+		},
+		"image": "img/20.jpg"
 	},
 	{
-	  "id": "TCG-JS-28",
-	  "name": "Quỷ Khắc",
-	  "char": "Ngô Vũ Sách",
-	  "main": 6,
-	  "support": 2,
-	  "skill": "Khi nhân vật này hỗ trợ 'Phùng Sơn Quỷ Khấp', bạn rút 1 thẻ.",
-	  "image": "img/28.jpg"
+		"id": "TCG-JS-28",
+		"name": "Quỷ Khắc",
+		"char": "Ngô Vũ Sách",
+		"main": 6,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ 'Phùng Sơn Quỷ Khấp', bạn rút 1 thẻ.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_name": "Phùng Sơn Quỷ Khấp" },
+			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+		},
+		"image": "img/28.jpg"
 	},
 	{
-	  "id": "TCG-JS-32",
-	  "name": "Tiếu Ca Tự Nhược",
-	  "char": "Phương Minh Hoa",
-	  "main": 5,
-	  "support": 3,
-	  "skill": "Khi nhân vật này là thẻ đáy, chọn 2 lá trên tay của đối thủ và đưa vào khu vực bỏ bài.",
-	  "image": "img/32.jpg"
+		"id": "TCG-JS-32",
+		"name": "Tiếu Ca Tự Nhược",
+		"char": "Phương Minh Hoa",
+		"main": 5,
+		"support": 3,
+		"describe": "Khi nhân vật này là bài tẩy, chọn 2 lá trên tay của đối thủ và đưa vào khu vực bỏ bài.",
+		"skill": {
+			"trigger": "bottom",
+			"actions": [{ "action": "discard_from_opponent_hand_select", "target": "opponent", "amount": 2 }]
+		},
+		"image": "img/32.jpg"
 	},
 	{
-	  "id": "TCG-JS-33",
-	  "name": "Độc Hoạt",
-	  "char": "Hứa Bân",
-	  "main": 6,
-	  "support": 2,
-	  "skill": "Khi nhân vật này hỗ trợ 'Vương Bất Lưu Hành', bạn rút 1 thẻ.",
-	  "image": "img/33.jpg"
+		"id": "TCG-JS-33",
+		"name": "Độc Hoạt",
+		"char": "Hứa Bân",
+		"main": 6,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ 'Vương Bất Lưu Hành', bạn rút 1 thẻ.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-05" },
+			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+		},
+		"image": "img/33.jpg"
 	},
 	{
-	  "id": "TCG-JS-38",
-	  "name": "Lạc Hoa Lang Tạ",
-	  "char": "Vu Phong",
-	  "main": 6,
-	  "support": 1,
-	  "skill": "Khi nhân vật này là chủ chiến, nếu đối thủ đã thắng 2 lần, bạn rút 1 thẻ.",
-	  "image": "img/38.jpg"
+		"id": "TCG-JS-38",
+		"name": "Lạc Hoa Lang Tạ",
+		"char": "Vu Phong",
+		"main": 6,
+		"support": 1,
+		"describe": "Khi nhân vật này là chiến tướng, nếu đối thủ đã thắng 2 lần, bạn rút 1 thẻ.",
+		"skill": {
+			"trigger": "main",
+			"condition": { "opponentWinsAtLeast": 2 },
+			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+		},
+		"image": "img/38.jpg"
 	}
 
 ]
