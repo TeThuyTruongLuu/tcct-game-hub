@@ -23,7 +23,12 @@ document.getElementById('joinBtn').addEventListener('click', async () => {
   const snap = await get(roomRef);
   const data = snap.val() || {};
 
-  if (!data.player1) {
+  // Xác định role
+  if (data.player1?.name === name) {
+    playerRole = 'player1';
+  } else if (data.player2?.name === name) {
+    playerRole = 'player2';
+  } else if (!data.player1) {
     playerRole = 'player1';
   } else if (!data.player2) {
     playerRole = 'player2';
@@ -40,16 +45,28 @@ document.getElementById('joinBtn').addEventListener('click', async () => {
   const res = await fetch('cards.json');
   cardData = await res.json();
 
-  myDeck = createDeck(cardData);
-  await set(ref(db, `rooms/${roomId}/${playerRole}`), {
-    name,
-    deck: myDeck.map(c => c.id),
-    hand: [],
-    main: null,
-    bottom: null,
-    supports: [],
-    ready: false
-  });
+  // Nếu đã có tên trong phòng => load dữ liệu cũ
+  if (data[playerRole]?.name === name) {
+    myDeck = (data[playerRole].deck || []).map(id => cardData.find(c => c.id === id));
+    myHand = (data[playerRole].hand || []).map(id => cardData.find(c => c.id === id));
+    myCards = {
+      main: data[playerRole].main || null,
+      bottom: data[playerRole].bottom || null,
+      supports: data[playerRole].supports || []
+    };
+  } else {
+    // Người chơi mới => tạo deck mới
+    myDeck = createDeck(cardData);
+    await set(ref(db, `rooms/${roomId}/${playerRole}`), {
+      name,
+      deck: myDeck.map(c => c.id),
+      hand: [],
+      main: null,
+      bottom: null,
+      supports: [],
+      ready: false
+    });
+  }
 
   initDeckView();
   initDropZones();
@@ -57,6 +74,7 @@ document.getElementById('joinBtn').addEventListener('click', async () => {
   initScoreDisplay();
   listenToRoomChanges();
 });
+
 
 function createDeck(cards) {
   const deck = [];
@@ -105,14 +123,23 @@ function initPlayerArea() {
 
 function initScoreDisplay() {
   const playArea = document.querySelector('.play-area');
+
   const scoreP1 = document.createElement('div');
   scoreP1.classList.add('score-display', 'score-p1');
-  scoreP1.innerHTML = `Player 1 - Main: 0, Support: 0`;
+  scoreP1.innerHTML = `
+    <div class="name">Player 1</div>
+    <div class="row main">Điểm chiến tướng: 0</div>
+    <div class="row support">Điểm hỗ trợ: 0</div>
+  `;
   playArea.appendChild(scoreP1);
 
   const scoreP2 = document.createElement('div');
   scoreP2.classList.add('score-display', 'score-p2');
-  scoreP2.innerHTML = `Player 2 - Main: 0, Support: 0`;
+  scoreP2.innerHTML = `
+    <div class="name">Player 2</div>
+    <div class="row main">Điểm chiến tướng: 0</div>
+    <div class="row support">Điểm hỗ trợ: 0</div>
+  `;
   playArea.appendChild(scoreP2);
 }
 
@@ -151,59 +178,34 @@ function listenToRoomChanges() {
   });
 }
 
-function updateOpponentBoard() {
-  const mainZone = playerRole === 'player1' ? '.z4p2' : '.z4p1';
-  const bottomZone = playerRole === 'player1' ? '.z3p2' : '.z3p1';
-  const opponentHandZone = playerRole === 'player1' ? '.z6p2' : '.z6p1';
-
-  const mainZ = document.querySelector(mainZone);
-  mainZ.innerHTML = '';
-  if (opponentCards.main) {
-    appendCardToZone(opponentCards.main, mainZone, false, mainCardsLocked);
-  } else if (!mainCardsLocked) {
-    mainZ.innerHTML = `<img src="img/card-back.jpg" style="width:100%;height:100%;border-radius:0.5rem;">`;
-  }
-
-  const bottomZ = document.querySelector(bottomZone);
-  bottomZ.innerHTML = '';
-  if (opponentCards.bottom) {
-    appendCardToZone(opponentCards.bottom, bottomZone, false, false);
-  } else {
-    bottomZ.innerHTML = `<img src="img/card-back.jpg" style="width:100%;height:100%;border-radius:0.5rem;">`;
-  }
-
-  const handZ = document.querySelector(opponentHandZone);
-  handZ.innerHTML = '';
-  if (opponentCards.hand && opponentCards.hand.length > 0) {
-    opponentCards.hand.forEach(() => {
-      const div = document.createElement('div');
-      div.classList.add('card');
-      div.innerHTML = `<img src="img/card-back.jpg" style="width:100%;height:100%;border-radius:0.5rem;">`;
-      handZ.appendChild(div);
-    });
-  }
-}
-
 function updateScoreDisplay(data) {
   const p1Name = data.player1?.name || 'Player 1';
   const p2Name = data.player2?.name || 'Player 2';
 
-  const p1Main = data.player1?.main ? findCard(data.player1.main) : null;
-  const p2Main = data.player2?.main ? findCard(data.player2.main) : null;
-  scores.player1.main = p1Main ? p1Main.main : 0;
-  scores.player2.main = p2Main ? p2Main.main : 0;
+  const p1MainCard = data.player1?.main && mainCardsLocked ? findCard(data.player1.main) : null;
+  const p2MainCard = data.player2?.main && mainCardsLocked ? findCard(data.player2.main) : null;
+
+  scores.player1.main = p1MainCard ? p1MainCard.main : 0;
+  scores.player2.main = p2MainCard ? p2MainCard.main : 0;
 
   scores.player1.support = Array.isArray(data.player1?.supports)
-    ? data.player1.supports.reduce((sum, id) => sum + (findCard(id)?.support || 0), 0)
-    : 0;
-  scores.player2.support = Array.isArray(data.player2?.supports)
-    ? data.player2.supports.reduce((sum, id) => sum + (findCard(id)?.support || 0), 0)
+    ? data.player1.supports.reduce((s, id) => s + (findCard(id)?.support || 0), 0)
     : 0;
 
-  document.querySelector('.score-p1').innerHTML =
-    `${p1Name} - Main: ${scores.player1.main}, Support: ${scores.player1.support}`;
-  document.querySelector('.score-p2').innerHTML =
-    `${p2Name} - Main: ${scores.player2.main}, Support: ${scores.player2.support}`;
+  scores.player2.support = Array.isArray(data.player2?.supports)
+    ? data.player2.supports.reduce((s, id) => s + (findCard(id)?.support || 0), 0)
+    : 0;
+
+  const box1 = document.querySelector('.score-p1');
+  const box2 = document.querySelector('.score-p2');
+
+  box1.querySelector('.name').textContent = p1Name;
+  box1.querySelector('.main').textContent = `Điểm chiến tướng: ${scores.player1.main}`;
+  box1.querySelector('.support').textContent = `Điểm hỗ trợ: ${scores.player1.support}`;
+
+  box2.querySelector('.name').textContent = p2Name;
+  box2.querySelector('.main').textContent = `Điểm chiến tướng: ${scores.player2.main}`;
+  box2.querySelector('.support').textContent = `Điểm hỗ trợ: ${scores.player2.support}`;
 }
 
 function updateTurnIndicator() {
@@ -215,6 +217,7 @@ function updateTurnIndicator() {
   turnIndicator.style.padding = '10px';
   turnIndicator.style.background = 'rgba(0, 0, 0, 0.7)';
   turnIndicator.style.color = 'white';
+  turnIndicator.style.zIndex = '9999';
   turnIndicator.textContent = mainCardsLocked ? (currentTurn === playerRole ? 'Lượt của bạn' : 'Lượt của đối thủ') : 'Đang đặt bài lượt 1';
   document.querySelector('.play-area').appendChild(turnIndicator);
   setTimeout(() => turnIndicator.remove(), 2000);
@@ -271,7 +274,7 @@ function showCardInfo(card) {
   infoBox.classList.add('card-info', playerRole === 'player1' ? 'p1' : 'p2');
   infoBox.innerHTML = `
     <h3>${card.name}</h3>
-    <p>Nhân vật: ${card.char}</p>
+    <p>Người điều khiển: ${card.char}</p>
     <p>Điểm chiến tướng: ${card.main}</p>
     <p>Điểm hỗ trợ: ${card.support}</p>
     <p>${card.describe}</p>
@@ -285,27 +288,135 @@ function hideCardInfo() {
 }
 
 function appendCardToZone(cardId, zoneSelector, isDraggable, showFace = true) {
-  const card = findCard(cardId);
-  if (!card) return;
+  const card = cardId ? findCard(cardId) : null;
   const zone = document.querySelector(zoneSelector);
-  zone.innerHTML = '';
+  const isStack = zone.classList.contains('card-stack');
 
-  const div = document.createElement('div');
-  div.classList.add('card');
-  div.style.setProperty('--i', '0');
-  if (isDraggable) {
-    div.setAttribute('draggable', 'true');
-    div.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('text/plain', card.id);
+  const cardNumber = card ? card.id.split('-').pop().padStart(2, '0') : null;
+  let imagePath = '';
+  if (card) {
+    imagePath = showFace ? `img/${cardNumber}.jpg` : 'img/card-back.jpg';
+  }
+
+  if (isStack) {
+    const slotIndex = 0;
+    let slot = zone.querySelector(`.card[data-slot="${slotIndex}"]`);
+    if (!slot) {
+      slot = document.createElement('div');
+      slot.classList.add('card');
+      slot.dataset.slot = slotIndex;
+      slot.style.setProperty('--i', slotIndex);
+      slot.style.zIndex = 3;
+      zone.appendChild(slot);
+    }
+    if (card) {
+      slot.innerHTML = `<img src="${imagePath}" style="width:100%; height:100%; border-radius: 0.5rem;">`;
+      slot.dataset.id = card.id;
+      if (isDraggable) {
+        slot.setAttribute('draggable', 'true');
+        slot.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', card.id);
+        });
+      }
+    } else {
+      slot.innerHTML = '';
+      slot.removeAttribute('data-id');
+    }
+  } else {
+    zone.innerHTML = '';
+    const div = document.createElement('div');
+    div.classList.add('card');
+    div.style.setProperty('--i', '0');
+    if (card) {
+      div.innerHTML = `<img src="${imagePath}" style="width:100%; height:100%; border-radius: 0.5rem;">`;
+      div.dataset.id = card.id;
+      if (isDraggable) {
+        div.setAttribute('draggable', 'true');
+        div.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', card.id);
+        });
+      }
+    }
+    zone.appendChild(div);
+  }
+}
+
+function ensureVStack(zoneSelector){
+  const zone=document.querySelector(zoneSelector);
+  const now=zone.querySelectorAll('.card').length;
+  if(now!==3){
+    zone.innerHTML='';
+    for(let i=0;i<3;i++){
+      const d=document.createElement('div');
+      d.classList.add('card');
+      d.style.setProperty('--i',i);
+      zone.appendChild(d);
+    }
+  }
+  return Array.from(zone.querySelectorAll('.card'));
+}
+
+function setStackSlot(zoneSelector, cardId, showFace){
+  const zone=document.querySelector(zoneSelector);
+  const slot=zone.querySelector('.card[data-slot="0"]')||zone.querySelector('.card');
+  if(!slot) return;
+  if(!cardId){ slot.innerHTML=''; slot.removeAttribute('data-id'); return; }
+  const card=findCard(cardId);
+  if(!card) return;
+  const num=card.id.split('-').pop().padStart(2,'0');
+  const img=showFace?`img/${num}.jpg`:'img/card-back.jpg';
+  slot.innerHTML=`<img src="${img}" style="width:100%;height:100%;border-radius:0.5rem;">`;
+  slot.dataset.id=card.id;
+}
+
+function updateOpponentBoard() {
+  const opponentRole = playerRole === 'player1' ? 'player2' : 'player1';
+  const oppMainZoneSel = opponentRole === 'player1' ? '.z4p1' : '.z4p2';
+  const oppBottomZoneSel = opponentRole === 'player1' ? '.z3p1' : '.z3p2';
+  const oppSupportZoneSel = opponentRole === 'player1' ? '.z5p1' : '.z5p2';
+  const oppHandZoneSel = opponentRole === 'player1' ? '.z6p1' : '.z6p2';
+
+  const bothReadyFull = opponentCards.main && myCards.main && mainCardsLocked;
+  appendCardToZone(opponentCards.main || null, oppMainZoneSel, false, bothReadyFull);
+
+  const bottomZone = document.querySelector(oppBottomZoneSel);
+  bottomZone.innerHTML = '';
+  if (opponentCards.bottom) {
+    appendCardToZone(opponentCards.bottom, oppBottomZoneSel, false, false);
+  } else {
+    const div = document.createElement('div');
+    div.classList.add('card');
+    bottomZone.appendChild(div);
+  }
+
+  const supportZone = document.querySelector(oppSupportZoneSel);
+  supportZone.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const div = document.createElement('div');
+    div.classList.add('card');
+    div.style.setProperty('--i', i);
+    if (opponentCards.supports[i]) {
+      const card = opponentCards.supports[i];
+      const cardDiv = document.createElement('div');
+      cardDiv.classList.add('card');
+      cardDiv.style.setProperty('--i', i);
+      cardDiv.innerHTML = `<img src="img/card-back.jpg" style="width:100%; height:100%; border-radius: 0.5rem;">`;
+      supportZone.appendChild(cardDiv);
+    } else {
+      supportZone.appendChild(div);
+    }
+  }
+
+  const handZone = document.querySelector(oppHandZoneSel);
+  handZone.innerHTML = '';
+  if (Array.isArray(opponentCards.hand)) {
+    opponentCards.hand.forEach(() => {
+      const div = document.createElement('div');
+      div.classList.add('card');
+      div.innerHTML = `<img src="img/card-back.jpg" style="width:100%; height:100%; border-radius: 0.5rem;">`;
+      handZone.appendChild(div);
     });
   }
-  div.dataset.id = card.id;
-
-  const cardNumber = card.id.split('-').pop().padStart(2, '0');
-  const imagePath = showFace ? `img/${cardNumber}.jpg` : 'img/card-back.jpg';
-
-  div.innerHTML = `<img src="${imagePath}" alt="${card.name}" style="width:100%; height:100%; border-radius: 0.5rem;">`;
-  zone.appendChild(div);
 }
 
 async function handleDrop(e, zoneSelector) {
@@ -320,13 +431,16 @@ async function handleDrop(e, zoneSelector) {
   const mainZone = playerRole === 'player1' ? '.z4p1' : '.z4p2';
   const bottomZone = playerRole === 'player1' ? '.z3p1' : '.z3p2';
 
-  if (zoneSelector === mainZone && !myCards.main) {
-    myCards.main = cardId;
-    myHand = myHand.filter(c => c.id !== cardId);
-    const cardElement = document.querySelector(handZone).querySelector(`[data-id="${cardId}"]`);
-    if (cardElement) cardElement.remove();
-    appendCardToZone(cardId, mainZone, false, true);
-  } else if (zoneSelector === bottomZone && !myCards.bottom) {
+  if(zoneSelector===mainZone && !myCards.main){
+    myCards.main=cardId;
+    myHand=myHand.filter(c=>c.id!==cardId);
+    const el=document.querySelector(handZone).querySelector(`[data-id="${cardId}"]`);
+    if(el) el.remove();
+    setStackSlot(mainZone, cardId, true);
+    hideCardInfo();
+    await updateFirebaseState();
+    return;
+  }  else if (zoneSelector === bottomZone && !myCards.bottom) {
     myCards.bottom = cardId;
     myHand = myHand.filter(c => c.id !== cardId);
     const cardElement = document.querySelector(handZone).querySelector(`[data-id="${cardId}"]`);
@@ -365,19 +479,22 @@ async function lockMainCards(data) {
   const mainZone = playerRole === 'player1' ? '.z4p1' : '.z4p2';
   const opponentMainZone = playerRole === 'player1' ? '.z4p2' : '.z4p1';
 
-  if (myCards.main) {
-    appendCardToZone(myCards.main, mainZone, false, true);
-    applySkill(findCard(myCards.main), 'main');
-  }
-  if (opponentCards.main) {
-    appendCardToZone(opponentCards.main, opponentMainZone, false, true);
-    applySkill(findCard(opponentCards.main), 'main');
+  const p1ReadyFull = data.player1?.main && data.player1?.bottom;
+  const p2ReadyFull = data.player2?.main && data.player2?.bottom;
+
+  if (p1ReadyFull && p2ReadyFull) {
+    if (myCards.main) {
+      appendCardToZone(myCards.main, mainZone, false, true); // showFace = true
+      applySkill(findCard(myCards.main), 'main');
+    }
+    if (opponentCards.main) {
+      appendCardToZone(opponentCards.main, opponentMainZone, false, true); // showFace = true
+      applySkill(findCard(opponentCards.main), 'main');
+    }
   }
 
-  const p1Main = findCard(data.player1?.main);
-  const p2Main = findCard(data.player2?.main);
-  const p1Points = p1Main ? p1Main.main : 0;
-  const p2Points = p2Main ? p2Main.main : 0;
+  const p1Points = p1ReadyFull ? findCard(data.player1?.main)?.main || 0 : 0;
+  const p2Points = p2ReadyFull ? findCard(data.player2?.main)?.main || 0 : 0;
 
   const newTurn = p1Points >= p2Points ? 'player1' : 'player2';
   await set(ref(db, `rooms/${roomId}/currentTurn`), newTurn);
