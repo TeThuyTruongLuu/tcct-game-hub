@@ -5,22 +5,20 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-	padding: 5vw 0;
+    padding: 5vw 0;
 }
 
-/* Wrapper chứa tất cả */
 .game-wrapper {
-	padding-top: 1vw;
+    padding-top: 1vw;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 20px;
 }
 
-/* Bảng xếp hình */
 .puzzle-board {
-    width: 525px; /* 10 x 52.5px */
-    height: 370px; /* 7 x 52.8px */
+    width: 525px;
+    height: 370px;
     background-color: #f0f0f0;
     display: grid;
     grid-template-columns: repeat(10, 52.5px);
@@ -28,7 +26,26 @@ body {
     position: relative;
 }
 
-/* Bảng chứa mảnh ghép */
+.puzzle-board.level-2 {
+    width: 732px;
+    height: 405px;
+    grid-template-columns: repeat(10, 73.2px);
+    grid-template-rows: repeat(7, calc(405px / 7));
+}
+
+.preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.15;
+    background-size: contain;
+    background-repeat: no-repeat;
+	pointer-events: none;
+    z-index: 1;
+}
+
 .pieces-container {
     background: #f5e1da;
     padding: 5px;
@@ -37,40 +54,61 @@ body {
     overflow: hidden;
 }
 
-/* Bảng trên 24 mảnh*/
 .top-container {
     grid-template-columns: repeat(12, 52.5px);
     grid-template-rows: repeat(2, calc(370px / 7));
     width: 630px;
-    height: calc(370px / 7*2);
+    height: calc(370px / 7 * 2);
 }
 
-/* Bảng trái & phải (dọc) */
+.top-container.level-2 {
+    grid-template-columns: repeat(12, 73.2px);
+    grid-template-rows: repeat(2, calc(405px / 7));
+    width: 878.4px;
+    height: calc(405px / 7 * 2);
+}
+
 .left-container, .right-container {
     grid-template-columns: repeat(3, 52.5px);
     grid-template-rows: repeat(8, calc(370px / 7));
     width: 157.5px;
-    height: calc(370px / 7*8);
+    height: calc(370px / 7 * 8);
 }
 
-/* Mảnh ghép */
+.left-container.level-2, .right-container.level-2 {
+    grid-template-columns: repeat(3, 73.2px);
+    grid-template-rows: repeat(8, calc(405px / 7));
+    width: 219.6px;
+    height: calc(405px / 7 * 8);
+}
+
 .puzzle-piece {
     width: 52.5px;
     height: calc(370px / 7);
     background-size: 525px 370px;
     background-repeat: no-repeat;
+    z-index: 2;
 }
 
+.puzzle-piece.level-2 {
+    width: 73.2px;
+    height: calc(405px / 7);
+    background-size: 732px 405px;
+}
 
-/* Ô trống trên bảng chơi */
 .puzzle-slot {
     width: 52.5px;
     height: calc(370px / 7);
     border: 1px solid #ddd;
     background-color: #f9f9f9;
+    z-index: 0;
 }
 
-/* Bảng câu hỏi */
+.puzzle-slot.level-2 {
+    width: 73.2px;
+    height: calc(405px / 7);
+}
+
 .question-container {
     display: block;
     text-align: center;
@@ -82,10 +120,9 @@ body {
     border-radius: 15px;
     box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
     font-family: 'Quicksand', sans-serif;
-	font-weight: 600;
+    font-weight: 600;
 }
 
-/* Tiêu đề câu hỏi */
 .question-container h2 {
     font-size: 22px;
     font-weight: 700;
@@ -102,8 +139,8 @@ body {
     font-size: 16px;
     cursor: pointer;
     transition: all 0.3s ease-in-out;
-	font-family: 'Quicksand', sans-serif;
-	font-weight: 500;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 500;
 }
 
 .question-container button:hover {
@@ -118,19 +155,18 @@ body {
     color: white;
 }
 
-/* Nút lựa chọn sai */
 .question-container button.wrong {
     background: #ef476f;
     border-color: #d72638;
     color: white;
 }
 
-
 .hidden-piece {
     position: relative;
     background-color: rgba(0, 0, 0, 0.3);
     cursor: pointer;
 }
+
 .hidden-piece::after {
     content: "🔒";
     color: white;
@@ -154,14 +190,14 @@ body {
         flex-direction: column;
         justify-content: center;
         align-items: center;
-		height: max-content;
+        height: max-content;
     }
-	.game-wrapper {
-		padding-top: 1vw;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
+    .game-wrapper {
+        padding-top: 1vw;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
     .left-container, .right-container {
         display: none;
     }
@@ -174,62 +210,84 @@ body {
         align-items: center;
         justify-content: center;
     }
-
-    /* Mảnh ghép tự co theo tỷ lệ */
+    .top-container.level-2 {
+        width: 90vw;
+        height: 10vh;
+    }
     .puzzle-piece {
-		position: absolute;
+        position: absolute;
         width: 9.5vw;
-		height: calc(95vw * 1480 / 14700); /* tức ≈ 9.56vw */
-		background-size: 95vw calc(95vw * 1480 / 2100);
+        height: calc(95vw * 370 / 525 / 7);
+        background-size: 95vw calc(95vw * 370 / 525);
         cursor: grab;
         touch-action: none;
-		z-index: 1000;
+        z-index: 2;
     }
-
-    /* Khi kéo, hiển thị trên cùng */
+    .puzzle-piece.level-2 {
+        width: 9.5vw;
+        height: calc(95vw * 405 / 732 / 7);
+        background-size: 95vw calc(95vw * 405 / 732);
+    }
     .puzzle-piece:active {
         z-index: 1000;
     }
-	
-	.puzzle-board {
-		width: 95vw;
-		height: calc(95vw * 1480 / 2100);
-		background-color: #f0f0f0;
-		display: grid;
-		grid-template-columns: repeat(10, 9.5vw);
-		grid-template-rows: repeat(7, calc(95vw * 1480 / 14700));
-		position: relative;
-		gap: 0;
-		margin: 2vw;
-	}
-	
-	.puzzle-slot {
-		width: 9.5vw;
-		height: calc(95vw * 1480 / 14700);
-		border: 1px solid #ddd;
-		background-color: #ffffff;
-	}
-	.question-container {
-		max-width: 85vw;
-		border-radius: 10px;
-	}
-	.question-container h2 {
-		font-size: 5vw;
-	}
-	.question-container button {
-		background: #f0f0f0;
-		border: 2px solid #666;
-		padding: 10px 20px;
-		margin: 5px;
-		border-radius: 10px;
-		font-size: 16px;
-		cursor: pointer;
-		transition: all 0.3s ease-in-out;
-	}
-	.timer-container {
-		font-size: 3vw;
-	}
-	.hidden-piece {
-		pointer-events: auto;
-	}
+    .puzzle-board {
+        width: 95vw;
+        height: calc(95vw * 370 / 525);
+        background-color: #f0f0f0;
+        display: grid;
+        grid-template-columns: repeat(10, 9.5vw);
+        grid-template-rows: repeat(7, calc(95vw * 370 / 525 / 7));
+        position: relative;
+        gap: 0;
+        margin: 2vw;
+    }
+    .puzzle-board.level-2 {
+        width: 95vw;
+        height: calc(95vw * 405 / 732);
+        grid-template-columns: repeat(10, 9.5vw);
+        grid-template-rows: repeat(7, calc(95vw * 405 / 732 / 7));
+    }
+    .preview-overlay {
+		pointer-events: none;
+        background-size: 95vw calc(95vw * 370 / 525);
+    }
+    .preview-overlay.level-2 {
+		pointer-events: none;
+        background-size: 95vw calc(95vw * 405 / 732);
+    }
+    .puzzle-slot {
+        width: 9.5vw;
+        height: calc(95vw * 370 / 525 / 7);
+        border: 1px solid #ddd;
+        background-color: #ffffff;
+        z-index: 1;
+    }
+    .puzzle-slot.level-2 {
+        width: 9.5vw;
+        height: calc(95vw * 405 / 732 / 7);
+    }
+    .question-container {
+        max-width: 85vw;
+        border-radius: 10px;
+    }
+    .question-container h2 {
+        font-size: 5vw;
+    }
+    .question-container button {
+        background: #f0f0f0;
+        border: 2px solid #666;
+        padding: 10px 20px;
+        margin: 5px;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+    }
+    .timer-container {
+        font-size: 3vw;
+    }
+    .hidden-piece {
+        pointer-events: auto;
+    }
 }

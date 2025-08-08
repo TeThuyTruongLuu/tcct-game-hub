@@ -1,45 +1,28 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
-	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Xếp Hình</title>
+    <title>Puzzle Game</title>
     <link rel="stylesheet" href="style.css">
-	<link rel="icon" href="../favicon.ico" type="image/x-icon" />
-	<link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="game-wrapper">
-        <!-- Bảng trên chứa mảnh ghép -->
-        <div class="pieces-container top-container" id="top-container"></div>
-    </div>
-    
-    <div class="game-wrapper">
-        <!-- Bảng chứa mảnh ghép trái -->
         <div class="pieces-container left-container" id="left-container"></div>
-
-        <!-- Bảng xếp hình -->
-        <div class="puzzle-board" id="puzzle-board"></div>
-
-        <!-- Bảng chứa mảnh ghép phải -->
+        <div class="puzzle-board" id="puzzle-board">
+            <div class="preview-overlay" id="preview-overlay"></div>
+        </div>
         <div class="pieces-container right-container" id="right-container"></div>
     </div>
-
-    <!-- Khu vực câu hỏi -->
-    <div class="question-container" id="question-container">
-	<div id="timer-container"><span id="timer">Thời gian chơi: 0 giây</span></div>
-
-        <h2>Câu hỏi:</h2>
-        <p id="question-text">Chọn một mảnh ghép để bắt đầu giải câu hỏi!</p>
+    <div class="pieces-container top-container" id="top-container"></div>
+	<br>
+    <div class="timer-container" id="timer">Thời gian chơi: 0 giây</div>
+    <div class="question-container" id="question-container" style="display: none;">
+        <h2 id="question-text">Chọn một mảnh ghép để bắt đầu giải câu hỏi!</h2>
         <div id="options"></div>
     </div>
-	<div>
-		<p><i>Cre: Phong's commissions by <a href="https://www.facebook.com/dh.thuytrang">Yummi</a></i></p>
-	</div>
-
-	<script src="../js/index.js"></script>
+    <p style="margin-top: 20px;">Cre: Phong's commissions by Yummi</p>
     <script src="script.js"></script>
 </body>
 </html>

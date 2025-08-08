@@ -1,20 +1,26 @@
 const rows = 7;
 const cols = 10;
 const totalPieces = rows * cols;
-const hiddenPieces = 21; //21 câu hỏi
+const hiddenPieces = 21;
+let currentLevel = 1;
+const levelImages = {
+    1: { src: 'Puzzle1.jpeg', width: 525, height: 370 },
+    2: { src: 'Puzzle2.png', width: 732, height: 405 }
+};
 
 const puzzleBoard = document.getElementById("puzzle-board");
 const topContainer = document.getElementById("top-container");
 const leftContainer = document.getElementById("left-container");
 const rightContainer = document.getElementById("right-container");
+const previewOverlay = document.getElementById("preview-overlay");
 
 let draggedPiece = null;
 let originalParent = null;
 let placedPieces = 0;
 let usedQuestions = new Set();
+let levelScores = { 1: 0, 2: 0 };
 
-
-const questions = [
+const questionsLevel1 = [
     {
         question: "Ai dưới đây chưa từng chuyển nhượng?",
         options: ["Giang Ba Đào", "Hứa Bân", "Lý Tấn", "Cổ Thế Minh", "Đặng Phục Thăng"],
@@ -25,106 +31,106 @@ const questions = [
         options: ["Mùa 1 - Bá Đồ", "Mùa 2 - Gia Thế", "Mùa 3 - Bá Đồ", "Mùa 2 - Hoàng Phong", "Mùa 3 - Hô Khiếu"],
         correct: [0]
     },
-	{
-		question: "Ai không có trong phòng khách sạn khi Diệp Tu giải thích tên giả - tên thật?",
-		options: ["Phùng Hiến Quân", "Tào Quảng Thành", "Thường Tiên", "Ngụy Sâm"],
-		correct: [1]
-	},
-	{
-		question: "Lý Dịch Ninh từng là thành viên của chiến đội nào?",
-		options: ["Yên Vũ", "Hạ Võ", "Lôi Đình", "Bách Hoa"],
-		correct: [0]
-	},
-	{
-		question: "Ai ba lần Liều Mình Một Hit đều thành công?",
-		options: ["Lý Tấn", "Diệp Tu", "Dương Thông"],
-		correct: [2]
-	},
-	{
-		question: "Trương Ích Vỹ là cựu đội trưởng của chiến đội nào?",
-		options: ["Tru Tiên", "Luân Hồi", "Vi Thảo", "Hoàng Phong"],
-		correct: [1]
-	},
-	{
-		question: "Ai không phải là phóng viên?",
-		options: ["Thường Tiên", "Trình Tư Yên", "Thân Kiến", "Tào Quảng Thành"],
-		correct: [2]
-	},
-	{
-		question: "Điều nào sau đây không đúng?",
-		options: [
-			"Quý Lãnh giải nghệ ngay sau khi đạt MVP mùa 4",
-			"Chu Quang Nghĩa không cầm theo acc Quý Lãnh khi chuyển nhượng sang Bách Hoa",
-			"Quý Lãnh là thành viên Bá Đồ",
-			"Quý Lãnh từng Liều Mình Một Hit giết Nhất Diệp Chi Thu thành công",
-			"Acc Quý Lãnh trùng tên với người thật"
-		],
-		correct: [1]
-	},
-	{
-		question: "Kỹ năng nào không phải của Pháp Sư Nguyên Tố?",
-		options: ["Liệt Diễm Xung Kích", "Bình Thủy Tinh Dung Nham", "Thiên Lôi Địa Hỏa"],
-		correct: [1]
-	},
-	{
-		question: "Acc nào là Ma Kiếm Sĩ?",
-		options: ["Thiều Quang Hoán", "Vô Lãng", "Quỷ Khắc"],
-		correct: [1]
-	},
-	{
-		question: "Bạch Thứ hiện cầm acc tên gì tại 301?",
-		options: ["Bough", "Bàn Sơn", "Triều Tịch"],
-		correct: [2]
-	},
-	{
-		question: "Ai không thuộc Thế hệ mới?",
-		options: ["Mạnh Vĩnh Minh", "Phương Học Tài", "Tằng Thăng Hà", "Giả Hưng", "Vương Trạch"],
-		correct: [1]
-	},
-	{
-		question: "Ai không thuộc Thế hệ Hoàng kim?",
-		options: ["Chu Trạch Khải", "Điền Sâm", "Hoàng Thiếu Thiên", "Sở Vân Tú", "Lý Diệc Huy"],
-		correct: [0]
-	},
-	{
-		question: "Thông tin nào sau đây sai về Triệu Dương?",
-		options: [
-			"Thuộc chiến đội Lâm Hải, có lên sân mùa 10",
-			"Trúng cử đội hình ngôi sao 7 năm liên tục",
-			"Chưa từng góp mặt ở vòng chung kết"
-		],
-		correct: [0]
-	},
-	{
-		question: "Mũi Tên Thiêu Đốt có lửa màu gì?",
-		options: ["Đỏ", "Đen", "Tím", "Nâu", "Xanh"],
-		correct: [1]
-	},
-	{
-		question: "Lẩu 9 ngăn là đặc trưng của vùng nào?",
-		options: ["Tô Châu", "Trùng Khánh", "Tây An"],
-		correct: [1]
-	},
-	{
-		question: "Chiến đội có biểu tượng ngọn lửa trong logo?",
-		options: ["Hưng Hân", "Hô Khiếu", "Lôi Đình"],
-		correct: [0]
-	},
-	{
-		question: "Hạ Trọng Thiên là ai?",
-		options: [
-			"Bán trà dạo trên đường",
-			"Thành viên Nghĩa Trảm",
-			"Ông chủ Gia Thế",
-			"Thành viên chiến đội Gia Thế"
-		],
-		correct: [2]
-	},
-	{
-		question: "Tác giả Toàn Chức Cao Thủ là?",
-		options: ["Hồ Diệp Lam", "Hồ Điệp Lam", "Hu Di Lam"],
-		correct: [1]
-	},
+    {
+        question: "Ai không có trong phòng khách sạn khi Diệp Tu giải thích tên giả - tên thật?",
+        options: ["Phùng Hiến Quân", "Tào Quảng Thành", "Thường Tiên", "Ngụy Sâm"],
+        correct: [1]
+    },
+    {
+        question: "Lý Dịch Ninh từng là thành viên của chiến đội nào?",
+        options: ["Yên Vũ", "Hạ Võ", "Lôi Đình", "Bách Hoa"],
+        correct: [0]
+    },
+    {
+        question: "Ai ba lần Liều Mình Một Hit đều thành công?",
+        options: ["Lý Tấn", "Diệp Tu", "Dương Thông"],
+        correct: [2]
+    },
+    {
+        question: "Trương Ích Vỹ là cựu đội trưởng của chiến đội nào?",
+        options: ["Tru Tiên", "Luân Hồi", "Vi Thảo", "Hoàng Phong"],
+        correct: [1]
+    },
+    {
+        question: "Ai không phải là phóng viên?",
+        options: ["Thường Tiên", "Trình Tư Yên", "Thân Kiến", "Tào Quảng Thành"],
+        correct: [2]
+    },
+    {
+        question: "Điều nào sau đây không đúng?",
+        options: [
+            "Quý Lãnh giải nghệ ngay sau khi đạt MVP mùa 4",
+            "Chu Quang Nghĩa không cầm theo acc Quý Lãnh khi chuyển nhượng sang Bách Hoa",
+            "Quý Lãnh là thành viên Bá Đồ",
+            "Quý Lãnh từng Liều Mình Một Hit giết Nhất Diệp Chi Thu thành công",
+            "Acc Quý Lãnh trùng tên với người thật"
+        ],
+        correct: [1]
+    },
+    {
+        question: "Kỹ năng nào không phải của Pháp Sư Nguyên Tố?",
+        options: ["Liệt Diễm Xung Kích", "Bình Thủy Tinh Dung Nham", "Thiên Lôi Địa Hỏa"],
+        correct: [1]
+    },
+    {
+        question: "Acc nào là Ma Kiếm Sĩ?",
+        options: ["Thiều Quang Hoán", "Vô Lãng", "Quỷ Khắc"],
+        correct: [1]
+    },
+    {
+        question: "Bạch Thứ hiện cầm acc tên gì tại 301?",
+        options: ["Bough", "Bàn Sơn", "Triều Tịch"],
+        correct: [2]
+    },
+    {
+        question: "Ai không thuộc Thế hệ mới?",
+        options: ["Mạnh Vĩnh Minh", "Phương Học Tài", "Tằng Thăng Hà", "Giả Hưng", "Vương Trạch"],
+        correct: [1]
+    },
+    {
+        question: "Ai không thuộc Thế hệ Hoàng kim?",
+        options: ["Chu Trạch Khải", "Điền Sâm", "Hoàng Thiếu Thiên", "Sở Vân Tú", "Lý Diệc Huy"],
+        correct: [0]
+    },
+    {
+        question: "Thông tin nào sau đây sai về Triệu Dương?",
+        options: [
+            "Thuộc chiến đội Lâm Hải, có lên sân mùa 10",
+            "Trúng cử đội hình ngôi sao 7 năm liên tục",
+            "Chưa từng góp mặt ở vòng chung kết"
+        ],
+        correct: [0]
+    },
+    {
+        question: "Mũi Tên Thiêu Đốt có lửa màu gì?",
+        options: ["Đỏ", "Đen", "Tím", "Nâu", "Xanh"],
+        correct: [1]
+    },
+    {
+        question: "Lẩu 9 ngăn là đặc trưng của vùng nào?",
+        options: ["Tô Châu", "Trùng Khánh", "Tây An"],
+        correct: [1]
+    },
+    {
+        question: "Chiến đội có biểu tượng ngọn lửa trong logo?",
+        options: ["Hưng Hân", "Hô Khiếu", "Lôi Đình"],
+        correct: [0]
+    },
+    {
+        question: "Hạ Trọng Thiên là ai?",
+        options: [
+            "Bán trà dạo trên đường",
+            "Thành viên Nghĩa Trảm",
+            "Ông chủ Gia Thế",
+            "Thành viên chiến đội Gia Thế"
+        ],
+        correct: [2]
+    },
+    {
+        question: "Tác giả Toàn Chức Cao Thủ là?",
+        options: ["Hồ Diệp Lam", "Hồ Điệp Lam", "Hu Di Lam"],
+        correct: [1]
+    },
     {
         question: "Ai là đội trưởng chiến đội Lam Vũ?",
         options: ["Dụ Văn Châu", "Chu Trạch Khải", "Tôn Triết Bình", "Diệp Tu"],
@@ -132,9 +138,129 @@ const questions = [
     }
 ];
 
+const questionsLevel2 = [
+    {
+        question: "Đội tuyển quốc gia có tổng bao nhiêu người, không tính lĩnh đội?",
+        options: ["12", "13", "14", "15", "16", "17"],
+        correct: [2]
+    },
+    {
+        question: "Lý Nghệ Bác là tuyển thủ ra mắt mùa mấy, thuộc chiến đội nào?",
+        options: ["Mùa 1 - Bá Đồ", "Mùa 2 - Gia Thế", "Mùa 3 - Bá Đồ", "Mùa 2 - Hoàng Phong", "Mùa 3 - Hô Khiếu"],
+        correct: [0]
+    },
+    {
+        question: "Ai không có trong phòng khách sạn khi Diệp Tu giải thích tên giả - tên thật?",
+        options: ["Phùng Hiến Quân", "Tào Quảng Thành", "Thường Tiên", "Ngụy Sâm"],
+        correct: [1]
+    },
+    {
+        question: "Lý Dịch Ninh từng là thành viên của chiến đội nào?",
+        options: ["Yên Vũ", "Hạ Võ", "Lôi Đình", "Bách Hoa"],
+        correct: [0]
+    },
+    {
+        question: "Ai ba lần Liều Mình Một Hit đều thành công?",
+        options: ["Lý Tấn", "Diệp Tu", "Dương Thông"],
+        correct: [2]
+    },
+    {
+        question: "Trương Ích Vỹ là cựu đội trưởng của chiến đội nào?",
+        options: ["Tru Tiên", "Luân Hồi", "Vi Thảo", "Hoàng Phong"],
+        correct: [1]
+    },
+    {
+        question: "Ai không phải là phóng viên?",
+        options: ["Thường Tiên", "Trình Tư Yên", "Thân Kiến", "Tào Quảng Thành"],
+        correct: [2]
+    },
+    {
+        question: "Điều nào sau đây không đúng?",
+        options: [
+            "Quý Lãnh giải nghệ ngay sau khi đạt MVP mùa 4",
+            "Chu Quang Nghĩa không cầm theo acc Quý Lãnh khi chuyển nhượng sang Bách Hoa",
+            "Quý Lãnh là thành viên Bá Đồ",
+            "Quý Lãnh từng Liều Mình Một Hit giết Nhất Diệp Chi Thu thành công",
+            "Acc Quý Lãnh trùng tên với người thật"
+        ],
+        correct: [1]
+    },
+    {
+        question: "Kỹ năng nào không phải của Pháp Sư Nguyên Tố?",
+        options: ["Liệt Diễm Xung Kích", "Bình Thủy Tinh Dung Nham", "Thiên Lôi Địa Hỏa"],
+        correct: [1]
+    },
+    {
+        question: "Acc nào là Ma Kiếm Sĩ?",
+        options: ["Thiều Quang Hoán", "Vô Lãng", "Quỷ Khắc"],
+        correct: [1]
+    },
+    {
+        question: "Bạch Thứ hiện cầm acc tên gì tại 301?",
+        options: ["Bough", "Bàn Sơn", "Triều Tịch"],
+        correct: [2]
+    },
+    {
+        question: "Ai không thuộc Thế hệ mới?",
+        options: ["Mạnh Vĩnh Minh", "Phương Học Tài", "Tằng Thăng Hà", "Giả Hưng", "Vương Trạch"],
+        correct: [1]
+    },
+    {
+        question: "Ai không thuộc Thế hệ Hoàng kim?",
+        options: ["Chu Trạch Khải", "Điền Sâm", "Hoàng Thiếu Thiên", "Sở Vân Tú", "Lý Diệc Huy"],
+        correct: [0]
+    },
+    {
+        question: "Thông tin nào sau đây sai về Triệu Dương?",
+        options: [
+            "Thuộc chiến đội Lâm Hải, có lên sân mùa 10",
+            "Trúng cử đội hình ngôi sao 7 năm liên tục",
+            "Chưa từng góp mặt ở vòng chung kết"
+        ],
+        correct: [0]
+    },
+    {
+        question: "Mũi Tên Thiêu Đốt có lửa màu gì?",
+        options: ["Đỏ", "Đen", "Tím", "Nâu", "Xanh"],
+        correct: [1]
+    },
+    {
+        question: "Lẩu 9 ngăn là đặc trưng của vùng nào?",
+        options: ["Tô Châu", "Trùng Khánh", "Tây An"],
+        correct: [1]
+    },
+    {
+        question: "Chiến đội có biểu tượng ngọn lửa trong logo?",
+        options: ["Hưng Hân", "Hô Khiếu", "Lôi Đình"],
+        correct: [0]
+    },
+    {
+        question: "Hạ Trọng Thiên là ai?",
+        options: [
+            "Bán trà dạo trên đường",
+            "Thành viên Nghĩa Trảm",
+            "Ông chủ Gia Thế",
+            "Thành viên chiến đội Gia Thế"
+        ],
+        correct: [2]
+    },
+    {
+        question: "Tác giả Toàn Chức Cao Thủ là?",
+        options: ["Hồ Diệp Lam", "Hồ Điệp Lam", "Hu Di Lam"],
+        correct: [1]
+    },
+    {
+        question: "Ai là đội trưởng chiến đội Lam Vũ?",
+        options: ["Dụ Văn Châu", "Chu Trạch Khải", "Tôn Triết Bình", "Diệp Tu"],
+        correct: [0]
+    }
+];
 
+const questions = {
+    1: questionsLevel1,
+    2: questionsLevel2
+};
 
-// Xáo trộn mảng bằng thuật toán Fisher-Yates
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -143,40 +269,52 @@ function shuffleArray(array) {
 }
 
 function createPuzzle() {
+    puzzleBoard.innerHTML = "<div class='preview-overlay' id='preview-overlay'></div>";
+    const previewOverlay = document.getElementById("preview-overlay");
+
+    topContainer.innerHTML = "";
+    leftContainer.innerHTML = "";
+    rightContainer.innerHTML = "";
+    placedPieces = 0;
+    usedQuestions.clear();
+    puzzleBoard.className = "puzzle-board" + (currentLevel === 2 ? " level-2" : "");
+
+    previewOverlay.style.backgroundImage = `url('${levelImages[currentLevel].src}')`;
+    previewOverlay.style.backgroundSize = "cover"; // hoặc contain tùy ý
+
     let indices = Array.from({ length: totalPieces }, (_, i) => i);
     shuffleArray(indices);
 
     const hiddenIndexes = generateHiddenPieces();
-	const isMobile = window.innerWidth <= 768;
-	
+    const isMobile = window.innerWidth <= 768;
+    const levelImage = levelImages[currentLevel];
+    const pieceWidth = isMobile ? 9.5 : (levelImage.width / cols);
+    const pieceHeight = isMobile ? (95 * levelImage.height / levelImage.width / rows) : (levelImage.height / rows);
+
     indices.forEach((i, index) => {
         const piece = document.createElement("div");
         piece.classList.add("puzzle-piece");
+        if (currentLevel === 2) piece.classList.add("level-2");
         piece.dataset.index = i;
-        piece.style.backgroundImage = "url('Puzzle1.jpeg')";
-				
-		if (isMobile) {
-			piece.style.backgroundSize = "95vw calc(95vw * 1480 / 2100)";
-			
-			const col = i % cols;
-			const row = Math.floor(i / cols);
+        piece.style.backgroundImage = `url('${levelImage.src}')`;
 
-			const x = -(col * 9.5); // mỗi mảnh rộng 9.5vw
-			const y = -(row * (1480 / 14700 * 95)); // mỗi mảnh cao ~9.56vw
-
-			piece.style.backgroundPosition = `${x}vw ${y}vw`;
-		} else {
-			piece.style.backgroundSize = "525px 370px";
-			piece.style.backgroundPosition = `${-(i % cols) * 52.5}px ${-Math.floor(i / cols) * 52.8}px`;
-		}
-
+        if (isMobile) {
+            piece.style.backgroundSize = `95vw calc(95vw * ${levelImage.height} / ${levelImage.width})`;
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            const x = -(col * (95 / cols));
+            const y = -(row * (95 * levelImage.height / levelImage.width / rows));
+            piece.style.backgroundPosition = `${x}vw ${y}vw`;
+        } else {
+            piece.style.backgroundSize = `${levelImage.width}px ${levelImage.height}px`;
+            piece.style.backgroundPosition = `${-(i % cols) * (levelImage.width / cols)}px ${-Math.floor(i / cols) * (levelImage.height / rows)}px`;
+        }
 
         if (hiddenIndexes.includes(i)) {
             piece.classList.add("hidden-piece");
             const clickHandler = () => showQuestion(i, piece);
-			piece._clickToShowQuestion = clickHandler;
-			piece.addEventListener("click", clickHandler);
-
+            piece._clickToShowQuestion = clickHandler;
+            piece.addEventListener("click", clickHandler);
         } else {
             piece.draggable = true;
             piece.addEventListener("dragstart", dragStart);
@@ -184,27 +322,25 @@ function createPuzzle() {
 
         if (isMobile) {
             topContainer.appendChild(piece);
-
-            // Đặt vị trí ngẫu nhiên để mảnh không bị đè lên nhau quá nhiều
             piece.style.position = "absolute";
             piece.style.left = `${Math.random() * 80}%`;
             piece.style.top = `${Math.random() * 50}%`;
-			
-			enableMobileDragging(piece);
+            enableMobileDragging(piece);
         } else {
-			if (index < 24) {
-				topContainer.appendChild(piece);
-			} else if (index < 47) {  // 24 -> 47 (23 mảnh)
-				leftContainer.appendChild(piece);
-			} else {  // (23 mảnh còn lại)
-				rightContainer.appendChild(piece);
-			}
+            if (index < 24) {
+                topContainer.appendChild(piece);
+            } else if (index < 47) {
+                leftContainer.appendChild(piece);
+            } else {
+                rightContainer.appendChild(piece);
+            }
         }
-	});
-	
+    });
+
     for (let i = 0; i < totalPieces; i++) {
         const slot = document.createElement("div");
         slot.classList.add("puzzle-slot");
+        if (currentLevel === 2) slot.classList.add("level-2");
         slot.dataset.index = i;
         slot.addEventListener("dragover", dragOver);
         slot.addEventListener("drop", drop);
@@ -212,7 +348,6 @@ function createPuzzle() {
     }
 }
 
-// Xử lý kéo thả
 function dragStart(e) {
     draggedPiece = e.target;
     originalParent = draggedPiece.parentNode;
@@ -231,7 +366,6 @@ function enableMobileDragging(piece) {
         piece.dataset.offsetX = touch.clientX - piece.getBoundingClientRect().left;
         piece.dataset.offsetY = touch.clientY - piece.getBoundingClientRect().top;
 
-        // Chuyển mảnh ra body
         document.body.appendChild(piece);
         piece.style.position = "fixed";
         piece.style.zIndex = "1000";
@@ -260,7 +394,6 @@ function enableMobileDragging(piece) {
         let pieceCenterX = pieceRect.left + pieceRect.width / 2;
         let pieceCenterY = pieceRect.top + pieceRect.height / 2;
 
-        // Tìm ô gần nhất
         let slots = document.querySelectorAll(".puzzle-slot");
         let closestSlot = null;
         let minDistance = Infinity;
@@ -282,10 +415,8 @@ function enableMobileDragging(piece) {
         });
 
         if (closestSlot) {
-            // Gọi drop với ô gần nhất
             drop({ preventDefault: () => {}, target: closestSlot });
         } else {
-            // Trả mảnh về vị trí ban đầu nếu không gần ô nào
             originalParent.appendChild(draggedPiece);
             draggedPiece.style.position = "absolute";
             draggedPiece.style.left = `${touch.clientX - piece.dataset.offsetX}px`;
@@ -310,13 +441,11 @@ function drop(e) {
         if (correctIndex === pieceIndex) {
             target.appendChild(draggedPiece);
 
-            // Lock mảnh ghép
             draggedPiece.draggable = false;
             draggedPiece.style.cursor = "default";
             draggedPiece.style.position = "static";
             draggedPiece.removeEventListener("dragstart", dragStart);
 
-            // Xóa sự kiện touch để lock trên mobile
             draggedPiece.removeEventListener("touchstart", enableMobileDragging);
             draggedPiece.removeEventListener("touchmove", enableMobileDragging);
             draggedPiece.removeEventListener("touchend", enableMobileDragging);
@@ -324,11 +453,23 @@ function drop(e) {
             placedPieces++;
 
             if (placedPieces === totalPieces) {
-                setTimeout(() => alert("Hooray, xong tranh rồi :>  Bồ chờ tí để lưu điểm nhé."), 500);
                 stopTimer();
-                let finalScore = calculateScore();
-                saveScoreToDB("Puzzle", finalScore.score);
-                alert(`🎉 Chúc mừng! Ní đã hoàn thành trò chơi với số điểm: ${finalScore.score} trong ${finalScore.time}`);
+                let levelScore = calculateScore();
+                levelScores[currentLevel] = levelScore.score;
+
+                if (currentLevel === 1) {
+					localStorage.setItem("puzzleLevel1Done", "true");
+                    setTimeout(() => {
+                        alert(`Hooray, xong level 1 rồi :> Điểm level 1: ${levelScore.score} trong ${levelScore.time} giây. Tiến tới level 2!`);
+                        nextLevel();
+                    }, 500);
+                } else {
+                    let totalScore = levelScores[1] + levelScores[2];
+                    setTimeout(() => {
+                        alert(`🎉 Chúc mừng! Ní đã hoàn thành trò chơi với số điểm: Level 1: ${levelScores[1]}, Level 2: ${levelScores[2]}, Tổng điểm: ${totalScore} trong ${levelScore.time} giây`);
+                        saveScoreToDB("Puzzle", totalScore);
+                    }, 500);
+                }
             }
         } else {
             originalParent.appendChild(draggedPiece);
@@ -340,8 +481,24 @@ function drop(e) {
     draggedPiece = null;
 }
 
+function nextLevel() {
+    currentLevel = 2;
+    timeElapsed = 0;
+    timerRunning = false;
+    clearInterval(timer);
+    document.getElementById("timer").textContent = `Thời gian chơi: 0 giây`;
+    document.getElementById("question-container").style.display = "none";
+    document.getElementById("question-text").textContent = "Chọn một mảnh ghép để bắt đầu giải câu hỏi!";
+    document.getElementById("options").innerHTML = "";
+    createPuzzle();
+    const previewOverlay = document.getElementById("preview-overlay");
+    previewOverlay.style.display = "block";
+    document.querySelectorAll(".puzzle-piece").forEach(piece => {
+        piece.addEventListener("mousedown", () => startTimer(), { once: true });
+        piece.addEventListener("touchstart", () => startTimer(), { once: true });
+    });
+}
 
-// Chọn mảnh bị ẩn ngẫu nhiên
 function generateHiddenPieces() {
     const indexes = [];
     while (indexes.length < hiddenPieces) {
@@ -358,12 +515,12 @@ function showQuestion(index, piece) {
 
     let questionIndex;
     do {
-        questionIndex = Math.floor(Math.random() * questions.length);
-    } while (usedQuestions.has(questionIndex) && usedQuestions.size < questions.length); 
+        questionIndex = Math.floor(Math.random() * questions[currentLevel].length);
+    } while (usedQuestions.has(questionIndex) && usedQuestions.size < questions[currentLevel].length); 
 
-    usedQuestions.add(questionIndex); // Đánh dấu câu đã dùng
+    usedQuestions.add(questionIndex);
 
-    const question = questions[questionIndex];
+    const question = questions[currentLevel][questionIndex];
     questionText.textContent = question.question;
     optionsContainer.innerHTML = "";
 
@@ -383,9 +540,13 @@ function showQuestion(index, piece) {
     questionContainer.style.display = "block";
 }
 
+function resetProgress() {
+    localStorage.removeItem("puzzleLevel1Done");
+    location.reload();
+}
 
 function checkAnswer(index, selectedOriginalIndex, piece) {
-    const question = questions[index % questions.length];
+    const question = questions[currentLevel][index % questions[currentLevel].length];
     const correctAnswers = question.correct;
 
     const buttons = document.querySelectorAll(".question-container button");
@@ -396,22 +557,20 @@ function checkAnswer(index, selectedOriginalIndex, piece) {
                 button.classList.add("correct");
             }
         });
-		
-		setTimeout(() => {
-			piece.classList.remove("hidden-piece");
-			piece.draggable = true;
-			piece.removeEventListener("click", piece._clickToShowQuestion);
-			piece.addEventListener("dragstart", dragStart);
 
-			// 👇 Thêm dòng này để xử lý mobile:
-			if (window.innerWidth <= 768) {
-				enableMobileDragging(piece);
-			}
+        setTimeout(() => {
+            piece.classList.remove("hidden-piece");
+            piece.draggable = true;
+            piece.removeEventListener("click", piece._clickToShowQuestion);
+            piece.addEventListener("dragstart", dragStart);
 
-			document.getElementById("question-text").textContent = "🎉 Chính xác! Bạn đã mở khóa mảnh ghép này!";
-			document.getElementById("options").innerHTML = "";
-		}, 1000);
+            if (window.innerWidth <= 768) {
+                enableMobileDragging(piece);
+            }
 
+            document.getElementById("question-text").textContent = "🎉 Chính xác! Bạn đã mở khóa mảnh ghép này!";
+            document.getElementById("options").innerHTML = "";
+        }, 1000);
     } else {
         buttons.forEach(button => {
             if (parseInt(button.dataset.originalIndex) === selectedOriginalIndex) {
@@ -425,35 +584,39 @@ function checkAnswer(index, selectedOriginalIndex, piece) {
     }
 }
 
-
-// Khởi chạy
+if (localStorage.getItem("puzzleLevel1Done") === "true") {
+    currentLevel = 2;
+}
 createPuzzle();
+
 
 let timer;
 let timeElapsed = 0;
 let timerRunning = false;
-let timerInterval;
 
 function startTimer() {
     if (!timerRunning) {
-        timerRunning = true; // Đánh dấu bộ đếm đã chạy
+        timerRunning = true;
         timer = setInterval(() => {
             timeElapsed++;
             document.getElementById("timer").textContent = `Thời gian chơi: ${timeElapsed} giây`;
         }, 1000);
+        clearTimeout(window.previewTimeout);
+        window.previewTimeout = setTimeout(() => {
+            document.getElementById("preview-overlay").style.display = "none";
+        }, 30000);
     }
 }
 
 function stopTimer() {
-    clearInterval(timerInterval);
+    clearInterval(timer);
 }
 
 function calculateScore() {
-    let score = Math.max(1800 - timeElapsed, 0);
-	return { score: score, time: timeElapsed };
+    let score = Math.max(1000 - timeElapsed, 0);
+    return { score: score, time: timeElapsed };
 }
 
-// Gọi `startTimer()` khi game bắt đầu
 document.querySelectorAll(".puzzle-piece").forEach(piece => {
     piece.addEventListener("mousedown", () => startTimer(), { once: true });
     piece.addEventListener("touchstart", () => startTimer(), { once: true });
