@@ -175,15 +175,15 @@ const questionsLevel2 = [
         correct: [4]
     },
     {
-        question: "Điều nào sau đây không đúng?",
+        question: "Đội trưởng đội tuyển quốc gia là ai?",
         options: [
-            "Quý Lãnh giải nghệ ngay sau khi đạt MVP mùa 4",
-            "Chu Quang Nghĩa không cầm theo acc Quý Lãnh khi chuyển nhượng sang Bách Hoa",
-            "Quý Lãnh là thành viên Bá Đồ",
-            "Quý Lãnh từng Liều Mình Một Hit giết Nhất Diệp Chi Thu thành công",
-            "Acc Quý Lãnh trùng tên với người thật"
+            "Vương Kiệt Hi",
+            "Trương Tân Kiệt",
+            "Dụ Văn Châu",
+            "Hàn Văn Thanh",
+            "Diệp Tu"
         ],
-        correct: [1]
+        correct: [2]
     },
     {
         question: "Kỹ năng nào không phải của Pháp Sư Nguyên Tố?",
