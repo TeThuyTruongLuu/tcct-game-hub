@@ -140,39 +140,39 @@ const questionsLevel1 = [
 
 const questionsLevel2 = [
     {
-        question: "Đội tuyển quốc gia có tổng bao nhiêu người, không tính lĩnh đội?",
+        question: "Đội tuyển quốc gia có tổng bao nhiêu người, không tính người dẫn đội?",
         options: ["12", "13", "14", "15", "16", "17"],
-        correct: [2]
-    },
-    {
-        question: "Lý Nghệ Bác là tuyển thủ ra mắt mùa mấy, thuộc chiến đội nào?",
-        options: ["Mùa 1 - Bá Đồ", "Mùa 2 - Gia Thế", "Mùa 3 - Bá Đồ", "Mùa 2 - Hoàng Phong", "Mùa 3 - Hô Khiếu"],
-        correct: [0]
-    },
-    {
-        question: "Ai không có trong phòng khách sạn khi Diệp Tu giải thích tên giả - tên thật?",
-        options: ["Phùng Hiến Quân", "Tào Quảng Thành", "Thường Tiên", "Ngụy Sâm"],
         correct: [1]
     },
     {
-        question: "Lý Dịch Ninh từng là thành viên của chiến đội nào?",
-        options: ["Yên Vũ", "Hạ Võ", "Lôi Đình", "Bách Hoa"],
+        question: "Diệp Tu có tổng cộng bao nhiêu thẻ tài khoản?",
+        options: ["5", "6", "7", "8", "9"],
+        correct: [3]
+    },
+    {
+        question: "Ai là người không lên tuyển quốc gia?",
+        options: ["Hàn Văn Thanh", "Sở Vân Tú", "Lý Hiên", "Phương Duệ"],
         correct: [0]
     },
     {
-        question: "Ai ba lần Liều Mình Một Hit đều thành công?",
-        options: ["Lý Tấn", "Diệp Tu", "Dương Thông"],
-        correct: [2]
-    },
-    {
-        question: "Trương Ích Vỹ là cựu đội trưởng của chiến đội nào?",
-        options: ["Tru Tiên", "Luân Hồi", "Vi Thảo", "Hoàng Phong"],
+        question: "Trương Giai Lạc đạt MVP vào mùa giải thứ mấy?",
+        options: ["4", "5", "6", "7"],
         correct: [1]
     },
     {
-        question: "Ai không phải là phóng viên?",
-        options: ["Thường Tiên", "Trình Tư Yên", "Thân Kiến", "Tào Quảng Thành"],
-        correct: [2]
+        question: "Vương Dụ gặp nhau lần đầu vào mùa mấy?",
+        options: ["1", "2", "3"],
+        correct: [1]
+    },
+    {
+        question: "Trường hợp ID nào dưới đây đã bị bán chỉ để lấy trang bị cho một ID khác?",
+        options: ["Hải Vô Lượng", "Bách Hoa Liễu Loạn", "Đại Mạc Cô Yên", "Áo Ướt Bay Loạn"],
+        correct: [3]
+    },
+    {
+        question: "Donghua Toàn chức cao thủ đã qua tay bao nhiêu nhà sản xuất?",
+        options: ["1", "2", "3", "4", "5"],
+        correct: [4]
     },
     {
         question: "Điều nào sau đây không đúng?",
