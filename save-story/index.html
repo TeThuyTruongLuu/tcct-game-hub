@@ -27,6 +27,33 @@
                 <label>Nhập link truyện: <input type="text" id="storyLink"></label>
                 <button id="saveStory">Lưu Truyện</button>
             </div>
+			<div id="manualForm" style="display: none;">
+				<div class="flex-row">
+					<label>Tên truyện: <input type="text" id="manualTitle" required></label>
+				</div>
+				<div class="flex-row">
+					<label>Tag mặc định: <input type="text" id="manualTag" required></label>
+				</div>
+				<div class="flex-row">
+					<label>Tác giả: <input type="text" id="manualAuthor" required></label>
+				</div>
+				<div class="flex-row">
+					<label>Editor: <input type="text" id="manualEditor" required></label>
+				</div>
+                <div class="flex-row">
+                    <label>Tình trạng: 
+                        <select id="manualStatus" required>
+                            <option value="" disabled selected>Chọn tình trạng</option>
+                            <option value="Hoàn">Hoàn</option>
+                            <option value="Ongoing">Ongoing</option>
+                            <option value="Không rõ">Không rõ</option>
+                            <option value="Drop">Drop</option>
+                            <option value="Convert">Convert</option>
+                            <option value="Raw">Raw</option>
+                        </select>
+                    </label>
+                </div>
+			</div>
             <div class="flex-row">
                 <label>Tag bổ sung:
                     <input type="text" id="additionalTags" class="tag-input" oninput="suggestTags(event)" autocomplete="off">
@@ -94,6 +121,7 @@
 		</div>
 
         <div id="search" class="section">
+			<input id="searchText" placeholder="Tìm theo tên hoặc link">
             <div class="flex-row">
                 <label>Chọn tag muốn: <input type="text" id="desiredTags"></label>
                 <label>Chọn tag không muốn: <input type="text" id="excludedTags"></label>
@@ -110,6 +138,7 @@
             <div class="button-container">
                 <button onclick="randomStory()">Random Truyện</button>
                 <button onclick="filterStories()">Lọc Truyện</button>
+				<button id="resetFilter">Reset</button>
             </div>
         </div>
 

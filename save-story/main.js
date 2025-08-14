@@ -89,12 +89,17 @@ export async function displayStoryDetails(story) {
     document.getElementById("reviewText").value = allReviews.join(" | ");
 }
 
-export async function renderStories(stories, tableId) {
+export async function renderStories(stories, tableId, page = 1) {
     if (tableId !== "storyTable") return;
-    let storyTable = document.getElementById(tableId);
-    storyTable.innerHTML = "";
+    const perPage = 50;
+    const start = (page - 1) * perPage;
+    const end = start + perPage;
+    const paginatedStories = stories.slice(start, end);
 
-    stories.forEach((story, index) => {
+    let storyTable = document.getElementById(tableId);
+    storyTable.innerHTML = ""; // Clear table body
+
+    paginatedStories.forEach((story, index) => {
         let allTags = story.defaultTag || "Không có tag";
 
         if (story.userTags && typeof story.userTags === "object") {
@@ -109,7 +114,7 @@ export async function renderStories(stories, tableId) {
 
         let row = `
             <tr>
-                <td>${index + 1}</td>
+                <td>${start + index + 1}</td>
                 <td>${story.title}</td>
                 <td>${allTags}</td>
                 <td>${story.author}</td>
@@ -124,6 +129,27 @@ export async function renderStories(stories, tableId) {
         `;
         storyTable.innerHTML += row;
     });
+
+    renderPagination(stories.length, page, perPage);
+}
+
+function renderPagination(total, currentPage, perPage) {
+    const pagination = document.querySelector(".pagination") || document.createElement("div");
+    pagination.classList.add("pagination");
+    pagination.innerHTML = "";
+
+    const totalPages = Math.ceil(total / perPage);
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPage) btn.classList.add("active");
+        btn.onclick = () => {
+            renderStories(window.currentStories, "storyTable", i);
+        };
+        pagination.appendChild(btn);
+    }
+
+    document.getElementById("storyTable").after(pagination);
 }
 
 export async function suggestTags(event) {
@@ -180,6 +206,11 @@ export async function filterStories() {
     let q = query(collection(db, "stories"));
     let stories = [];
 
+	let searchText = document.getElementById("searchText").value.toLowerCase();
+	if (searchText && !story.title.toLowerCase().includes(searchText) && !story.url.toLowerCase().includes(searchText)) {
+		include = false;
+	}
+	
     let querySnapshot = await getDocs(q);
     querySnapshot.forEach(doc => {
         let story = doc.data();
@@ -316,6 +347,10 @@ document.getElementById("reviewText").addEventListener("input", async function(e
 });
 
 document.getElementById("additionalTags").addEventListener("input", suggestTags);
+
+document.getElementById("resetFilter").addEventListener("click", async () => {
+    await storage.loadStories();
+});
 
 document.addEventListener("click", function(event) {
     if (!event.target.closest("#additionalTags") && !event.target.closest("#tagSuggestions")) {

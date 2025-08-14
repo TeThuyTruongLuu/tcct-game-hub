@@ -51,76 +51,139 @@ export async function waitForIndexedDB() {
 }
 
 export async function fetchStory() {
-	let inputField = document.getElementById("storyLink");
-	let url = inputField.value.trim();
-	inputField.value = url;
+    let inputField = document.getElementById("storyLink");
+    let url = inputField.value.trim();
+    inputField.value = url;
 
-	if (!url) {
-		alert("Vui lòng nhập link truyện!");
-		return;
-	}
+    if (!url) {
+        alert("Vui lòng nhập link truyện!");
+        return;
+    }
 
-	const proxyUrl = "https://api.allorigins.win/raw?url=";
-	let fetchUrl = proxyUrl + encodeURIComponent(url);
+    let isForumLink = url.includes('toanchuccaothu');
 
-	try {
-		let response = await fetch(fetchUrl);
-		let text = await response.text();
-		let parser = new DOMParser();
-		let doc = parser.parseFromString(text, "text/html");
+    let manualForm = document.getElementById("manualForm");
+    let saveButton = document.getElementById("saveStory");
 
-		let titleMatch = doc.querySelector("h1")?.innerText.match(/\[(.*?)\]\s*(\[.*?\])?(.*)/);
-		let title = titleMatch ? titleMatch[3].trim() : "Không rõ";
-		let fullTitle = doc.querySelector("h1")?.innerText.trim() || "Không rõ";
+    if (isForumLink) {
+        manualForm.style.display = "none";
+        saveButton.disabled = false;
 
-		let tagMatches = fullTitle.match(/\[(.*?)\]/g);
-		let defaultTag = tagMatches ? tagMatches[tagMatches.length - 1].replace(/\[|\]/g, "") : "Không rõ";
+        const proxyUrl = "https://api.allorigins.win/raw?url=";
+        let fetchUrl = proxyUrl + encodeURIComponent(url);
 
-		let status = doc.querySelector("h1.p-title-value span")?.textContent.trim() || "Không rõ";
-		let author = "Không rõ";
-		let editor = "Không rõ";
+        try {
+            let response = await fetch(fetchUrl);
+            let text = await response.text();
+            let parser = new DOMParser();
+            let doc = parser.parseFromString(text, "text/html");
 
-		doc.querySelectorAll("article.message-body.js-selectToQuote div").forEach(div => {
-			let text = div.innerText.trim();
+            let titleMatch = doc.querySelector("h1")?.innerText.match(/\[(.*?)\]\s*(\[.*?\])?(.*)/);
+            let title = titleMatch ? titleMatch[3].trim() : "Không rõ";
+            let fullTitle = doc.querySelector("h1")?.innerText.trim() || "Không rõ";
 
-			let authorMatch = text.match(/Tác giả:\s*(.+)|Author:\s*(.+)/i);
-			if (authorMatch) author = authorMatch[1] || authorMatch[2];
+            let tagMatches = fullTitle.match(/\[(.*?)\]/g);
+            let defaultTag = tagMatches ? tagMatches[tagMatches.length - 1].replace(/\[|\]/g, "") : "Không rõ";
 
-			let editorRegex = new RegExp(
-			  "(?:Editor:\\s*(.+))|(?:Edit:\\s*(.+))|(?:Edit\\s*\\+\\s*beta:\\s*(.+))|(?:Beta:\\s*(.+))|(?:Editor\\s*\\+\\s*beta:\\s*(.+))|(?:Edit bởi:\\s*(.+))",
-			  "i"
-			);
-			let editorMatch = text.match(editorRegex);
-			if (editorMatch) {
-				editor = editorMatch[1] || editorMatch[2] || editorMatch[3] || editorMatch[4] || editorMatch[5] || editorMatch[6];
-			}
-		});
-		editor = (editor || "").replace(/^@/, "").trim();
+            let status = doc.querySelector("h1.p-title-value span")?.textContent.trim() || "Không rõ";
+            let author = "Không rõ";
+            let editor = "Không rõ";
 
-		let story = {
-			title,
-			defaultTag,
-			userTags: [],
-			author,
-			editor,
-			status,
-			url,
-			review: {}
-		};
+            doc.querySelectorAll("article.message-body.js-selectToQuote div").forEach(div => {
+                let text = div.innerText.trim();
 
-		let existingStory = await fetchStoryFromFirestore(url);
+                let authorMatch = text.match(/Tác giả:\s*(.+)|Author:\s*(.+)/i);
+                if (authorMatch) author = authorMatch[1] || authorMatch[2];
 
-		if (existingStory) {
-			story.userTags = existingStory.userTags || {};
-			story.review = existingStory.review || {};
-		}
+                let editorRegex = new RegExp(
+                    "(?:Editor:\\s*(.+))|(?:Edit:\\s*(.+))|(?:Edit\\s*\\+\\s*beta:\\s*(.+))|(?:Beta:\\s*(.+))|(?:Editor\\s*\\+\\s*beta:\\s*(.+))|(?:Edit bởi:\\s*(.+))",
+                    "i"
+                );
+                let editorMatch = text.match(editorRegex);
+                if (editorMatch) {
+                    editor = editorMatch[1] || editorMatch[2] || editorMatch[3] || editorMatch[4] || editorMatch[5] || editorMatch[6];
+                }
+            });
+            editor = (editor || "").replace(/^@/, "").trim();
 
-		displayStoryDetails(story);
-		await saveStory(story);
-	} catch (error) {
-		console.error("Lỗi khi fetch truyện:", error);
-		alert("Không thể lấy dữ liệu từ link này!");
-	}
+            let story = {
+                title,
+                defaultTag,
+                userTags: [],
+                author,
+                editor,
+                status,
+                url,
+                review: {}
+            };
+
+            let existingStory = await fetchStoryFromFirestore(url);
+
+            if (existingStory) {
+                story.userTags = existingStory.userTags || {};
+                story.review = existingStory.review || {};
+            }
+
+            displayStoryDetails(story);
+            await saveStory(story);
+        } catch (error) {
+            console.error("Lỗi khi fetch truyện:", error);
+            alert("Không thể lấy dữ liệu từ link này!");
+        }
+    } else {
+        manualForm.style.display = "block";
+        saveButton.disabled = true;
+
+        let manualTitle = document.getElementById("manualTitle");
+        let manualTag = document.getElementById("manualTag");
+        let manualAuthor = document.getElementById("manualAuthor");
+        let manualEditor = document.getElementById("manualEditor");
+        let manualStatus = document.getElementById("manualStatus");
+
+        function checkManualFields() {
+            if (manualTitle.value.trim() && manualTag.value.trim() && manualAuthor.value.trim() && manualEditor.value.trim()) {
+                saveButton.disabled = false;
+            } else {
+                saveButton.disabled = true;
+            }
+        }
+
+        manualTitle.addEventListener("input", checkManualFields);
+        manualTag.addEventListener("input", checkManualFields);
+        manualAuthor.addEventListener("input", checkManualFields);
+        manualEditor.addEventListener("input", checkManualFields);
+
+        saveButton.onclick = async function() {
+            let story = {
+                title: manualTitle.value.trim(),
+                defaultTag: manualTag.value.trim(),
+                userTags: [],
+                author: manualAuthor.value.trim(),
+                editor: manualEditor.value.trim(),
+                status: manualStatus.value,
+                url,
+                review: {}
+            };
+
+            let existingStory = await fetchStoryFromFirestore(url);
+
+            if (existingStory) {
+                story.userTags = existingStory.userTags || {};
+                story.review = existingStory.review || {};
+            }
+
+            displayStoryDetails(story);
+            await saveStory(story);
+
+            manualTitle.value = "";
+            manualTag.value = "";
+            manualAuthor.value = "";
+            manualEditor.value = "";
+            manualForm.style.display = "none";
+            saveButton.disabled = false;
+            saveButton.onclick = fetchStory;
+        };
+    }
 }
 
 export function removeVietnameseTones(str) {
