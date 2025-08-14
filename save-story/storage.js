@@ -346,9 +346,9 @@ export async function saveStory(story) {
 export async function fetchStoryFromFirestore(url) {
     let querySnapshot = await getDocs(query(collection(db, "stories"), where("url", "==", url)));
     if (!querySnapshot.empty) {
-        return querySnapshot.docs[0].data();
+        return querySnapshot.docs[0].data() || {};
     }
-    return null;
+    return {};
 }
 
 export async function loadStories() {
