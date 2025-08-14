@@ -11,7 +11,6 @@
 	<script type="module" src="main.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-
 </head>
 <body>
     <div class="container">
@@ -27,6 +26,12 @@
                 <label>Nhập link truyện: <input type="text" id="storyLink"></label>
                 <button id="saveStory">Lưu Truyện</button>
             </div>
+
+            <div class="flex-row">
+                <label>Tên tiếng Trung: <input type="text" id="cnTitle" required></label>
+                <label>Link gốc (nhà tác giả): <input type="text" id="originalLink" required></label>
+            </div>
+
 			<div id="manualForm" style="display: none;">
 				<div class="flex-row">
 					<label>Tên truyện: <input type="text" id="manualTitle" required></label>
@@ -54,6 +59,7 @@
                     </label>
                 </div>
 			</div>
+
             <div class="flex-row">
                 <label>Tag bổ sung:
                     <input type="text" id="additionalTags" class="tag-input" oninput="suggestTags(event)" autocomplete="off">
@@ -61,8 +67,12 @@
                 </label>
                 <label class="rating-input">Đánh giá: <input type="number" id="rating" min="0" max="10" step="0.5"> / 10</label>
             </div>
+
             <div class="flex-row">
-                <label class="wide-input">Review: <input type="text" id="reviewText"></label>
+                <label class="wide-input">Nhập nhiều link<br>(mỗi dòng một link):
+                    <textarea id="multiLinks" rows="4" style="width:100%"></textarea>
+                </label>
+                <button id="batchFetch">Fetch nhiều</button>
             </div>
         </div>
 
@@ -78,20 +88,10 @@
 
 			<div id="epubLinkContainer" style="margin-top: 20px; display: none;">
 				<p><strong>Link tải:</strong> 
-					<a href="https://drive.google.com/file/d/1gn4j7VQps20-6_6JYFOgCk4cFDGRfi02/view?usp=drive_link" 
-					   target="_blank">
-					   GG Drive - Công cụ tải truyện (v1.1)
-					</a>
+					<a href="https://drive.google.com/file/d/1gn4j7VQps20-6_6JYFOgCk4cFDGRfi02/view?usp=drive_link" target="_blank">GG Drive - Công cụ tải truyện (v1.1)</a>
 					<br>
-					<a href="https://drive.google.com/file/d/1WgGt4q_VOxKn_fIvIqAM-eZWGOz8xSxj/view?usp=sharing" 
-					   target="_blank">
-					   GG Drive - Công cụ tải truyện (v2.1)
-					</a>
+					<a href="https://drive.google.com/file/d/1WgGt4q_VOxKn_fIvIqAM-eZWGOz8xSxj/view?usp=sharing" target="_blank">GG Drive - Công cụ tải truyện (v2.1)</a>
 				</p>
-				<p style="font-style: italic; color: gray;">
-					Đây là công cụ được Phong tạo ra với sự hỗ trợ của ChatGPT, hoàn toàn chỉ để lưu trữ truyện để đọc cá nhân, vui lòng không sử dụng vì bất kỳ mục đích nào khác.
-				</p>
-
 				<details style="margin-top: 15px; background: #f0f0ff; padding: 15px 20px; border-radius: 10px; border: 1px solid #dcdcff;">
 					<summary style="cursor: pointer; font-weight: bold;">Hướng dẫn sử dụng</summary>
 					<ol style="margin-top: 10px; padding-left: 20px;">
@@ -100,22 +100,19 @@
 						<li>
 							So sánh định dạng:
 							<ul>
-								<li><strong>EPUB</strong>: Tuỳ chỉnh cao, đọc bằng app ReadEra (điện thoại) hoặc 
-									<a href="https://chromewebstore.google.com/detail/beautiful-epub-reader/gbohfhccchgngoapncnfnpldhlkojifo?hl=vi" target="_blank">
-										Beautiful Epub Reader</a> (Chrome Extension)
-								</li>
-								<li><strong>PDF</strong>: Mở được mọi thiết bị, giao diện ổn định hơn EPUB nhưng ít tuỳ chỉnh</li>
+								<li><strong>EPUB</strong>: Tuỳ chỉnh cao, đọc bằng app ReadEra hoặc Beautiful Epub Reader</li>
+								<li><strong>PDF</strong>: Mở được mọi thiết bị</li>
 							</ul>
 						</li>
 						<li>Chọn số bài tối đa cần lấy</li>
-						<li>Tuỳ chọn khoảng thời gian (chưa test kỹ nên không khuyến khích)</li>
-						<li>Thời gian chờ: giữ mặc định (đây là delay giữa mỗi lần load bài viết)</li>
-						<li>Nhấn "Lấy danh sách" → chờ log và danh sách chương hiển thị</li>
-						<li>Chọn chương muốn tải → nhấn "Tải" → đặt tên và lưu file</li>
+						<li>Tuỳ chọn khoảng thời gian</li>
+						<li>Giữ thời gian chờ mặc định</li>
+						<li>Nhấn "Lấy danh sách" → chờ log</li>
+						<li>Chọn chương → "Tải"</li>
 					</ol>
 				</details>
 				<p style="font-style: italic; color: gray;">
-					P/s: Phần Lưu truyện & Tìm truyện chỉ hoạt động tốt nhất/được cập nhật mới nhất ở trên web này do nếu update code của app chắc nó sập luôn quá... (っ °Д °;)っ
+					P/s: Phần Lưu truyện & Tìm truyện hoạt động tốt nhất trên web này.
 				</p>
 			</div>
 		</div>
@@ -150,12 +147,13 @@
                         <tr>
                             <th onclick="sortTable(0, 'saved')">STT</th>
                             <th onclick="sortTable(1, 'saved')">Tên truyện</th>
-                            <th onclick="sortTable(2, 'saved')">Tag</th>
+                            <th onclick="sortTable(2, 'saved')">Tên tiếng Trung</th>
+                            <th onclick="sortTable(3, 'saved')">Tag</th>
                             <th>Tác giả</th>
-                            <th>Edit / Beta</th>
-                            <th onclick="sortTable(3, 'saved')">Tình trạng</th>
+                            <th>Edit / Beta / Dịch</th>
+                            <th onclick="sortTable(4, 'saved')">Tình trạng</th>
                             <th>Link</th>
-                            <th>Review</th>
+                            <th>Raw</th>
                             <th>Xóa</th>
                         </tr>
                     </thead>

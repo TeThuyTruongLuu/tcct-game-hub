@@ -1,4 +1,3 @@
-// storage.js - lưu trữ truyện
 import { db } from './firebase.js';
 import * as storage from './main.js';
 import { displayStoryDetails } from './main.js';
@@ -7,23 +6,18 @@ import { collection, getDocs, query, where, doc, getDoc, setDoc, deleteDoc } fro
 const storiesCollection = collection(db, "stories");
 
 let allTags = [];
-
 export let idb;
 
 if (!window.indexedDB && !window.mozIndexedDB && !window.webkitIndexedDB && !window.msIndexedDB) {
   console.error("Trình duyệt không hỗ trợ IndexedDB.");
 } else {
   const request = window.indexedDB.open("StoryDB", 3);
-
   request.onerror = function(event) {
     console.error("Lỗi khi mở IndexedDB:", event.target.error);
   };
-
   request.onsuccess = function(event) {
     idb = event.target.result;
-    console.log("IndexedDB đã sẵn sàng.");
   };
-
   request.onupgradeneeded = function(event) {
     idb = event.target.result;
     if (!idb.objectStoreNames.contains("stories")) {
@@ -37,9 +31,8 @@ if (!window.indexedDB && !window.mozIndexedDB && !window.webkitIndexedDB && !win
 
 export async function waitForIndexedDB() {
     return new Promise((resolve) => {
-        if (idb) {
-            resolve();
-        } else {
+        if (idb) resolve();
+        else {
             const checkInterval = setInterval(() => {
                 if (idb) {
                     clearInterval(checkInterval);
@@ -50,82 +43,152 @@ export async function waitForIndexedDB() {
     });
 }
 
+async function urlExists(url) {
+    let snap = await getDocs(query(collection(db, "stories"), where("url", "==", url)));
+    return !snap.empty;
+}
+
 export async function fetchStory() {
     let inputField = document.getElementById("storyLink");
     let url = inputField.value.trim();
     inputField.value = url;
-
     if (!url) {
         alert("Vui lòng nhập link truyện!");
         return;
     }
 
-    let isForumLink = url.includes('toanchuccaothu');
-
+    let cnTitle = document.getElementById("cnTitle").value.trim();
+    let originalLink = document.getElementById("originalLink").value.trim();
     let manualForm = document.getElementById("manualForm");
     let saveButton = document.getElementById("saveStory");
 
+    let existingStory = await fetchStoryFromFirestore(url);
+    if (await urlExists(url)) {
+        alert("Link này đã có trong cơ sở dữ liệu. Dữ liệu hiện có sẽ được điền sẵn để chỉnh sửa.");
+        document.getElementById("cnTitle").value = existingStory.cnTitle || "";
+        document.getElementById("originalLink").value = existingStory.originalLink || "";
+        document.getElementById("manualTitle").value = existingStory.title || "";
+        document.getElementById("manualTag").value = existingStory.defaultTag || "";
+        document.getElementById("manualAuthor").value = existingStory.author || "";
+        document.getElementById("manualEditor").value = Array.isArray(existingStory.editor) ? existingStory.editor.join(", ") : existingStory.editor || "";
+        document.getElementById("manualStatus").value = existingStory.status || "";
+        displayStoryDetails(existingStory);
+        saveButton.textContent = "Cập nhật";
+        manualForm.style.display = "block";
+        saveButton.disabled = true;
+
+        function checkManualFields() {
+            if (
+                document.getElementById("manualTitle").value.trim() &&
+                document.getElementById("manualTag").value.trim() &&
+                document.getElementById("manualAuthor").value.trim() &&
+                document.getElementById("manualEditor").value.trim()
+            ) {
+                saveButton.disabled = false;
+            } else {
+                saveButton.disabled = true;
+            }
+        }
+
+        document.getElementById("manualTitle").addEventListener("input", checkManualFields);
+        document.getElementById("manualTag").addEventListener("input", checkManualFields);
+        document.getElementById("manualAuthor").addEventListener("input", checkManualFields);
+        document.getElementById("manualEditor").addEventListener("input", checkManualFields);
+
+        saveButton.onclick = async function() {
+            let newTags = document.getElementById("additionalTags").value.split(",").map(t => t.trim()).filter(t => t);
+            let existingTags = existingStory.userTags ? Object.values(existingStory.userTags).flat() : [];
+            let mergedTags = [...new Set([...existingTags, ...newTags])];
+            if (existingStory.defaultTag && !mergedTags.includes(existingStory.defaultTag)) {
+                mergedTags.push(existingStory.defaultTag);
+            }
+            let username = localStorage.getItem("username") || "Guest";
+            let updatedUserTags = {
+                ...existingStory.userTags,
+                [username]: mergedTags
+            };
+            let newEditors = document.getElementById("manualEditor").value.split(",").map(e => e.trim()).filter(e => e);
+            let existingEditors = Array.isArray(existingStory.editor) ? existingStory.editor : (existingStory.editor ? [existingStory.editor] : []);
+            let mergedEditors = [...new Set([...existingEditors, ...newEditors])];
+
+            let updatedStory = {
+                title: document.getElementById("manualTitle").value.trim(),
+                cnTitle: document.getElementById("cnTitle").value.trim(),
+                originalLink: document.getElementById("originalLink").value.trim(),
+                defaultTag: existingStory.defaultTag,
+                userTags: updatedUserTags,
+                author: document.getElementById("manualAuthor").value.trim(),
+                editor: mergedEditors,
+                status: document.getElementById("manualStatus").value,
+                url
+            };
+
+            displayStoryDetails(updatedStory);
+            await saveStory(updatedStory);
+            alert("Đã cập nhật truyện.");
+
+            document.getElementById("manualTitle").value = "";
+            document.getElementById("manualTag").value = "";
+            document.getElementById("manualAuthor").value = "";
+            document.getElementById("manualEditor").value = "";
+            document.getElementById("cnTitle").value = "";
+            document.getElementById("originalLink").value = "";
+            document.getElementById("additionalTags").value = "";
+            manualForm.style.display = "none";
+            saveButton.textContent = "Lưu Truyện";
+            saveButton.disabled = false;
+            saveButton.onclick = fetchStory;
+        };
+        return;
+    }
+
+    let isForumLink = url.includes('toanchuccaothu');
+    saveButton.disabled = false;
+
     if (isForumLink) {
         manualForm.style.display = "none";
-        saveButton.disabled = false;
-
         const proxyUrl = "https://api.allorigins.win/raw?url=";
         let fetchUrl = proxyUrl + encodeURIComponent(url);
-
         try {
             let response = await fetch(fetchUrl);
             let text = await response.text();
             let parser = new DOMParser();
-            let doc = parser.parseFromString(text, "text/html");
-
-            let titleMatch = doc.querySelector("h1")?.innerText.match(/\[(.*?)\]\s*(\[.*?\])?(.*)/);
+            let docHtml = parser.parseFromString(text, "text/html");
+            let titleMatch = docHtml.querySelector("h1")?.innerText.match(/\[(.*?)\]\s*(\[.*?\])?(.*)/);
             let title = titleMatch ? titleMatch[3].trim() : "Không rõ";
-            let fullTitle = doc.querySelector("h1")?.innerText.trim() || "Không rõ";
-
+            let fullTitle = docHtml.querySelector("h1")?.innerText.trim() || "Không rõ";
             let tagMatches = fullTitle.match(/\[(.*?)\]/g);
             let defaultTag = tagMatches ? tagMatches[tagMatches.length - 1].replace(/\[|\]/g, "") : "Không rõ";
-
-            let status = doc.querySelector("h1.p-title-value span")?.textContent.trim() || "Không rõ";
+            let status = docHtml.querySelector("h1.p-title-value span")?.textContent.trim() || "Không rõ";
             let author = "Không rõ";
-            let editor = "Không rõ";
-
-            doc.querySelectorAll("article.message-body.js-selectToQuote div").forEach(div => {
-                let text = div.innerText.trim();
-
-                let authorMatch = text.match(/Tác giả:\s*(.+)|Author:\s*(.+)/i);
+            let editors = [];
+            docHtml.querySelectorAll("article.message-body.js-selectToQuote div").forEach(div => {
+                let t = div.innerText.trim();
+                let authorMatch = t.match(/Tác giả:\s*(.+)|Author:\s*(.+)/i);
                 if (authorMatch) author = authorMatch[1] || authorMatch[2];
-
-                let editorRegex = new RegExp(
-                    "(?:Editor:\\s*(.+))|(?:Edit:\\s*(.+))|(?:Edit\\s*\\+\\s*beta:\\s*(.+))|(?:Beta:\\s*(.+))|(?:Editor\\s*\\+\\s*beta:\\s*(.+))|(?:Edit bởi:\\s*(.+))",
-                    "i"
-                );
-                let editorMatch = text.match(editorRegex);
+                let editorRegex = new RegExp("(?:Editor:\\s*(.+))|(?:Edit:\\s*(.+))|(?:Edit\\s*\\+\\s*beta:\\s*(.+))|(?:Beta:\\s*(.+))|(?:Editor\\s*\\+\\s*beta:\\s*(.+))|(?:Edit bởi:\\s*(.+))","i");
+                let editorMatch = t.match(editorRegex);
                 if (editorMatch) {
-                    editor = editorMatch[1] || editorMatch[2] || editorMatch[3] || editorMatch[4] || editorMatch[5] || editorMatch[6];
+                    let editorStr = editorMatch[1] || editorMatch[2] || editorMatch[3] || editorMatch[4] || editorMatch[5] || editorMatch[6];
+                    editors = editorStr.split(",").map(e => e.replace(/^@/, "").trim()).filter(e => e);
                 }
             });
-            editor = (editor || "").replace(/^@/, "").trim();
 
             let story = {
                 title,
+                cnTitle,
+                originalLink,
                 defaultTag,
                 userTags: [],
                 author,
-                editor,
+                editor: editors,
                 status,
-                url,
-                review: {}
+                url
             };
-
-            let existingStory = await fetchStoryFromFirestore(url);
-
-            if (existingStory) {
-                story.userTags = existingStory.userTags || {};
-                story.review = existingStory.review || {};
-            }
 
             displayStoryDetails(story);
             await saveStory(story);
+            alert("Đã lưu truyện.");
         } catch (error) {
             console.error("Lỗi khi fetch truyện:", error);
             alert("Không thể lấy dữ liệu từ link này!");
@@ -154,23 +217,18 @@ export async function fetchStory() {
         manualEditor.addEventListener("input", checkManualFields);
 
         saveButton.onclick = async function() {
+            let editors = document.getElementById("manualEditor").value.split(",").map(e => e.trim()).filter(e => e);
             let story = {
                 title: manualTitle.value.trim(),
+                cnTitle,
+                originalLink,
                 defaultTag: manualTag.value.trim(),
                 userTags: [],
                 author: manualAuthor.value.trim(),
-                editor: manualEditor.value.trim(),
+                editor: editors,
                 status: manualStatus.value,
-                url,
-                review: {}
+                url
             };
-
-            let existingStory = await fetchStoryFromFirestore(url);
-
-            if (existingStory) {
-                story.userTags = existingStory.userTags || {};
-                story.review = existingStory.review || {};
-            }
 
             displayStoryDetails(story);
             await saveStory(story);
@@ -179,234 +237,228 @@ export async function fetchStory() {
             manualTag.value = "";
             manualAuthor.value = "";
             manualEditor.value = "";
+            document.getElementById("cnTitle").value = "";
+            document.getElementById("originalLink").value = "";
             manualForm.style.display = "none";
             saveButton.disabled = false;
             saveButton.onclick = fetchStory;
+            alert("Đã lưu truyện.");
         };
     }
 }
 
+export async function batchFetchStories() {
+    let raw = document.getElementById("multiLinks").value.trim();
+    if (!raw) {
+        alert("Nhập danh sách link, mỗi dòng một link.");
+        return;
+    }
+    let cnTitle = document.getElementById("cnTitle").value.trim();
+    let originalLink = document.getElementById("originalLink").value.trim();
+    let links = raw.split(/\r?\n|,|\s/).map(s => s.trim()).filter(Boolean);
+    links = Array.from(new Set(links));
+    let ok = 0, skipped = 0, nonForum = 0;
+    for (let url of links) {
+        if (await urlExists(url)) {
+            skipped++;
+            continue;
+        }
+        if (!url.includes("toanchuccaothu")) {
+            nonForum++;
+            continue;
+        }
+        document.getElementById("storyLink").value = url;
+        await fetchStory();
+        ok++;
+    }
+    alert(`Xong: lưu ${ok}, trùng ${skipped}, bỏ qua không phải forum ${nonForum}.`);
+}
+
 export function removeVietnameseTones(str) {
-	return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-		.replace(/đ/g, "d").replace(/Đ/g, "D");
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d").replace(/Đ/g, "D");
 }
 
 export async function saveStoryToFirestore(story) {
-	try {
-		let storyId = removeVietnameseTones(story.title)
-			.replace(/[^\w\s]/gi, "")
-			.replace(/\s+/g, "_")
-			.trim();
-
-		let storyRef = doc(storiesCollection, storyId);
-
-		let existingDoc = await getDoc(storyRef);
-		let existingData = existingDoc.exists() ? existingDoc.data() : {};
-
-		let updatedStory = {
-			...existingData,
-			...story,
-			userTags: {
-				...(existingData.userTags || {}),
-				...(story.userTags || {})
-			}
-		};
-
-		await setDoc(storyRef, updatedStory, { merge: true });
-	} catch (error) {
-		console.error("Lỗi khi lưu vào Firestore:", error);
-	}
+    try {
+        let storyId = removeVietnameseTones(story.title || "")
+            .replace(/[^\w\s]/gi, "")
+            .replace(/\s+/g, "_")
+            .trim();
+        if (!storyId) storyId = btoa(story.url).slice(0, 16);
+        let storyRef = doc(storiesCollection, storyId);
+        let existingDoc = await getDoc(storyRef);
+        let existingData = existingDoc.exists() ? existingDoc.data() : {};
+        let updatedStory = {
+            ...existingData,
+            ...story,
+            userTags: {
+                ...(existingData.userTags || {}),
+                ...(story.userTags || {})
+            }
+        };
+        await setDoc(storyRef, updatedStory, { merge: true });
+    } catch (error) {
+        console.error("Lỗi khi lưu vào Firestore:", error);
+    }
 }
 
 export async function saveStoryToIndexedDB(story, storeName = "stories") {
-	if (!idb) {
-		console.warn("IndexedDB chưa sẵn sàng.");
-		return;
-	}
-
-	if (!story.url) {
-		console.error("Lỗi: Không thể lưu truyện vào IndexedDB vì thiếu 'url'!");
-		return;
-	}
-
-	let transaction = idb.transaction([storeName], "readwrite");
-	let store = transaction.objectStore(storeName);
-
-	let getRequest = store.get(story.url);
-	getRequest.onsuccess = function (event) {
-		let existingStory = event.target.result || {};
-
-		let updatedStory = {
-			...existingStory,
-			...story,
-			userTags: {
-				...(existingStory.userTags || {}),
-				...(story.userTags || {})
-			}
-		};
-
-		store.put(updatedStory);
-	};
-
-	getRequest.onerror = function (event) {
-		console.error("Lỗi khi truy vấn IndexedDB:", event.target.error);
-	};
+    if (!idb) {
+        console.warn("IndexedDB chưa sẵn sàng.");
+        return;
+    }
+    if (!story.url) {
+        console.error("Lỗi: Không thể lưu truyện vào IndexedDB vì thiếu 'url'!");
+        return;
+    }
+    let transaction = idb.transaction([storeName], "readwrite");
+    let store = transaction.objectStore(storeName);
+    let getRequest = store.get(story.url);
+    getRequest.onsuccess = function (event) {
+        let existingStory = event.target.result || {};
+        let updatedStory = {
+            ...existingStory,
+            ...story,
+            userTags: {
+                ...(existingStory.userTags || {}),
+                ...(story.userTags || {})
+            }
+        };
+        store.put(updatedStory);
+    };
+    getRequest.onerror = function (event) {
+        console.error("Lỗi khi truy vấn IndexedDB:", event.target.error);
+    };
 }
 
 export async function saveStory(story) {
-	try {
-		await saveStoryToFirestore(story);
-		saveStoryToIndexedDB(story);
-		await fetchTagsFromDatabase();
-		loadStories();
-	} catch (error) {
-		console.error("Lỗi khi lưu truyện:", error);
-	}
+    try {
+        await Promise.all([
+            saveStoryToFirestore(story),
+            saveStoryToIndexedDB(story)
+        ]);
+    } catch (error) {
+        console.error("Lỗi khi lưu truyện:", error);
+    }
 }
 
 export async function fetchStoryFromFirestore(url) {
-	let querySnapshot = await getDocs(query(collection(db, "stories"), where("url", "==", url)));
-	if (!querySnapshot.empty) {
-		return querySnapshot.docs[0].data();
-	}
-	return null;
+    let querySnapshot = await getDocs(query(collection(db, "stories"), where("url", "==", url)));
+    if (!querySnapshot.empty) {
+        return querySnapshot.docs[0].data();
+    }
+    return null;
 }
 
 export async function loadStories() {
-	await waitForIndexedDB();
-	let indexedDBStories = await loadStoriesFromIndexedDB("stories");
-	let storyMap = {};
-
-	indexedDBStories.forEach(story => {
-		storyMap[story.url] = story;
-	});
-
-	renderStories(indexedDBStories, "storyTable");
-
-	try {
-		let firestoreStories = await getDocs(storiesCollection);
-		let stories = [];
-
-		firestoreStories.forEach((doc) => {
-			let story = doc.data();
-			story.id = doc.id;
-
-			if (storyMap[story.url]) {
-				story.userTags = {
-					...(storyMap[story.url].userTags || {}),
-					...(story.userTags || {})
-				};
-			}
-
-			stories.push(story);
-			saveStoryToIndexedDB(story);
-		});
-
-		renderStories(stories, "storyTable");
-	} catch (error) {
-		console.error("Lỗi khi tải truyện từ Firestore:", error);
-	}
+    await waitForIndexedDB();
+    let indexedDBStories = await loadStoriesFromIndexedDB("stories");
+    let storyMap = {};
+    indexedDBStories.forEach(story => {
+        storyMap[story.url] = story;
+    });
+    try {
+        let firestoreStories = await getDocs(storiesCollection);
+        let stories = [];
+        firestoreStories.forEach((docSnap) => {
+            let story = docSnap.data();
+            story.id = docSnap.id;
+            if (storyMap[story.url]) {
+                story.userTags = {
+                    ...(storyMap[story.url].userTags || {}),
+                    ...(story.userTags || {})
+                };
+            }
+            stories.push(story);
+            saveStoryToIndexedDB(story);
+        });
+        renderStories(stories, "storyTable");
+        window.currentStories = stories;
+    } catch (error) {
+        console.error("Lỗi khi tải truyện từ Firestore:", error);
+        renderStories(indexedDBStories, "storyTable");
+    }
 }
 
 export async function loadStoriesFromIndexedDB(storeName) {
-	return new Promise((resolve, reject) => {
-		if (!idb) {
-			resolve([]);
-			return;
-		}
-
-		let transaction = idb.transaction([storeName], "readonly");
-		let store = transaction.objectStore(storeName);
-		let request = store.getAll();
-
-		request.onsuccess = function (event) {
-			resolve(event.target.result);
-		};
-
-		request.onerror = function (event) {
-			console.error("Lỗi khi tải từ IndexedDB:", event.target.error);
-			resolve([]);
-		};
-	});
+    return new Promise((resolve) => {
+        if (!idb) {
+            resolve([]);
+            return;
+        }
+        let transaction = idb.transaction([storeName], "readonly");
+        let store = transaction.objectStore(storeName);
+        let request = store.getAll();
+        request.onsuccess = function (event) {
+            resolve(event.target.result);
+        };
+        request.onerror = function (event) {
+            console.error("Lỗi khi tải từ IndexedDB:", event.target.error);
+            resolve([]);
+        };
+    });
 }
 
 export async function deleteStoryFromFirestore(storyId, collectionName = "stories") {
-	await deleteDoc(doc(db, collectionName, storyId));
+    await deleteDoc(doc(db, collectionName, storyId));
 }
 
 export async function deleteStoryFromIndexedDB(storyUrl, storeName = "stories") {
-	let transaction = idb.transaction([storeName], "readwrite");
-	let store = transaction.objectStore(storeName);
-	store.delete(storyUrl);
+    let transaction = idb.transaction([storeName], "readwrite");
+    let store = transaction.objectStore(storeName);
+    store.delete(storyUrl);
 }
 
 export async function deleteStory(storyUrl, storyId, collectionName = "stories", tableId = "storyTable") {
-	deleteStoryFromIndexedDB(storyUrl, "stories");
-	if (storyId) {
-		deleteStoryFromFirestore(storyId, "stories");
-	}
-	setTimeout(() => {
-		loadStories();
-	}, 500);
+    const password = prompt("Vui lòng nhập mật khẩu để xóa truyện:");
+    if (password !== "3,141592654") {
+        alert("Mật khẩu không đúng! Không thể xóa truyện.");
+        return;
+    }
+    deleteStoryFromIndexedDB(storyUrl, "stories");
+    if (storyId) {
+        deleteStoryFromFirestore(storyId, "stories");
+    }
+    setTimeout(() => {
+        loadStories();
+    }, 500);
+    alert("Đã xóa truyện thành công.");
 }
 
 export async function fetchTagsFromDatabase() {
-	try {
-		let querySnapshot = await getDocs(collection(db, "stories"));
-		allTags = new Set();
-
-		querySnapshot.forEach(doc => {
-			let storyData = doc.data();
-			if (storyData.defaultTag) allTags.add(storyData.defaultTag);
-			if (storyData.userTags && typeof storyData.userTags === "object") {
-				Object.values(storyData.userTags).forEach(tag => allTags.add(tag));
-			}
-		});
-
-		allTags = [...allTags];
-	} catch (error) {
-		console.error("Lỗi khi tải tag:", error);
-	}
+    try {
+        let querySnapshot = await getDocs(collection(db, "stories"));
+        allTags = new Set();
+        querySnapshot.forEach(docSnap => {
+            let storyData = docSnap.data();
+            if (storyData.defaultTag) allTags.add(storyData.defaultTag);
+            if (storyData.userTags && typeof storyData.userTags === "object") {
+                Object.values(storyData.userTags).forEach(tag => allTags.add(tag));
+            }
+        });
+        allTags = [...allTags];
+    } catch (error) {
+        console.error("Lỗi khi tải tag:", error);
+    }
 }
 
 export async function loadAllTags() {
-	let allTagsSet = new Set();
-	let querySnapshot = await getDocs(collection(db, "stories"));
-
-	querySnapshot.forEach(doc => {
-		let story = doc.data();
-		if (story.defaultTag) {
-			allTagsSet.add(story.defaultTag);
-		}
-		if (story.userTags && typeof story.userTags === "object") {
-			Object.values(story.userTags).forEach(userTagList => {
-				userTagList.forEach(tag => allTagsSet.add(tag));
-			});
-		}
-	});
-
-	window.allTags = Array.from(allTagsSet);
+    let allTagsSet = new Set();
+    let querySnapshot = await getDocs(collection(db, "stories"));
+    querySnapshot.forEach(docSnap => {
+        let story = docSnap.data();
+        if (story.defaultTag) allTagsSet.add(story.defaultTag);
+        if (story.userTags && typeof story.userTags === "object") {
+            Object.values(story.userTags).forEach(userTagList => {
+                userTagList.forEach(tag => allTagsSet.add(tag));
+            });
+        }
+    });
+    window.allTags = Array.from(allTagsSet);
 }
-
-export async function updateReview(storyUrl, reviewText, collectionName = "stories") {
-	let querySnapshot = await getDocs(query(collection(db, collectionName), where("url", "==", storyUrl)));
-	if (querySnapshot.empty) return;
-
-	let storyDoc = querySnapshot.docs[0];
-	let storyId = storyDoc.id;
-	let username = localStorage.getItem("username") || "Guest";
-
-	let storyRef = doc(db, collectionName, storyId);
-	let storyData = storyDoc.data();
-
-	let existingReviews = storyData.review || {};
-	existingReviews[username] = [reviewText];
-
-	await setDoc(storyRef, { review: existingReviews }, { merge: true });
-}
-
 
 window.fetchStory = fetchStory;
 window.deleteStory = deleteStory;
 window.saveStory = saveStory;
-window.updateReview = updateReview;
+window.batchFetchStories = batchFetchStories;

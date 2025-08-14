@@ -140,57 +140,91 @@ button:hover {
     gap: 10px;
     margin-top: 10px;
 }
-.table-container {
-    max-width: 100%;
-    overflow-x: auto;
+
+#storyTable tr:hover td {
+    background: #f0f2f5;
 }
-table {
+
+.table-container {
     width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+    background: #fff;
+}
+
+#storyTable {
+    border-collapse: collapse;
+    width: max-content;
+    background: #fff;
+}
+
+#storyTable th,
+#storyTable td {
+    padding: 5px 5px;
+    border: 1px solid #e6e6e6;
+    vertical-align: middle;
+    color: #222;
+    white-space: normal;
+    word-break: break-word;
+}
+
+#storyTable th {
+    background: #f3f4f6;
+    font-weight: 700;
+    white-space: nowrap;
+    text-align: center;
+}
+
+#storyTable tr:nth-child(even) td {
+    background: #fafafa;
+}
+
+#storyTable tr:hover td {
+    background: #f0f2f5;
+}
+
+.table-container table th:nth-child(1),
+#storyTable td:nth-child(1) { min-width: 30px; text-align: center; }
+
+.table-container table th:nth-child(2),
+#storyTable td:nth-child(2) { min-width: 250px; }
+
+.table-container table th:nth-child(3),
+#storyTable td:nth-child(3) { min-width: 150px; }
+
+.table-container table th:nth-child(4),
+#storyTable td:nth-child(4) { min-width: 200px; }
+
+.table-container table th:nth-child(5),
+#storyTable td:nth-child(5) { min-width: 120px; }
+
+.table-container table th:nth-child(6),
+#storyTable td:nth-child(6) { min-width: 120px; }
+
+.table-container table th:nth-child(7),
+#storyTable td:nth-child(7) { min-width: 90px; text-align: center; }
+
+.table-container table th:nth-child(8),
+#storyTable td:nth-child(8) { min-width: 40px; text-align: center; }
+
+.table-container table th:nth-child(9),
+#storyTable td:nth-child(9) { min-width: 40px; text-align: center; }
+
+.table-container table th:nth-child(10),
+#storyTable td:nth-child(10) { min-width: 40px; text-align: center; }
+
+table {
     border-collapse: collapse;
     margin-top: 15px;
     background: white;
     border-radius: 5px;
     overflow: hidden;
+    width: auto;
 }
 th, td {
     border: 1px solid #ddd;
     padding: 10px;
-    text-align: left;
-}
-th:nth-child(1), td:nth-child(1) { /* STT or Checkbox */
-    width: 3%;
-}
-th:nth-child(2), td:nth-child(2) { /* Tên truyện */
-    width: 30%;
-    max-width: 350px;
-    overflow-wrap: break-word;
-}
-th:nth-child(3), td:nth-child(3) { /* Tag */
-    width: 20%;
-    overflow-wrap: break-word;
-}
-th:nth-child(4), td:nth-child(4) {
-    width: 15%;
-    white-space: normal;
-    word-break: break-all;
-    overflow-wrap: break-word;
-}
-th:nth-child(5), td:nth-child(5) { /* Edit/Beta */
-    width: 10%;
-    overflow-wrap: break-word;
-}
-th:nth-child(6), td:nth-child(6) { /* Tình trạng */
-    width: 5%;
-}
-th:nth-child(7), td:nth-child(7) { /* Link */
-    width: 5%;
-}
-th:nth-child(8), td:nth-child(8) { /* Review */
-    width: 15%;
-    overflow-wrap: break-word;
-}
-th:nth-child(9), td:nth-child(9) { /* Xóa */
-    width: 5%;
 }
 th {
     background-color: #dfe6e9;
@@ -237,43 +271,15 @@ th {
 }
 
 @media (max-width: 800px) {
-    th:nth-child(4), td:nth-child(4) { /* Tác giả */
-        width: 15%;
-        min-width: 80px;
-        max-width: 150px;
-        overflow-wrap: break-word;
-    }
+    .table-container { overflow-x: auto; }
 }
-
 @media (max-width: 600px) {
-    .table-container {
-        max-height: 400px;
-        overflow-y: auto;
-    }
-    table {
-        min-width: 600px;
-    }
+    .table-container { max-height: 400px; overflow-y: auto; }
+    table { min-width: 900px; }
     button { width: 50%; }
-    td, th {
-        word-wrap: break-word;
-        white-space: normal;
-    }
-    .toggle-container {
-        width: 100%;
-    }
-    .toggle-btn {
-        flex: 1;
-        font-size: 14px;
-        padding: 8px;
-    }
-    .flex-row {
-        flex-direction: column;
-    }
-    .flex-row label {
-        width: 100%;
-    }
-    .button-container {
-        flex-direction: column;
-        align-items: center;
-    }
+    .toggle-container { width: 100%; }
+    .toggle-btn { flex: 1; font-size: 14px; padding: 8px; }
+    .flex-row { flex-direction: column; }
+    .flex-row label { width: 100%; }
+    .button-container { flex-direction: column; align-items: center; }
 }
