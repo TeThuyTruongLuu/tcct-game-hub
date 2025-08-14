@@ -75,7 +75,7 @@ export async function fetchStory() {
         displayStoryDetails(existingStory);
         saveButton.textContent = "Cập nhật";
         manualForm.style.display = "block";
-        saveButton.disabled = true;
+        saveButton.disabled = false;
 
         function checkManualFields() {
             if (
@@ -95,37 +95,47 @@ export async function fetchStory() {
         document.getElementById("manualAuthor").addEventListener("input", checkManualFields);
         document.getElementById("manualEditor").addEventListener("input", checkManualFields);
 
-        saveButton.onclick = async function() {
-            let newTags = document.getElementById("additionalTags").value.split(",").map(t => t.trim()).filter(t => t);
-            let existingTags = existingStory.userTags ? Object.values(existingStory.userTags).flat() : [];
-            let mergedTags = [...new Set([...existingTags, ...newTags])];
-            if (existingStory.defaultTag && !mergedTags.includes(existingStory.defaultTag)) {
-                mergedTags.push(existingStory.defaultTag);
-            }
-            let username = localStorage.getItem("username") || "Guest";
-            let updatedUserTags = {
-                ...existingStory.userTags,
-                [username]: mergedTags
-            };
-            let newEditors = document.getElementById("manualEditor").value.split(",").map(e => e.trim()).filter(e => e);
-            let existingEditors = Array.isArray(existingStory.editor) ? existingStory.editor : (existingStory.editor ? [existingStory.editor] : []);
-            let mergedEditors = [...new Set([...existingEditors, ...newEditors])];
+		saveButton.onclick = async function() {
+		  let newTags = document.getElementById("additionalTags").value
+			.split(",")
+			.map(t => t.trim())
+			.filter(Boolean);
 
-            let updatedStory = {
-                title: document.getElementById("manualTitle").value.trim(),
-                cnTitle: document.getElementById("cnTitle").value.trim(),
-                originalLink: document.getElementById("originalLink").value.trim(),
-                defaultTag: existingStory.defaultTag,
-                userTags: updatedUserTags,
-                author: document.getElementById("manualAuthor").value.trim(),
-                editor: mergedEditors,
-                status: document.getElementById("manualStatus").value,
-                url
-            };
+		  let existingTags = existingStory.userTags ? Object.values(existingStory.userTags).flat() : [];
 
-            displayStoryDetails(updatedStory);
-            await saveStory(updatedStory);
-            alert("Đã cập nhật truyện.");
+		  const dft = (existingStory.defaultTag || "").toLowerCase();
+		  newTags = newTags.filter(t => t.toLowerCase() !== dft);
+
+		  let mergedTags = [...new Set([...existingTags, ...newTags])];
+
+		  let username = localStorage.getItem("username") || "Guest";
+		  let updatedUserTags = {
+			...existingStory.userTags,
+			[username]: mergedTags
+		  };
+
+		  let newEditors = document.getElementById("manualEditor").value
+			.split(",").map(e => e.trim()).filter(Boolean);
+		  let existingEditors = Array.isArray(existingStory.editor)
+			? existingStory.editor
+			: (existingStory.editor ? [existingStory.editor] : []);
+		  let mergedEditors = [...new Set([...existingEditors, ...newEditors])];
+
+		  let updatedStory = {
+			title: document.getElementById("manualTitle").value.trim(),
+			cnTitle: document.getElementById("cnTitle").value.trim(),
+			originalLink: document.getElementById("originalLink").value.trim(),
+			defaultTag: existingStory.defaultTag, // giữ nguyên, KHÔNG đụng
+			userTags: updatedUserTags,
+			author: document.getElementById("manualAuthor").value.trim(),
+			editor: mergedEditors,
+			status: document.getElementById("manualStatus").value,
+			url
+		  };
+
+		  displayStoryDetails(updatedStory);
+		  await saveStory(updatedStory);
+		  alert("Đã cập nhật truyện.");
 
             document.getElementById("manualTitle").value = "";
             document.getElementById("manualTag").value = "";
