@@ -176,10 +176,19 @@ export async function fetchStory() {
                 let t = div.innerText.trim();
                 let authorMatch = t.match(/Tác giả:\s*(.+)|Author:\s*(.+)/i);
                 if (authorMatch) author = authorMatch[1] || authorMatch[2];
-                let editorRegex = new RegExp("(?:Editor:\\s*(.+))|(?:Edit:\\s*(.+))|(?:Edit\\s*\\+\\s*beta:\\s*(.+))|(?:Beta:\\s*(.+))|(?:Editor\\s*\\+\\s*beta:\\s*(.+))|(?:Edit bởi:\\s*(.+))","i");
+				let editorRegex = new RegExp(
+				  "(?:Editor:\\s*(.+))" +
+				  "|(?:Edit:\\s*(.+))" +
+				  "|(?:Edit\\s*\\+\\s*beta:\\s*(.+))" +
+				  "|(?:Beta:\\s*(.+))" +
+				  "|(?:Editor\\s*\\+\\s*beta:\\s*(.+))" +
+				  "|(?:Edit bởi:\\s*(.+))" +
+				  "|(?:Dịch:\\s*(.+))",
+				  "i"
+				);
                 let editorMatch = t.match(editorRegex);
                 if (editorMatch) {
-                    let editorStr = editorMatch[1] || editorMatch[2] || editorMatch[3] || editorMatch[4] || editorMatch[5] || editorMatch[6];
+                    let editorStr = editorMatch[1] || editorMatch[2] || editorMatch[3] || editorMatch[4] || editorMatch[5] || editorMatch[6] || editorMatch[7];
                     editors = editorStr.split(",").map(e => e.replace(/^@/, "").trim()).filter(e => e);
                 }
             });
