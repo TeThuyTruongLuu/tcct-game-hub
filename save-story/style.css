@@ -145,13 +145,16 @@ button:hover {
     background: #f0f2f5;
 }
 
-.table-container {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 8px;
-    background: #fff;
+.table-container{
+    width:100%;
+    max-height:70vh;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    border-radius:8px;
+    background:#fff;
+    scrollbar-gutter:stable both-edges;
 }
+
 
 #storyTable {
     border-collapse: collapse;

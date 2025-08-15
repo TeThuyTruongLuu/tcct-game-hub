@@ -4,6 +4,9 @@ import { removeVietnameseTones } from './storage.js';
 import { db } from './firebase.js';
 import { collection, getDocs, query, where, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+const norm = s => removeVietnameseTones(String(s||"")).toLowerCase();
+const escRe = s => String(s||"").replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+
 const dbName = "StoryDB";
 let idb;
 
@@ -171,28 +174,52 @@ export async function filterStories() {
     let author = document.getElementById("authorSelect").value;
     let editor = document.getElementById("editorSelect").value;
     let status = document.getElementById("statusSelect").value;
+
+    let searchRaw = document.getElementById("searchText").value.trim();
+    let searchRe = searchRaw ? new RegExp(escRe(searchRaw), "i") : null;
+
     let q = query(collection(db, "stories"));
     let stories = [];
-    let searchText = document.getElementById("searchText").value.toLowerCase();
     let querySnapshot = await getDocs(q);
-    querySnapshot.forEach(doc => {
-        let story = doc.data();
-        story.id = doc.id;
-        let tags = [story.defaultTag, ...(story.userTags ? Object.values(story.userTags).flat() : [])];
+
+    querySnapshot.forEach(docSnap => {
+        let story = docSnap.data();
+        story.id = docSnap.id;
+
+        let tagList = [story.defaultTag, ...(story.userTags ? Object.values(story.userTags).flat() : [])].filter(Boolean);
+
         let include = true;
-        if (searchText) {
-            let hay = `${story.title || ""} ${story.cnTitle || ""} ${story.url || ""} ${story.originalLink || ""}`.toLowerCase();
-            if (!hay.includes(searchText)) include = false;
+
+        if (searchRe) {
+            let hay = `${story.title || ""} ${story.cnTitle || ""} ${story.url || ""} ${story.originalLink || ""}`;
+            if (!searchRe.test(hay)) include = false;
         }
-        if (desiredTags.length > 0 && !desiredTags.every(tag => tags.includes(tag))) include = false;
-        if (excludedTags.length > 0 && excludedTags.some(tag => tags.includes(tag))) include = false;
+
+        if (desiredTags.length > 0) {
+            let ok = desiredTags.every(qt => tagList.some(t => norm(t).includes(norm(qt))));
+            if (!ok) include = false;
+        }
+
+        if (excludedTags.length > 0) {
+            let bad = excludedTags.some(qt => tagList.some(t => norm(t).includes(norm(qt))));
+            if (bad) include = false;
+        }
+
         if (author && story.author !== author) include = false;
-        if (editor && (Array.isArray(story.editor) ? !story.editor.includes(editor) : story.editor !== editor)) include = false;
+
+        if (editor) {
+            let edOk = Array.isArray(story.editor) ? story.editor.includes(editor) : story.editor === editor;
+            if (!edOk) include = false;
+        }
+
         if (status && story.status !== status) include = false;
+
         if (include) stories.push(story);
     });
+
     renderStories(stories, "storyTable");
 }
+
 
 export async function randomStory() {
     let querySnapshot = await getDocs(collection(db, "stories"));
