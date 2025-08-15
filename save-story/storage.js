@@ -469,9 +469,10 @@ export async function loadAllTags() {
         let story = docSnap.data();
         if (story.defaultTag) allTagsSet.add(story.defaultTag);
         if (story.userTags && typeof story.userTags === "object") {
-            Object.values(story.userTags).forEach(userTagList => {
-                userTagList.forEach(tag => allTagsSet.add(tag));
-            });
+			Object.values(story.userTags).forEach(userTagList => {
+				if (!Array.isArray(userTagList)) userTagList = [userTagList];
+				userTagList.forEach(tag => allTagsSet.add(tag));
+			});
         }
     });
     window.allTags = Array.from(allTagsSet);

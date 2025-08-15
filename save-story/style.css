@@ -188,7 +188,7 @@ button:hover {
 }
 
 .table-container table th:nth-child(1),
-#storyTable td:nth-child(1) { min-width: 30px; text-align: center; }
+#storyTable td:nth-child(1) { width: 30px; text-align: center; }
 
 .table-container table th:nth-child(2),
 #storyTable td:nth-child(2) { min-width: 250px; }
