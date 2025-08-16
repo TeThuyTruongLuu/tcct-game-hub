@@ -115,21 +115,20 @@ export async function renderStories(stories, tableId, page = 1) {
 }
 
 function renderPagination(total, currentPage, perPage) {
-    const pagination = document.querySelector(".pagination") || document.createElement("div");
-    pagination.classList.add("pagination");
-    pagination.innerHTML = "";
-    const totalPages = Math.ceil(total / perPage);
-    for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        if (i === currentPage) btn.classList.add("active");
-        btn.onclick = () => {
-            renderStories(window.currentStories, "storyTable", i);
-        };
-        pagination.appendChild(btn);
-    }
-    document.getElementById("storyTable").after(pagination);
+  const pagination = document.getElementById("pagination");
+  pagination.innerHTML = "";
+  const totalPages = Math.ceil(total / perPage);
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    if (i === currentPage) btn.classList.add("active");
+    btn.onclick = () => {
+      renderStories(window.currentStories, "storyTable", i);
+    };
+    pagination.appendChild(btn);
+  }
 }
+
 
 export async function suggestTags(event) {
     let input = event.target;
