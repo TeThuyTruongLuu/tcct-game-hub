@@ -236,7 +236,7 @@ export async function randomStory() {
 
 window.checkPassword = function () {
     const input = document.getElementById("epubPassword").value.trim();
-    const correct = "Not-for-profit-All Rights-reserved";
+    const correct = "Not-for-profit-All-rights-reserved";
     const container = document.getElementById("epubLinkContainer");
     if (input === correct) {
         container.style.display = "block";
