@@ -80,7 +80,7 @@ export async function displayStoryDetails(story) {
 
 export async function renderStories(stories, tableId, page = 1) {
     if (tableId !== "storyTable") return;
-    const perPage = 50;
+    const perPage = 25;
     const start = (page - 1) * perPage;
     const end = start + perPage;
     const paginatedStories = stories.slice(start, end);
