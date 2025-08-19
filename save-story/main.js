@@ -264,19 +264,14 @@ export async function filterStories() {
     renderStories(stories, "storyTable");
 }
 
-
-export async function randomStory() {
-    let querySnapshot = await getDocs(collection(db, "stories"));
-    let stories = [];
-    querySnapshot.forEach(doc => {
-        let story = doc.data();
-        story.id = doc.id;
-        stories.push(story);
-    });
-    if (stories.length > 0) {
-        let randomIndex = Math.floor(Math.random() * stories.length);
-        renderStories([stories[randomIndex]], "storyTable");
-    }
+export function randomStory(){
+  if (!window.currentStories?.length) {
+    alert("Không có truyện để random!");
+    return;
+  }
+  const s = window.currentStories[Math.floor(Math.random() * window.currentStories.length)];
+  window.currentStories = [s];
+  renderStories(window.currentStories, "storyTable", 1);
 }
 
 window.checkPassword = function () {
