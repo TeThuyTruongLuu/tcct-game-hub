@@ -12,11 +12,13 @@ const ui={
   previews:{
     player:document.getElementById('preview-player'),
     gain:document.getElementById('preview-gain'),
-    lose:document.getElementById('preview-lose'),
+    lose:[
+      document.getElementById('preview-lose-0'),
+      document.getElementById('preview-lose-1')
+    ],
     support:[
       document.getElementById('preview-support-0'),
-      document.getElementById('preview-support-1'),
-      document.getElementById('preview-support-2')
+      document.getElementById('preview-support-1')
     ]
   }
 }
@@ -28,7 +30,7 @@ const ASSETS={
   support:['support/1.png','support/2.png','support/3.png']
 }
 
-const indices={player:0,gain:0,lose:0,support:[0,0,0]}
+const indices={player:0,gain:0,lose:[0,1],support:[0,1]}
 
 function makeSprite(path,targetH){
   const img=loadImage(path)
@@ -42,11 +44,11 @@ function setPreview(type,path,i=0){
   const img=loadImage(path)
   if(type==='player'){ui.previews.player.src=img.src}
   if(type==='gain'){ui.previews.gain.src=img.src}
-  if(type==='lose'){ui.previews.lose.src=img.src}
+  if(type==='lose'){ui.previews.lose[i].src=img.src}
   if(type==='support'){ui.previews.support[i].src=img.src}
 }
 
-const spinning={player:false,gain:false,lose:false,support:[false,false,false]}
+const spinning={player:false,gain:false,lose:[{flag:false},{flag:false}],support:[{flag:false},{flag:false}]}
 
 function updatePreview(type,delta,i=0){
   if(type==='player'){
@@ -59,8 +61,8 @@ function updatePreview(type,delta,i=0){
     setPreview('gain',ASSETS.gain[indices.gain])
   }
   if(type==='lose'){
-    indices.lose=(indices.lose+delta+ASSETS.lose.length)%ASSETS.lose.length
-    setPreview('lose',ASSETS.lose[indices.lose])
+    indices.lose[i]=(indices.lose[i]+delta+ASSETS.lose.length)%ASSETS.lose.length
+    setPreview('lose',ASSETS.lose[indices.lose[i]],i)
   }
   if(type==='support'){
     indices.support[i]=(indices.support[i]+delta+ASSETS.support.length)%ASSETS.support.length
@@ -82,40 +84,62 @@ function spinListDirect(list,setter,el,lock){
   }
   tick()
 }
+
 function setIndex(type,idx,i=0){
   if(type==='player'){indices.player=idx;setPreview('player',ASSETS.player[idx]);player.sp=makeSprite(ASSETS.player[idx],PLAYER_H);if(!running)renderIdle()}
   if(type==='gain'){indices.gain=idx;setPreview('gain',ASSETS.gain[idx])}
-  if(type==='lose'){indices.lose=idx;setPreview('lose',ASSETS.lose[idx])}
+  if(type==='lose'){indices.lose[i]=idx;setPreview('lose',ASSETS.lose[idx],i)}
   if(type==='support'){indices.support[i]=idx;setPreview('support',ASSETS.support[idx],i)}
 }
+
 function spin(type){
   if(type==='player')return spinListDirect(ASSETS.player,i=>setIndex('player',i),ui.previews.player,spinning.player={flag:spinning.player.flag||false})
   if(type==='gain')return spinListDirect(ASSETS.gain,i=>setIndex('gain',i),ui.previews.gain,spinning.gain={flag:spinning.gain.flag||false})
-  if(type==='lose')return spinListDirect(ASSETS.lose,i=>setIndex('lose',i),ui.previews.lose,spinning.lose={flag:spinning.lose.flag||false})
+  if(type.startsWith('lose')){
+    const k=Number(type.split('-')[1])
+    return spinListDirect(ASSETS.lose,i=>setIndex('lose',i,k),ui.previews.lose[k],spinning.lose[k])
+  }
   if(type.startsWith('support')){
     const k=Number(type.split('-')[1])
-    spinning.support[k]=spinning.support[k]||{flag:false}
     return spinListDirect(ASSETS.support,i=>setIndex('support',i,k),ui.previews.support[k],spinning.support[k])
   }
 }
 
 document.querySelectorAll('[data-prev]').forEach(btn=>{
-  btn.addEventListener('click',()=>{const t=btn.getAttribute('data-prev');if(t.includes('support'))updatePreview('support',-1,Number(t.split('-')[1]));else updatePreview(t,-1)})
+  btn.addEventListener('click',()=>{
+    const t=btn.getAttribute('data-prev')
+    if(t.startsWith('support')) updatePreview('support',-1,Number(t.split('-')[1]))
+    else if(t.startsWith('lose')) updatePreview('lose',-1,Number(t.split('-')[1]))
+    else updatePreview(t,-1)
+  })
 })
 document.querySelectorAll('[data-next]').forEach(btn=>{
-  btn.addEventListener('click',()=>{const t=btn.getAttribute('data-next');if(t.includes('support'))updatePreview('support',1,Number(t.split('-')[1]));else updatePreview(t,1)})
+  btn.addEventListener('click',()=>{
+    const t=btn.getAttribute('data-next')
+    if(t.startsWith('support')) updatePreview('support',1,Number(t.split('-')[1]))
+    else if(t.startsWith('lose')) updatePreview('lose',1,Number(t.split('-')[1]))
+    else updatePreview(t,1)
+  })
 })
 document.querySelectorAll('[data-spin]').forEach(btn=>{
   btn.addEventListener('click',()=>{spin(btn.getAttribute('data-spin'))})
 })
-document.getElementById('btn-spin-all').addEventListener('click',()=>{spin('player');setTimeout(()=>spin('gain'),100);setTimeout(()=>spin('lose'),200);setTimeout(()=>spin('support-0'),300);setTimeout(()=>spin('support-1'),400);setTimeout(()=>spin('support-2'),500)})
+
+document.getElementById('btn-spin-all').addEventListener('click',()=>{
+  spin('player')
+  setTimeout(()=>spin('gain'),100)
+  setTimeout(()=>spin('lose-0'),200)
+  setTimeout(()=>spin('lose-1'),300)
+  setTimeout(()=>spin('support-0'),400)
+  setTimeout(()=>spin('support-1'),500)
+})
 
 setPreview('player',ASSETS.player[0])
 setPreview('gain',ASSETS.gain[0])
-setPreview('lose',ASSETS.lose[0])
+setPreview('lose',ASSETS.lose[0],0)
+setPreview('lose',ASSETS.lose[1],1)
 setPreview('support',ASSETS.support[0],0)
 setPreview('support',ASSETS.support[1],1)
-setPreview('support',ASSETS.support[2],2)
 
 let running=false,score=0,best=0
 let player={x:50,y:H-10,w:40,h:40,vy:0,onGround:true,sp:makeSprite(ASSETS.player[indices.player],PLAYER_H)}
@@ -144,11 +168,11 @@ function scheduleNextSpawn(sec){
   nextSpawnSec=sec+min+Math.random()*extra
 }
 
-let activeSupports = []
+let activeSupports=[]
 function startGame(){
   resetState()
   activeSupports = indices.support.map(i=>ASSETS.support[i])
-  running = true
+  running=true
   loop()
 }
 
@@ -169,24 +193,25 @@ function loop(){
 
   ctx.drawImage(player.sp.img,player.x,player.y-player.sp.h,player.sp.w,player.sp.h)
 
-  if(sec>=nextSpawnSec){
-    const o={x:W,y:H-10,sp:makeSprite(ASSETS.lose[indices.lose],OBST_H)}
-    obstacles.push(o)
-    if(Math.random()<0.7){
-      const gsp=makeSprite(ASSETS.gain[indices.gain],Math.round(32*SCALE))
-      const mode=Math.random()<0.5?'above':'ground'
-      if(mode==='above'){
-        const gx=o.x+Math.max(80,Math.round(o.sp.w*0.5))
-        const gy=o.y-o.sp.h-24
-        gains.push({x:gx,y:gy,sp:gsp})
-      }else{
-        const gx=W+80+Math.random()*160
-        const gy=H-10
-        gains.push({x:gx,y:gy,sp:gsp})
-      }
-    }
-    scheduleNextSpawn(sec)
-  }
+	if(sec>=nextSpawnSec){
+	  const pick = Math.random()<0.5 ? indices.lose[0] : indices.lose[1]
+	  const o={x:W,y:H-10,sp:makeSprite(ASSETS.lose[pick],OBST_H)}
+	  obstacles.push(o)
+	  if(Math.random()<0.7){
+		const gsp=makeSprite(ASSETS.gain[indices.gain],Math.round(32*SCALE))
+		const mode=Math.random()<0.5?'above':'ground'
+		if(mode==='above'){
+		  const gx=o.x+Math.max(80,Math.round(o.sp.w*0.5))
+		  const gy=o.y-o.sp.h-24
+		  gains.push({x:gx,y:gy,sp:gsp})
+		}else{
+		  const gx=W+80+Math.random()*160
+		  const gy=H-10
+		  gains.push({x:gx,y:gy,sp:gsp})
+		}
+	  }
+	  scheduleNextSpawn(sec)
+	}
 
   obstacles.forEach(o=>{o.x-=speed;ctx.drawImage(o.sp.img,o.x,o.y-o.sp.h,o.sp.w,o.sp.h)})
   obstacles=obstacles.filter(o=>o.x+o.sp.w>0)

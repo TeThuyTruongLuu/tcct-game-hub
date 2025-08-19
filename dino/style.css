@@ -31,4 +31,5 @@ body{margin:0;font:15px/1.45 "Segoe UI",Inter,system-ui;background:var(--bg);col
 .btn.block{width:100%}
 .btn.mini{font-size:12px;padding:4px 6px}
 .spin{animation:spinBlur .2s linear infinite}
+.pair-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%}
 @keyframes spinBlur{from{filter:blur(0px)}50%{filter:blur(2px)}to{filter:blur(0px)}}
