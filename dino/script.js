@@ -144,9 +144,11 @@ function scheduleNextSpawn(sec){
   nextSpawnSec=sec+min+Math.random()*extra
 }
 
+let activeSupports = []
 function startGame(){
   resetState()
-  running=true
+  activeSupports = indices.support.map(i=>ASSETS.support[i])
+  running = true
   loop()
 }
 
@@ -168,16 +170,44 @@ function loop(){
   ctx.drawImage(player.sp.img,player.x,player.y-player.sp.h,player.sp.w,player.sp.h)
 
   if(sec>=nextSpawnSec){
-    obstacles.push({x:W,y:H-10,sp:makeSprite(ASSETS.lose[indices.lose],OBST_H)})
+    const o={x:W,y:H-10,sp:makeSprite(ASSETS.lose[indices.lose],OBST_H)}
+    obstacles.push(o)
+    if(Math.random()<0.7){
+      const gsp=makeSprite(ASSETS.gain[indices.gain],Math.round(32*SCALE))
+      const mode=Math.random()<0.5?'above':'ground'
+      if(mode==='above'){
+        const gx=o.x+Math.max(80,Math.round(o.sp.w*0.5))
+        const gy=o.y-o.sp.h-24
+        gains.push({x:gx,y:gy,sp:gsp})
+      }else{
+        const gx=W+80+Math.random()*160
+        const gy=H-10
+        gains.push({x:gx,y:gy,sp:gsp})
+      }
+    }
     scheduleNextSpawn(sec)
   }
 
   obstacles.forEach(o=>{o.x-=speed;ctx.drawImage(o.sp.img,o.x,o.y-o.sp.h,o.sp.w,o.sp.h)})
   obstacles=obstacles.filter(o=>o.x+o.sp.w>0)
 
+  gains.forEach(g=>{
+    g.x-=speed
+    ctx.drawImage(g.sp.img,g.x,g.y-g.sp.h,g.sp.w,g.sp.h)
+  })
+  for(let i=gains.length-1;i>=0;i--){
+    if(collideRect(player,gains[i])){
+      const mult=1
+      score+=5*mult
+      ui.score.textContent=score
+      gains.splice(i,1)
+    }
+  }
+  gains=gains.filter(g=>g.x+g.sp.w>0)
+
   if(!lofi && obstacles.some(o=>collideRect(player,o))){gameOver();return}
 
-  if(!lofi){score=Math.floor(sec);ui.score.textContent=score}else{ui.score.textContent='—'}
+  if(!lofi){ui.score.textContent=score=Math.max(score,Math.floor(sec)+score%1)}else{ui.score.textContent='—'}
 
   requestAnimationFrame(loop)
 }
