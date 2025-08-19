@@ -1,0 +1,34 @@
+:root{
+  --bg:#fdfdfd;--ink:#40455a;--muted:#7d8799;--card:#fff;--border:#e7edf6;
+  --shadow:0 6px 14px rgba(25,39,75,.06);
+  --pink:#ffd1dc;--blue:#cfe8ff;--btn:#ffd6a5;--btn-2:#a2d2ff;
+}
+
+body{margin:0;font:15px/1.45 "Segoe UI",Inter,system-ui;background:var(--bg);color:var(--ink)}
+.wrap{max-width:1000px;margin:22px auto;padding:0 16px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.brand{font-weight:800;color:#6a5acd}
+.hud{display:flex;gap:10px}
+.badge{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#ffe7f1;color:#c44c77;box-shadow:var(--shadow);font-size:12px}
+.badge.hidden{display:none}
+.score{background:#eef2ff;border:1px solid var(--border);padding:6px 10px;border-radius:10px;color:#1e293b;box-shadow:var(--shadow)}
+.stage{position:relative;border:2px solid var(--pink);border-radius:14px;overflow:hidden;background:#fff}
+#game{display:block;width:100%;height:auto;background:#fff}
+.hint{position:absolute;inset:auto 0 20vw 0;text-align:center;color:#888}
+.selector{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:16px 0}
+.slot{background:var(--card);border:2px solid var(--blue);border-radius:14px;padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;align-items:center}
+.slot-head{font-weight:600}
+.slot-controls{display:flex;flex-direction:column;align-items:center;gap:6px}
+.slot-controls.small{gap:4px}
+.reel-window{width:92px;height:92px;border:2px solid #e5eaf3;border-radius:12px;background:#fafafa;display:grid;place-items:center}
+.preview{width:80px;height:80px;object-fit:contain}
+.preview.small{width:60px;height:60px}
+.support-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.controls{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+.btn{padding:6px 10px;border-radius:8px;border:1px solid var(--border);cursor:pointer;background:var(--btn);color:#333;box-shadow:var(--shadow)}
+.btn.primary{background:var(--btn-2);color:#fff}
+.btn.ghost{background:#fff}
+.btn.block{width:100%}
+.btn.mini{font-size:12px;padding:4px 6px}
+.spin{animation:spinBlur .2s linear infinite}
+@keyframes spinBlur{from{filter:blur(0px)}50%{filter:blur(2px)}to{filter:blur(0px)}}

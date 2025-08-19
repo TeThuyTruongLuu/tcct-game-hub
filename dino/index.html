@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Custom Runner – Slot Selector</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">🐾 Dino ver Toàn chức</div>
+      <div class="hud">
+        <span id="badge-lofi" class="badge hidden">LOFI</span>
+        <span id="badge-bg" class="badge">Sáng</span>
+        <span class="score">Điểm: <b id="score">0</b></span>
+        <span class="score">Kỷ lục: <b id="best">0</b></span>
+      </div>
+    </header>
+
+    <main>
+      <div class="stage">
+        <canvas id="game" width="900" height="260"></canvas>
+        <div id="hint" class="hint">Nhấn <b>Space</b> để bắt đầu • Nhấn <b>L</b> x3 để bật LOFI</div>
+      </div>
+
+      <section class="selector">
+        <div class="slot">
+          <div class="slot-head"><span>Người chơi</span></div>
+          <div class="slot-controls">
+            <button class="btn mini" data-prev="player">▲</button>
+            <div class="reel-window"><img id="preview-player" class="preview" /></div>
+            <button class="btn mini" data-next="player">▼</button>
+          </div>
+          <button class="btn mini block" data-spin="player">Random</button>
+        </div>
+
+        <div class="slot">
+          <div class="slot-head"><span>Vật phẩm</span></div>
+          <div class="slot-controls">
+            <button class="btn mini" data-prev="gain">▲</button>
+            <div class="reel-window"><img id="preview-gain" class="preview" /></div>
+            <button class="btn mini" data-next="gain">▼</button>
+          </div>
+          <button class="btn mini block" data-spin="gain">Random</button>
+        </div>
+
+        <div class="slot">
+          <div class="slot-head"><span>Chướng ngại</span></div>
+          <div class="slot-controls">
+            <button class="btn mini" data-prev="lose">▲</button>
+            <div class="reel-window"><img id="preview-lose" class="preview" /></div>
+            <button class="btn mini" data-next="lose">▼</button>
+          </div>
+          <button class="btn mini block" data-spin="lose">Random</button>
+        </div>
+
+        <div class="slot">
+          <div class="slot-head"><span>Hỗ trợ x3</span></div>
+          <div class="support-grid">
+            <div class="slot-controls small">
+              <button class="btn mini" data-prev="support-0">▲</button>
+              <div class="reel-window"><img id="preview-support-0" class="preview small" /></div>
+              <button class="btn mini" data-next="support-0">▼</button>
+              <button class="btn mini block" data-spin="support-0">Random</button>
+            </div>
+            <div class="slot-controls small">
+              <button class="btn mini" data-prev="support-1">▲</button>
+              <div class="reel-window"><img id="preview-support-1" class="preview small" /></div>
+              <button class="btn mini" data-next="support-1">▼</button>
+              <button class="btn mini block" data-spin="support-1">Random</button>
+            </div>
+            <div class="slot-controls small">
+              <button class="btn mini" data-prev="support-2">▲</button>
+              <div class="reel-window"><img id="preview-support-2" class="preview small" /></div>
+              <button class="btn mini" data-next="support-2">▼</button>
+              <button class="btn mini block" data-spin="support-2">Random</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="controls">
+        <button id="btn-start" class="btn primary">Bắt đầu (Space)</button>
+        <button id="btn-reset" class="btn">Reset</button>
+        <button id="btn-spin-all" class="btn ghost">Random tất</button>
+      </footer>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
