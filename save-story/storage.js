@@ -471,7 +471,9 @@ export async function loadAllTags() {
         if (story.userTags && typeof story.userTags === "object") {
 			Object.values(story.userTags).forEach(userTagList => {
 				if (!Array.isArray(userTagList)) userTagList = [userTagList];
-				userTagList.forEach(tag => allTagsSet.add(tag));
+				userTagList.forEach(tag => {
+					if (tag) allTagsSet.add(String(tag).trim());
+				});
 			});
         }
     });

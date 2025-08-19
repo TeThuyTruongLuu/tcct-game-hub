@@ -284,4 +284,31 @@ th {
     .flex-row { flex-direction: column; }
     .flex-row label { width: 100%; }
     .button-container { flex-direction: column; align-items: center; }
+	.pagination {
+		display: flex;
+		flex-wrap: nowrap;
+		justify-content: flex-start;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		gap: 6px;
+		padding: 6px 0;
+		width: 100%;
+		scrollbar-width: none;
+		scroll-snap-type: x mandatory;
+	}
+	.pagination::-webkit-scrollbar { display: none; }
+	.pagination button {
+		flex: 0 0 auto;
+		width: 20px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 4px 6px;
+		font-size: 12px;
+		line-height: 1;
+		box-sizing: border-box;
+	}
+	.pagination button.active {
+		font-weight: 700;
+	}
 }
