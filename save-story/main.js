@@ -129,33 +129,78 @@ function renderPagination(total, currentPage, perPage) {
   }
 }
 
-
-export async function suggestTags(event) {
-    let input = event.target;
-    let inputValue = input.value.trim().toLowerCase();
-    let suggestionsBox = document.getElementById("tagSuggestions");
-    if (!inputValue) {
-        suggestionsBox.style.display = "none";
-        return;
-    }
-    let filteredTags = window.allTags.filter(tag => {
-        let words = tag.toLowerCase().split(" ");
-        return words.some(word => word.startsWith(inputValue));
-    });
-    if (filteredTags.length === 0) {
-        suggestionsBox.style.display = "none";
-        return;
-    }
-    suggestionsBox.innerHTML = "";
-    filteredTags.forEach(tag => {
-        let suggestion = document.createElement("div");
-        suggestion.textContent = tag;
-        suggestion.classList.add("suggestion-item");
-        suggestion.onclick = () => selectTag(tag);
-        suggestionsBox.appendChild(suggestion);
-    });
-    suggestionsBox.style.display = "block";
+function getSuggestBox(input){
+  let box = input.parentElement.querySelector('.suggestions-box');
+  if(!box){
+    box = document.createElement('div');
+    box.className = 'suggestions-box';
+    input.parentElement.appendChild(box);
+  }
+  return box;
 }
+
+function getLastToken(input){
+  const v = input.value;
+  const i = v.lastIndexOf(',');
+  return (i>=0 ? v.slice(i+1) : v).trim();
+}
+
+function replaceLastTokenWithTag(input, tag){
+  const v = input.value;
+  const i = v.lastIndexOf(',');
+  let prefix = i >= 0 ? v.slice(0, i).trim() : '';
+  let tokens = prefix ? prefix.split(',').map(t => t.trim()).filter(Boolean) : [];
+  const low = tag.toLowerCase();
+  tokens = tokens.filter(t => t.toLowerCase() !== low);
+  tokens.push(tag);
+  input.value = tokens.join(', ') + ', ';
+  input.focus();
+}
+
+function suggestTagsGeneric(input){
+  const box = getSuggestBox(input);
+  const fragRaw = getLastToken(input);
+  if(!fragRaw){ box.style.display='none'; return; }
+
+  const fragWords = removeVietnameseTones(fragRaw).toLowerCase().split(/\s+/).filter(Boolean);
+
+  const list = (window.allTags || []).filter(tag => {
+    const words = removeVietnameseTones(String(tag)).toLowerCase().split(/\s+/).filter(Boolean);
+    if (!fragWords.length) return false;
+    if (fragWords.length === 1) {
+      return words.some(w => w.startsWith(fragWords[0]));
+    }
+    for (let i = 0; i < fragWords.length; i++) {
+      if (!words[i] || !words[i].startsWith(fragWords[i])) return false;
+    }
+    return true;
+  }).slice(0,20);
+
+  if(!list.length){ box.style.display='none'; return; }
+
+  box.innerHTML = '';
+  list.forEach(tag=>{
+    const item = document.createElement('div');
+    item.textContent = tag;
+    item.onclick = ()=>{ replaceLastTokenWithTag(input, tag); box.style.display='none'; };
+    box.appendChild(item);
+  });
+  box.style.display='block';
+}
+
+['additionalTags','desiredTags','excludedTags'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el){
+    el.addEventListener('input', e=>suggestTagsGeneric(e.target));
+    el.setAttribute('autocomplete','off');
+  }
+});
+
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.suggestions-box') && !e.target.closest('#additionalTags, #desiredTags, #excludedTags')){
+    document.querySelectorAll('.suggestions-box').forEach(b=>b.style.display='none');
+  }
+});
 
 export async function selectTag(tag) {
     let inputField = document.getElementById("additionalTags");
@@ -274,8 +319,6 @@ document.getElementById("additionalTags").addEventListener("input", async functi
     }
 });
 
-document.getElementById("additionalTags").addEventListener("input", suggestTags);
-
 document.getElementById("resetFilter").addEventListener("click", async () => {
     await storage.loadStories();
 });
@@ -300,6 +343,5 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 window.toggleSection = toggleSection;
 window.renderStories = renderStories;
-window.suggestTags = suggestTags;
 window.filterStories = filterStories;
 window.randomStory = randomStory;
