@@ -5,6 +5,7 @@ ctx.imageSmoothingEnabled=true
 const SCALE=1.5
 const PLAYER_H=Math.round(48*SCALE)
 const OBST_H=Math.round(46*SCALE)
+const RUN_FRAMES=3
 
 const ui={
   score:document.getElementById('score'),
@@ -39,6 +40,12 @@ function makeSprite(path,targetH){
   return sp
 }
 
+function buildPlayerFrames(path){
+  const base=path.replace('.png','')
+  const paths=[base+'.png',base+'_2.png',base+'_3.png']
+  return paths.map(p=>makeSprite(p,PLAYER_H))
+}
+
 function loadImage(path){const img=new Image();img.src='assets/'+path;return img}
 function setPreview(type,path,i=0){
   const img=loadImage(path)
@@ -54,7 +61,8 @@ function updatePreview(type,delta,i=0){
   if(type==='player'){
     indices.player=(indices.player+delta+ASSETS.player.length)%ASSETS.player.length
     setPreview('player',ASSETS.player[indices.player])
-    player.sp=makeSprite(ASSETS.player[indices.player],PLAYER_H)
+    player.frames=buildPlayerFrames(ASSETS.player[indices.player])
+    player.sp=player.frames[0]
   }
   if(type==='gain'){
     indices.gain=(indices.gain+delta+ASSETS.gain.length)%ASSETS.gain.length
@@ -86,7 +94,13 @@ function spinListDirect(list,setter,el,lock){
 }
 
 function setIndex(type,idx,i=0){
-  if(type==='player'){indices.player=idx;setPreview('player',ASSETS.player[idx]);player.sp=makeSprite(ASSETS.player[idx],PLAYER_H);if(!running)renderIdle()}
+  if(type==='player'){
+    indices.player=idx
+    setPreview('player',ASSETS.player[idx])
+    player.frames=buildPlayerFrames(ASSETS.player[idx])
+    player.sp=player.frames[0]
+    if(!running)renderIdle()
+  }
   if(type==='gain'){indices.gain=idx;setPreview('gain',ASSETS.gain[idx])}
   if(type==='lose'){indices.lose[i]=idx;setPreview('lose',ASSETS.lose[idx],i)}
   if(type==='support'){indices.support[i]=idx;setPreview('support',ASSETS.support[idx],i)}
@@ -142,7 +156,8 @@ setPreview('support',ASSETS.support[0],0)
 setPreview('support',ASSETS.support[1],1)
 
 let running=false,score=0,best=0
-let player={x:50,y:H-10,w:40,h:40,vy:0,onGround:true,sp:makeSprite(ASSETS.player[indices.player],PLAYER_H)}
+let playerFrames=buildPlayerFrames(ASSETS.player[indices.player])
+let player={x:50,y:H-10,w:40,h:40,vy:0,onGround:true,sp:playerFrames[0],frames:playerFrames,frameIdx:0,frameT:0,frameDt:0.08}
 let obstacles=[],gains=[]
 const gravity=0.7, jump=-16
 let startTime=0
@@ -191,27 +206,42 @@ function loop(){
   player.y+=player.vy
   if(player.y>H-10){player.y=H-10;player.vy=0;player.onGround=true}
 
-  ctx.drawImage(player.sp.img,player.x,player.y-player.sp.h,player.sp.w,player.sp.h)
+  const dsp=player.frames[Math.min(player.frameIdx,player.frames.length-1)]||player.sp
+  ctx.drawImage(dsp.img,player.x,player.y-dsp.h,dsp.w,dsp.h)
 
-	if(sec>=nextSpawnSec){
-	  const pick = Math.random()<0.5 ? indices.lose[0] : indices.lose[1]
-	  const o={x:W,y:H-10,sp:makeSprite(ASSETS.lose[pick],OBST_H)}
-	  obstacles.push(o)
-	  if(Math.random()<0.7){
-		const gsp=makeSprite(ASSETS.gain[indices.gain],Math.round(32*SCALE))
-		const mode=Math.random()<0.5?'above':'ground'
-		if(mode==='above'){
-		  const gx=o.x+Math.max(80,Math.round(o.sp.w*0.5))
-		  const gy=o.y-o.sp.h-24
-		  gains.push({x:gx,y:gy,sp:gsp})
-		}else{
-		  const gx=W+80+Math.random()*160
-		  const gy=H-10
-		  gains.push({x:gx,y:gy,sp:gsp})
-		}
-	  }
-	  scheduleNextSpawn(sec)
-	}
+  if(speed>0){
+    if(player.onGround){
+      player.frameT+=dt
+      if(player.frameT>=player.frameDt){
+        player.frameT=0
+        player.frameIdx=(player.frameIdx+1)%RUN_FRAMES
+      }
+    }else{
+      player.frameIdx=1
+    }
+  }else{
+    player.frameIdx=0
+  }
+
+  if(sec>=nextSpawnSec){
+    const pick = Math.random()<0.5 ? indices.lose[0] : indices.lose[1]
+    const o={x:W,y:H-10,sp:makeSprite(ASSETS.lose[pick],OBST_H)}
+    obstacles.push(o)
+    if(Math.random()<0.7){
+      const gsp=makeSprite(ASSETS.gain[indices.gain],Math.round(32*SCALE))
+      const mode=Math.random()<0.5?'above':'ground'
+      if(mode==='above'){
+        const gx=o.x+Math.max(80,Math.round(o.sp.w*0.5))
+        const gy=o.y-o.sp.h-24
+        gains.push({x:gx,y:gy,sp:gsp})
+      }else{
+        const gx=W+80+Math.random()*160
+        const gy=H-10
+        gains.push({x:gx,y:gy,sp:gsp})
+      }
+    }
+    scheduleNextSpawn(sec)
+  }
 
   obstacles.forEach(o=>{o.x-=speed;ctx.drawImage(o.sp.img,o.x,o.y-o.sp.h,o.sp.w,o.sp.h)})
   obstacles=obstacles.filter(o=>o.x+o.sp.w>0)
@@ -279,7 +309,7 @@ function drawBackground(sec,speed,dt){
 function renderIdle(){
   ctx.clearRect(0,0,W,H)
   drawBackground(0,0,0)
-  ctx.drawImage(player.sp.img,player.x,(H-10)-player.sp.h,player.sp.w,player.sp.h)
+  ctx.drawImage(player.frames[0].img,player.x,(H-10)-player.frames[0].h,player.frames[0].w,player.frames[0].h)
 }
 
 function resetState(){
@@ -287,7 +317,7 @@ function resetState(){
   ui.score.textContent=0
   obstacles=[]
   gains=[]
-  player.y=H-10;player.vy=0;player.onGround=true
+  player.y=H-10;player.vy=0;player.onGround=true;player.frameIdx=0;player.frameT=0
   spawnTimer=0
   nextSpawnSec=0
   groundOff=0;bgOff=0;cloudOff=0
