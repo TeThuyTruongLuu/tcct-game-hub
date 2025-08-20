@@ -157,7 +157,7 @@ setPreview('support',ASSETS.support[1],1)
 
 let running=false,score=0,best=0
 let playerFrames=buildPlayerFrames(ASSETS.player[indices.player])
-let player={x:50,y:H-10,w:40,h:40,vy:0,onGround:true,sp:playerFrames[0],frames:playerFrames,frameIdx:0,frameT:0,frameDt:0.08}
+let player={x:50,y:H-10,w:40,h:40,vy:0,onGround:true,sp:playerFrames[0],frames:playerFrames,frameIdx:0,frameT:0,frameDt:0.1}
 let obstacles=[],gains=[]
 const gravity=0.7, jump=-16
 let startTime=0
