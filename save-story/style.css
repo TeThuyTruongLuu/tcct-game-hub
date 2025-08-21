@@ -216,7 +216,7 @@ button:hover {
 #storyTable td:nth-child(8) { width: 40px; text-align: center; }
 
 .table-container table th:nth-child(9),
-#storyTable td:nth-child(9) { width: 40px; text-align: center; }
+#storyTable td:nth-child(9) { width: 50px; text-align: center; }
 
 .table-container table th:nth-child(10),
 #storyTable td:nth-child(10) { width: 40px; text-align: center; }
