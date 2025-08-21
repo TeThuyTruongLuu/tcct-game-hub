@@ -260,7 +260,7 @@ export async function filterStories() {
 
         if (include) stories.push(story);
     });
-
+	window.currentStories = stories;
     renderStories(stories, "storyTable");
 }
 
