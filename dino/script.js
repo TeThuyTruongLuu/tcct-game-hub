@@ -25,9 +25,9 @@ const ui={
 }
 
 const ASSETS={
-  player:['player/1.png','player/2.png','player/3.png','player/4.png','player/5.png','player/6.png','player/7.png'],
+  player:['player/1.png','player/2.png','player/3.png','player/4.png'],
   gain:['gain/1.png','gain/2.png','gain/3.png','gain/4.png','gain/5.png','gain/6.png','gain/7.png'],
-  lose:['lose/1.png','lose/2.png','lose/3.png','lose/4.png','lose/5.png','lose/6.png','lose/7.png'],
+  lose:['lose/1.png','lose/4.png','lose/5.png','lose/6.png','lose/7.png'],
   support:['support/1.png','support/2.png','support/3.png']
 }
 
