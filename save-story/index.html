@@ -146,7 +146,17 @@
         </div>
 
         <div id="saved-stories" class="table-section">
-            <h3>Danh sách truyện đã lưu</h3>
+
+		<div class="header-row">
+		  <h3>Danh sách truyện đã lưu</h3>
+		  <div class="sort-box">
+			<label for="sortSelect">Sắp xếp:</label>
+			<select id="sortSelect">
+			  <option value="updatedDesc">Mới → cũ</option>
+			  <option value="titleAsc">A → Z</option>
+			</select>
+		  </div>
+		</div>
             <div class="table-container">
                 <table>
                     <thead>

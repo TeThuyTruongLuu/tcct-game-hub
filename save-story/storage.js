@@ -1,7 +1,7 @@
 import { db } from './firebase.js';
 import * as storage from './main.js';
 import { displayStoryDetails } from './main.js';
-import { collection, getDocs, query, where, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { collection, getDocs, query, where, doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 const storiesCollection = collection(db, "stories");
 
@@ -125,7 +125,7 @@ export async function fetchStory() {
 			title: document.getElementById("manualTitle").value.trim(),
 			cnTitle: document.getElementById("cnTitle").value.trim(),
 			originalLink: document.getElementById("originalLink").value.trim(),
-			defaultTag: existingStory.defaultTag, // giữ nguyên, KHÔNG đụng
+			defaultTag: existingStory.defaultTag,
 			userTags: updatedUserTags,
 			author: document.getElementById("manualAuthor").value.trim(),
 			editor: mergedEditors,
@@ -314,7 +314,8 @@ export async function saveStoryToFirestore(story) {
             userTags: {
                 ...(existingData.userTags || {}),
                 ...(story.userTags || {})
-            }
+            },
+			updatedAt: serverTimestamp()
         };
         await setDoc(storyRef, updatedStory, { merge: true });
     } catch (error) {
@@ -371,33 +372,38 @@ export async function fetchStoryFromFirestore(url) {
 }
 
 export async function loadStories() {
-    await waitForIndexedDB();
-    let indexedDBStories = await loadStoriesFromIndexedDB("stories");
-    let storyMap = {};
-    indexedDBStories.forEach(story => {
-        storyMap[story.url] = story;
+  await waitForIndexedDB();
+  let indexedDBStories = await loadStoriesFromIndexedDB("stories");
+  let storyMap = {};
+  indexedDBStories.forEach(story => { storyMap[story.url] = story; });
+
+  try {
+    let firestoreStories = await getDocs(storiesCollection);
+    let stories = [];
+    firestoreStories.forEach((docSnap) => {
+      let story = docSnap.data();
+      story.id = docSnap.id;
+      if (storyMap[story.url]) {
+        story.userTags = {
+          ...(storyMap[story.url].userTags || {}),
+          ...(story.userTags || {})
+        };
+      }
+      stories.push(story);
+      saveStoryToIndexedDB(story);
     });
-    try {
-        let firestoreStories = await getDocs(storiesCollection);
-        let stories = [];
-        firestoreStories.forEach((docSnap) => {
-            let story = docSnap.data();
-            story.id = docSnap.id;
-            if (storyMap[story.url]) {
-                story.userTags = {
-                    ...(storyMap[story.url].userTags || {}),
-                    ...(story.userTags || {})
-                };
-            }
-            stories.push(story);
-            saveStoryToIndexedDB(story);
-        });
-        renderStories(stories, "storyTable");
-        window.currentStories = stories;
-    } catch (error) {
-        console.error("Lỗi khi tải truyện từ Firestore:", error);
-        renderStories(indexedDBStories, "storyTable");
-    }
+
+    const list = window.applySort ? window.applySort(stories) : stories;
+    window.currentStories = list;
+    renderStories(list, "storyTable");
+
+  } catch (error) {
+    console.error("Lỗi khi tải truyện từ Firestore:", error);
+
+    const list = window.applySort ? window.applySort(indexedDBStories) : indexedDBStories;
+    window.currentStories = list;
+    renderStories(list, "storyTable");
+  }
 }
 
 export async function loadStoriesFromIndexedDB(storeName) {

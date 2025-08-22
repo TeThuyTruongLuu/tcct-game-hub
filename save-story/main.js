@@ -48,6 +48,28 @@ export async function populateSelectOptions() {
     });
 }
 
+window.sortMode = localStorage.getItem("sortMode") || "updatedDesc";
+
+function tsMs(x){
+  if(!x) return 0;
+  if(typeof x === "number") return x;
+  if(x.seconds !== undefined) return x.seconds*1000 + Math.floor((x.nanoseconds||0)/1e6);
+  const d = new Date(x);
+  return isNaN(d) ? 0 : d.getTime();
+}
+
+export function applySort(stories){
+  const mode = window.sortMode || "updatedDesc";
+  const arr = [...stories];
+  if(mode === "updatedDesc"){
+    arr.sort((a,b)=> tsMs(b.updatedAt) - tsMs(a.updatedAt));
+  }else if(mode === "titleAsc"){
+    arr.sort((a,b)=> String(a.title||"").localeCompare(String(b.title||""), "vi", {sensitivity:"base"}));
+  }
+  return arr;
+}
+
+
 export async function sortTable(columnIndex) {
     let table = document.getElementById("storyTable");
     let rows = Array.from(table.rows);
@@ -122,9 +144,10 @@ function renderPagination(total, currentPage, perPage) {
     const btn = document.createElement("button");
     btn.textContent = i;
     if (i === currentPage) btn.classList.add("active");
-    btn.onclick = () => {
-      renderStories(window.currentStories, "storyTable", i);
-    };
+	btn.onclick = () => {
+	  const list = window.applySort ? window.applySort(window.currentStories || []) : (window.currentStories || []);
+	  renderStories(list, "storyTable", i);
+	};
     pagination.appendChild(btn);
   }
 }
@@ -260,8 +283,9 @@ export async function filterStories() {
 
         if (include) stories.push(story);
     });
-	window.currentStories = stories;
-    renderStories(stories, "storyTable");
+	const sorted = applySort(stories);
+	window.currentStories = sorted;
+	renderStories(sorted, "storyTable");
 }
 
 export function randomStory(){
@@ -325,18 +349,29 @@ document.addEventListener("click", function(event) {
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
-    await storage.loadStories();
-    await storage.loadAllTags();
-    await populateSelectOptions();
-    document.getElementById("saveStory").addEventListener("click", async () => {
-        await fetchStory();
+  await storage.loadStories();
+  await storage.loadAllTags();
+  await populateSelectOptions();
+  const sortSelect = document.getElementById("sortSelect");
+  if(sortSelect){
+    sortSelect.value = window.sortMode || "updatedDesc";
+    sortSelect.addEventListener("change", ()=>{
+      window.sortMode = sortSelect.value;
+      localStorage.setItem("sortMode", window.sortMode);
+      const sorted = applySort(window.currentStories || []);
+      renderStories(sorted, "storyTable", 1);
     });
-    document.getElementById("batchFetch").addEventListener("click", async () => {
-        await storage.batchFetchStories();
-    });
+  }
+  document.getElementById("saveStory").addEventListener("click", async () => {
+    await fetchStory();
+  });
+  document.getElementById("batchFetch").addEventListener("click", async () => {
+    await storage.batchFetchStories();
+  });
 });
 
 window.toggleSection = toggleSection;
 window.renderStories = renderStories;
 window.filterStories = filterStories;
 window.randomStory = randomStory;
+window.applySort = applySort;

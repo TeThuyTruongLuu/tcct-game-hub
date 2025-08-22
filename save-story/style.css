@@ -277,6 +277,39 @@ th {
   box-sizing: border-box;
 }
 
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 15px;
+  margin-left: 1vw;
+}
+
+.sort-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.sort-box label,
+.sort-box select {
+  display: flex;
+  align-items: center;
+  height: 32px;
+}
+
+.sort-box label {
+  font-weight: 600;
+}
+
+.sort-box select {
+  padding: 0 10px;
+  border-radius: 1vh;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
 @media (max-width: 800px) {
     .table-container { overflow-x: auto; }
 }
