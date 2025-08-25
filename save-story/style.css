@@ -265,6 +265,13 @@ th {
     background-color: #5a4ae0;
     color: white;
 }
+.pagination button.ellipsis{
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: default;
+  padding: 8px 10px;
+}
 .hidden { display: none; }
 
 #chapterTable {

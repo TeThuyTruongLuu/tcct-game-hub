@@ -140,17 +140,70 @@ function renderPagination(total, currentPage, perPage) {
   const pagination = document.getElementById("pagination");
   pagination.innerHTML = "";
   const totalPages = Math.ceil(total / perPage);
-  for (let i = 1; i <= totalPages; i++) {
+  if (totalPages <= 1) return;
+
+  const isMobile = window.matchMedia("(max-width: 600px)").matches;
+
+  const addBtn = (label, page, {active=false, disabled=false, ellipsis=false, aria}={}) => {
     const btn = document.createElement("button");
-    btn.textContent = i;
-    if (i === currentPage) btn.classList.add("active");
-	btn.onclick = () => {
-	  const list = window.applySort ? window.applySort(window.currentStories || []) : (window.currentStories || []);
-	  renderStories(list, "storyTable", i);
-	};
+    btn.textContent = label;
+    if (aria) btn.setAttribute("aria-label", aria);
+    if (active) btn.classList.add("active");
+    if (ellipsis) btn.classList.add("ellipsis");
+    if (disabled || ellipsis) btn.disabled = true;
+    if (!disabled && !ellipsis && page) {
+      btn.onclick = () => {
+        const list = window.applySort ? window.applySort(window.currentStories || []) : (window.currentStories || []);
+        renderStories(list, "storyTable", page);
+      };
+    }
     pagination.appendChild(btn);
+  };
+
+  const showRange = (from, to) => {
+    for (let i = from; i <= to; i++) {
+      addBtn(String(i), i, {active: i === currentPage});
+    }
+  };
+
+  addBtn(isMobile ? "‹" : "‹ Trước", Math.max(1, currentPage - 1), {
+    disabled: currentPage === 1,
+    aria: "Trang trước"
+  });
+
+  if (currentPage <= 3) {
+    showRange(1, Math.min(5, totalPages));
+    if (totalPages > 5) {
+      addBtn("…", null, {ellipsis: true});
+      addBtn(String(totalPages), totalPages);
+    }
+  } else if (currentPage >= totalPages - 2) {
+    addBtn("1", 1);
+    if (totalPages > 5) addBtn("…", null, {ellipsis: true});
+    const start = Math.max(1, totalPages - 4);
+    showRange(start, totalPages);
+  } else {
+    addBtn("1", 1);
+    addBtn("…", null, {ellipsis: true});
+    const start = Math.max(1, currentPage - 1);
+    const end = Math.min(totalPages, currentPage + 1);
+    showRange(start, end);
+    addBtn("…", null, {ellipsis: true});
+    addBtn(String(totalPages), totalPages);
+  }
+
+  addBtn(isMobile ? "›" : "Sau ›", Math.min(totalPages, currentPage + 1), {
+    disabled: currentPage === totalPages,
+    aria: "Trang sau"
+  });
+
+  const activeBtn = pagination.querySelector("button.active");
+  if (isMobile && activeBtn && pagination.scrollWidth > pagination.clientWidth) {
+    const left = activeBtn.offsetLeft - (pagination.clientWidth / 2 - activeBtn.clientWidth / 2);
+    pagination.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
   }
 }
+
 
 function getSuggestBox(input){
   let box = input.parentElement.querySelector('.suggestions-box');
