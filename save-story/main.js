@@ -136,6 +136,79 @@ export async function renderStories(stories, tableId, page = 1) {
     renderPagination(stories.length, page, perPage);
 }
 
+let __jumpEl;
+let __jumpCloser;
+
+function showJumpPopover(anchor, totalPages){
+  if(__jumpEl){ __jumpEl.remove(); __jumpEl = null; }
+  if(__jumpCloser){
+    document.removeEventListener("click", __jumpCloser);
+    __jumpCloser = null;
+  }
+
+  __jumpEl = document.createElement("div");
+  __jumpEl.className = "jump-popover";
+
+  const rect = anchor.getBoundingClientRect();
+  __jumpEl.style.left = Math.max(8, Math.min(window.innerWidth-240, rect.left + rect.width/2 - 120)) + "px";
+  __jumpEl.style.top  = Math.max(8, rect.top - 80) + "px";
+
+  const title = document.createElement("div");
+  title.className = "jump-title";
+  title.textContent = "Nhảy đến trang";
+
+  const box = document.createElement("div");
+  box.className = "jump-box";
+
+  const minus = document.createElement("button");
+  minus.textContent = "–";
+
+  const input = document.createElement("input");
+  input.type = "number";
+  input.min = 1;
+  input.max = totalPages;
+  input.placeholder = `1–${totalPages}`;
+  input.value = "";
+
+  const plus = document.createElement("button");
+  plus.textContent = "+";
+
+  const go = document.createElement("button");
+  go.textContent = "Go";
+
+  box.append(minus, input, plus, go);
+  __jumpEl.append(title, box);
+  document.body.appendChild(__jumpEl);
+
+  const clamp = v => Math.max(1, Math.min(totalPages, v||1));
+  minus.onclick = (e)=>{ e.stopPropagation(); input.value = clamp((parseInt(input.value)||1)-1); input.focus(); };
+  plus.onclick  = (e)=>{ e.stopPropagation(); input.value = clamp((parseInt(input.value)||0)+1); input.focus(); };
+
+  const doGo = (e)=>{
+    if(e) e.stopPropagation();
+    const p = clamp(parseInt(input.value));
+    const list = window.applySort ? window.applySort(window.currentStories || []) : (window.currentStories || []);
+    renderStories(list, "storyTable", p);
+    if(__jumpEl){ __jumpEl.remove(); __jumpEl=null; }
+    if(__jumpCloser){ document.removeEventListener("click", __jumpCloser); __jumpCloser=null; }
+  };
+  go.onclick = doGo;
+  input.addEventListener("keydown", e=>{ if(e.key==="Enter") doGo(e); });
+
+  __jumpEl.addEventListener("click", e=> e.stopPropagation());
+  setTimeout(()=> input.focus(),0);
+
+  __jumpCloser = (e)=>{
+    if(!__jumpEl) return;
+    if(!e.target.closest(".jump-popover")){
+      __jumpEl.remove(); __jumpEl=null;
+      document.removeEventListener("click", __jumpCloser);
+      __jumpCloser=null;
+    }
+  };
+  setTimeout(()=> document.addEventListener("click", __jumpCloser), 0);
+}
+
 function renderPagination(total, currentPage, perPage) {
   const pagination = document.getElementById("pagination");
   pagination.innerHTML = "";
@@ -144,39 +217,36 @@ function renderPagination(total, currentPage, perPage) {
 
   const isMobile = window.matchMedia("(max-width: 600px)").matches;
 
-  const addBtn = (label, page, {active=false, disabled=false, ellipsis=false, aria}={}) => {
-    const btn = document.createElement("button");
-    btn.textContent = label;
-    if (aria) btn.setAttribute("aria-label", aria);
-    if (active) btn.classList.add("active");
-    if (ellipsis) btn.classList.add("ellipsis");
-    if (disabled || ellipsis) btn.disabled = true;
-    if (!disabled && !ellipsis && page) {
-      btn.onclick = () => {
-        const list = window.applySort ? window.applySort(window.currentStories || []) : (window.currentStories || []);
-        renderStories(list, "storyTable", page);
-      };
-    }
-    pagination.appendChild(btn);
-  };
+	const addBtn = (label, page, {active=false, disabled=false, ellipsis=false, aria}={}) => {
+	  const btn = document.createElement("button");
+	  btn.textContent = label;
+	  if (aria) btn.setAttribute("aria-label", aria);
+	  if (active) btn.classList.add("active");
+	  if (ellipsis) btn.classList.add("ellipsis");
+
+	  if (ellipsis) {
+		btn.addEventListener("click", (e)=>{ e.stopPropagation(); showJumpPopover(btn, totalPages); });
+	  } else {
+		if (disabled) btn.disabled = true;
+		if (!disabled && page) {
+		  btn.onclick = () => {
+			const list = window.applySort ? window.applySort(window.currentStories || []) : (window.currentStories || []);
+			renderStories(list, "storyTable", page);
+		  };
+		}
+	  }
+	  pagination.appendChild(btn);
+	};
 
   const showRange = (from, to) => {
-    for (let i = from; i <= to; i++) {
-      addBtn(String(i), i, {active: i === currentPage});
-    }
+    for (let i = from; i <= to; i++) addBtn(String(i), i, {active: i === currentPage});
   };
 
-  addBtn(isMobile ? "‹" : "‹ Trước", Math.max(1, currentPage - 1), {
-    disabled: currentPage === 1,
-    aria: "Trang trước"
-  });
+  addBtn(isMobile ? "‹" : "‹ Trước", Math.max(1, currentPage - 1), {disabled: currentPage === 1, aria: "Trang trước"});
 
   if (currentPage <= 3) {
     showRange(1, Math.min(5, totalPages));
-    if (totalPages > 5) {
-      addBtn("…", null, {ellipsis: true});
-      addBtn(String(totalPages), totalPages);
-    }
+    if (totalPages > 5) { addBtn("…", null, {ellipsis: true}); addBtn(String(totalPages), totalPages); }
   } else if (currentPage >= totalPages - 2) {
     addBtn("1", 1);
     if (totalPages > 5) addBtn("…", null, {ellipsis: true});
@@ -185,17 +255,12 @@ function renderPagination(total, currentPage, perPage) {
   } else {
     addBtn("1", 1);
     addBtn("…", null, {ellipsis: true});
-    const start = Math.max(1, currentPage - 1);
-    const end = Math.min(totalPages, currentPage + 1);
-    showRange(start, end);
+    showRange(Math.max(1, currentPage - 1), Math.min(totalPages, currentPage + 1));
     addBtn("…", null, {ellipsis: true});
     addBtn(String(totalPages), totalPages);
   }
 
-  addBtn(isMobile ? "›" : "Sau ›", Math.min(totalPages, currentPage + 1), {
-    disabled: currentPage === totalPages,
-    aria: "Trang sau"
-  });
+  addBtn(isMobile ? "›" : "Sau ›", Math.min(totalPages, currentPage + 1), {disabled: currentPage === totalPages, aria: "Trang sau"});
 
   const activeBtn = pagination.querySelector("button.active");
   if (isMobile && activeBtn && pagination.scrollWidth > pagination.clientWidth) {

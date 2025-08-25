@@ -317,6 +317,66 @@ th {
   font-size: 14px;
 }
 
+.jump-popover{
+  position: fixed;
+  z-index: 9999;
+  width: 240px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.15);
+  padding: 12px 14px;
+}
+
+.jump-popover .jump-title{
+  font-weight: 600;
+  font-size: 15px;
+  color: #374151;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.jump-popover .jump-box{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.jump-popover input{
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.jump-popover button{
+  min-width: 36px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jump-popover button:last-child{
+  flex: 0 0 50px;
+  background: #6c5ce7;
+  color: #fff;
+}
+
+@media (max-width:600px){
+  .jump-popover{ width: 200px; padding: 10px; }
+  .jump-popover .jump-title{ font-size: 14px; margin-bottom: 8px; }
+  .jump-popover .jump-box{ gap: 6px; }
+  .jump-popover button{ min-width: 30px; height: 30px; font-size: 13px; }
+  .jump-popover button:last-child{ flex: 0 0 44px; }
+}
+
 @media (max-width: 800px) {
     .table-container { overflow-x: auto; }
 }
