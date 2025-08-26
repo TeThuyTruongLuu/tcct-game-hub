@@ -369,14 +369,6 @@ th {
   color: #fff;
 }
 
-@media (max-width:600px){
-  .jump-popover{ width: 200px; padding: 10px; }
-  .jump-popover .jump-title{ font-size: 14px; margin-bottom: 8px; }
-  .jump-popover .jump-box{ gap: 6px; }
-  .jump-popover button{ min-width: 30px; height: 30px; font-size: 13px; }
-  .jump-popover button:last-child{ flex: 0 0 44px; }
-}
-
 @media (max-width: 800px) {
     .table-container { overflow-x: auto; }
 }
@@ -416,16 +408,19 @@ th {
 	.pagination button.active {
 		font-weight: 700;
 	}
-	.jump-popover{ width:min(92vw, 300px); padding:12px; }
+	.jump-popover{ width: 60vw; padding: 10px; }
+	.jump-popover .jump-box{ display:flex; align-items:center; gap: 6px; }
+	.jump-popover button{ width: 15px; height: 20px; font-size: 13px; border-radius:5px; }
+	.jump-popover button:last-child{ flex: 0 0 44px; }
 	.jump-popover .jump-title{ font-size:14px; margin-bottom:8px; }
-	.jump-popover .jump-box{ display:flex; align-items:center; gap:10px; }
 	.jump-popover input{
 		flex:1 1 150px;
-		height:40px;
+		max-width:50px;
+		height:20px;
 		font-size:16px;
 		padding:8px 10px;
 		border:1.5px solid #d1d5db;
-		border-radius:10px;
+		border-radius:5px;
 		text-align:center;
 	}
 }
