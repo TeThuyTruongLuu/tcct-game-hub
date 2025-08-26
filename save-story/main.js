@@ -174,7 +174,7 @@ function showJumpPopover(anchor, totalPages){
   plus.textContent = "+";
 
   const go = document.createElement("button");
-  go.textContent = "Go";
+  go.textContent = "Đi";
 
   box.append(minus, input, plus, go);
   __jumpEl.append(title, box);
