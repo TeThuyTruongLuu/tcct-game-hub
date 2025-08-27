@@ -6,18 +6,20 @@ function onDeviceReady() {
 }
 
 (function () {
-    const username = localStorage.getItem("username");
-    const isAnonymous = localStorage.getItem("anonymous") === "true";
-    const origin = localStorage.getItem("anonymousOrigin");
-    const currentPath = window.location.pathname;
-
-    // ❗ KHÔNG chặn nếu đang ở trang chính
-	const isHomepage = currentPath.startsWith("/tcct-game-hub") && !currentPath.includes("/index.html");
-
-	if (!username && !(isAnonymous && origin === "homepage") && !isHomepage) {
-		alert("❌ Bồ chưa đăng nhập. Quay về trang chính nha!");
-		window.location.href = "/tcct-game-hub/";
-	}
+  const username = localStorage.getItem("username");
+  const isAnonymous = localStorage.getItem("anonymous") === "true";
+  const origin = localStorage.getItem("anonymousOrigin");
+  const path = location.pathname;
+  const onGhPages = location.hostname.endsWith("github.io");
+  const homepagePaths = new Set(["/", "/index.html"]);
+  if (onGhPages) {
+    homepagePaths.add("/tcct-game-hub/");
+    homepagePaths.add("/tcct-game-hub/index.html");
+  }
+  const isHomepage = homepagePaths.has(path);
+  if (!username && !(isAnonymous && origin === "homepage") && !isHomepage) {
+    location.href = onGhPages ? "/tcct-game-hub/" : "/";
+  }
 })();
 
 
@@ -31,6 +33,10 @@ document.addEventListener("deviceready", function() {
     }, false);
 }, false);
 
+if (location.protocol === 'file:' || location.hostname === 'localhost') {
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+}
+
 if (!firebase.apps.length) {
     const firebaseConfig = {
         apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
@@ -43,6 +49,11 @@ if (!firebase.apps.length) {
     };
     firebase.initializeApp(firebaseConfig);
 }
+
+window.addEventListener('load', () => {
+  const appCheck = firebase.appCheck();
+  appCheck.activate('6Lce2bMrAAAAADjXD0PhQZE4ub30USoxX2zRrp12', true);
+});
 
 const db = firebase.firestore();
 window.db = db;
