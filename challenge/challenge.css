@@ -41,6 +41,7 @@ body{
 .day-slot{
 	position:absolute;
 	cursor:pointer;
+	/* background:rgba(0,255,0,0.2); */
 }
 .day-slot.active::after{
 	content:"";
@@ -203,7 +204,25 @@ textarea{
 .modal ul{margin:0;padding-left:18px;max-height:50vh;overflow:auto}
 .modal .close{margin-top:10px}
 
-@media(max-width:980px){
-	.shell{grid-template-columns:1fr}
-	.left .poster{position:static}
+@media (max-width: 980px) {
+	.shell { grid-template-columns: 1fr; width: 90vw; margin: 10px auto; gap: 10px; }
+	.left .poster { position: static; padding: 8px; }
+	.poster { position: relative; }
+	.poster .base { display:block; width:100%; height:auto; }
+	.overlay { position:absolute; inset:0; pointer-events:auto; }
+	.day-slot { position:absolute; }
+
+	.right .head { padding: 10px; }
+	h1 { font-size: 20px; }
+	.user-row { font-size: 12px; }
+	.composer { padding: 8px; }
+	textarea { min-height: 80px; padding: 8px; font-size: 13px; }
+	.primary { padding: 8px 12px; font-size: 13px; }
+	.comments { padding: 8px; }
+	.card { padding: 8px; gap: 8px; }
+	.avatar { width: 30px; height: 30px; font-size: 12px; }
+	.meta { font-size: 12px; }
+	.msg { font-size: 13px; }
+	.thumb { max-width: 180px; }
+	.tool { padding: 4px 8px; font-size: 11px; }
 }

@@ -64,7 +64,7 @@
 	]
 
 	const overlay=document.getElementById("overlay")
-	const baseW=900,baseH=2002
+/* 	const baseW=900,baseH=2002
 	const cellW=145,cellH=143
 	const gapX=7,gapY=20
 	const startX=74,startY=739
@@ -89,7 +89,53 @@
 			overlay.appendChild(slot)
 			day++
 		}
+	} */
+	function buildSlots() {
+		overlay.innerHTML = "";
+		const baseW = 900, baseH = 2002;      // size gốc của challenge.jpg
+		const cellW = 145, cellH = 143;       // ô ngày (pixel gốc)
+		const gapX = 7, gapY = 20;            // khoảng cách (pixel gốc)
+		const startX = 74, startY = 739;      // tọa độ gốc ô DAY1 (pixel gốc)
+		const fullCols = 5, rows = 7;
+
+		let day = 1;
+		for (let r = 0; r < rows; r++) {
+			const colsThisRow = r < 6 ? fullCols : 3;
+			const offsetCols = r < 6 ? 0 : 1;
+
+			for (let c = 0; c < colsThisRow; c++) {
+				if (day > 33) break;
+
+				const x = startX + (offsetCols + c) * (cellW + gapX);
+				const y = startY + r * (cellH + gapY);
+
+				const slot = document.createElement("div");
+				slot.className = "day-slot";
+				slot.dataset.day = day;
+
+				// Convert sang %
+				slot.style.left   = (x / baseW * 100) + "%";
+				slot.style.top    = (y / baseH * 100) + "%";
+				slot.style.width  = (cellW / baseW * 100) + "%";
+				slot.style.height = (cellH / baseH * 100) + "%";
+
+				const d = day;
+				slot.onclick = () => pick(d, slot);
+				overlay.appendChild(slot);
+				day++;
+			}
+		}
 	}
+
+	// tạo slot sau khi ảnh đã load (để overlay có chiều cao chính xác)
+	const baseImg = document.querySelector('.poster .base');
+	if (baseImg.complete) buildSlots();
+	else baseImg.addEventListener('load', buildSlots);
+
+	// optional: handle xoay màn hình; không bắt buộc vì dùng %
+	// window.addEventListener('resize', buildSlots);
+
+
 
 	async function pick(d,slot){
 		document.querySelectorAll(".day-slot").forEach(s=>s.classList.remove("active"))
