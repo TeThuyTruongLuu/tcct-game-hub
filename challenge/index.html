@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>Thử thách 30 ngày mại dô</title>
+	<link rel="stylesheet" href="challenge.css"/>
+	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+	<script src="../js/index.js"></script>
+	<script src="challenge.js" defer></script>
+</head>
+<body>
+	<div class="shell">
+		<div class="left">
+			<div class="poster">
+				<img src="challenge.jpg" alt="33 Days" class="base"/>
+				<div class="overlay" id="overlay"></div>
+			</div>
+		</div>
+		<div class="right">
+			<div class="head">
+				<h1>📖 33 Days Challenge</h1>
+				<div class="user-row">
+					<span id="hello"></span>
+					<span id="status-hint">1 ô gạch = 10 điểm</span>
+				</div>
+			</div>
+			<div class="composer">
+				<div class="composer-top">
+					<div id="current-day">Chọn một ngày</div>
+					<button id="save-comment" class="primary">Lưu</button>
+				</div>
+				<textarea id="comment-input" placeholder="Viết đáp án của bạn..."></textarea>
+				<div class="attach-row">
+					<input type="file" id="image-input" accept="image/*"/>
+					<span id="save-hint"></span>
+				</div>
+			</div>
+			<div class="comments">
+				<div class="comments-head">
+					<h2>Bình luận công khai</h2>
+					<select id="sort-select">
+						<option value="desc">Mới nhất</option>
+						<option value="asc">Cũ nhất</option>
+					</select>
+				</div>
+				<div id="comments-list" class="comments-list"></div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
