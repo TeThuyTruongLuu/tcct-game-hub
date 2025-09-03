@@ -7,11 +7,12 @@
 	--brand-2:#ffd3e2;
 	--ok:#7bd389;
 }
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
 	margin:0;
-	background:linear-gradient(180deg,var(--bg),#fff);
+	background:linear-gradient(180deg,var(--bg),var(--bg));
 	color:var(--ink);
 	font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;
 }

@@ -18,6 +18,15 @@
 	let myStatus={}
 	const hasDone=d=>Boolean(myStatus["day"+d])
 
+	const PALETTE = [
+		"#8BD3DD","#A7C7E7","#B8C0FF","#CDE7BE","#B9FBC0",
+		"#FFD6A5","#FEC89A","#FFADAD","#CDB4DB","#90DBF4"
+	]
+	function colorFor(name){
+		let h=0; for (let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))>>>0
+		return PALETTE[h % PALETTE.length]
+	}
+
 	const prompts=[
 		"Cơ duyên khiến bạn sa vào hố 《Toàn Chức Cao Thủ》",
 		"Bạn đã sa hố 《Toàn Chức Cao Thủ》 bao lâu rồi?",
@@ -136,6 +145,9 @@
 			card.className="card"
 			const ava=document.createElement("div")
 			ava.className="avatar"
+			ava.style.background = colorFor(c.username)
+			ava.style.color = "#fff"
+			ava.style.borderColor = ava.style.background
 			ava.textContent=avatar(c.username)
 			const body=document.createElement("div")
 
@@ -251,6 +263,9 @@
 			item.className="reply-card"
 			const ava=document.createElement("div")
 			ava.className="avatar"; ava.textContent=avatar(d.username)
+			ava.style.background = colorFor(d.username)
+			ava.style.color = "#fff"
+			ava.style.borderColor = ava.style.background
 			const body=document.createElement("div")
 			const meta=document.createElement("div")
 			meta.className="meta"
