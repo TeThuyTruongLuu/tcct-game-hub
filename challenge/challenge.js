@@ -289,14 +289,19 @@
 			}
 			const rightTools=document.createElement("div")
 			rightTools.className="right-tools"
+
 			const likeBtn=document.createElement("button")
-			likeBtn.className="tool"; likeBtn.textContent="❤️"
-			likeBtn.onclick=()=>toggleLike(day,doc.id)
-			const likeCount=document.createElement("button")
-			likeCount.className="like-count"; likeCount.textContent=String(c.likeCount||0)
-			likeCount.onclick=()=>showLikes(day,doc.id)
+			likeBtn.className="tool like-btn"
+			likeBtn.innerHTML=`❤️ <span class="count">${c.likeCount||0}</span>`
+			likeBtn.onclick=()=>{
+			  toggleLike(day,doc.id)
+			}
+			likeBtn.oncontextmenu=(e)=>{
+			  e.preventDefault()
+			  showLikes(day,doc.id)
+			}
 			rightTools.appendChild(likeBtn)
-			rightTools.appendChild(likeCount)
+
 			toolsRow.appendChild(leftTools)
 			toolsRow.appendChild(rightTools)
 			body.appendChild(toolsRow)
