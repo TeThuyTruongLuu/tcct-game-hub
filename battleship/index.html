@@ -409,7 +409,7 @@
 
       await db.collection("userScores").doc(`${username}-Bắn tàu`).set({
         username,
-        game: "battleship",
+        game: "Bắn tàu",
         updatedAt: new Date().toISOString(),
         score: totalScore
       }, { merge: true });
@@ -599,7 +599,7 @@
 
         await db.collection("userScores").doc(`${username}-Bắn tàu`).set({
           username,
-          game: "battleship",
+          game: "Bắn tàu",
           updatedAt: new Date().toISOString(),
           score: firebase.firestore.FieldValue.increment(totalPoint)
         }, { merge: true });
