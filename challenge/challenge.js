@@ -14,18 +14,15 @@
 	const sortSelect=document.getElementById("sort-select")
 	const saveHint=document.getElementById("save-hint")
 
+	const pagerEl=document.getElementById("pager")
+	const titleEl=document.getElementById("comments-title")
+
 	let currentDay=null
 	let myStatus={}
 	const hasDone=d=>Boolean(myStatus["day"+d])
 
-	const PALETTE = [
-		"#8BD3DD","#A7C7E7","#B8C0FF","#CDE7BE","#B9FBC0",
-		"#FFD6A5","#FEC89A","#FFADAD","#CDB4DB","#90DBF4"
-	]
-	function colorFor(name){
-		let h=0; for (let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))>>>0
-		return PALETTE[h % PALETTE.length]
-	}
+	const PALETTE=["#8BD3DD","#A7C7E7","#B8C0FF","#CDE7BE","#B9FBC0","#FFD6A5","#FEC89A","#FFADAD","#CDB4DB","#90DBF4"]
+	function colorFor(name){let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))>>>0;return PALETTE[h%PALETTE.length]}
 
 	const prompts=[
 		"Cơ duyên khiến bạn sa vào hố 《Toàn Chức Cao Thủ》",
@@ -64,78 +61,37 @@
 	]
 
 	const overlay=document.getElementById("overlay")
-/* 	const baseW=900,baseH=2002
-	const cellW=145,cellH=143
-	const gapX=7,gapY=20
-	const startX=74,startY=739
-	const fullCols=5,rows=7
-	let day=1
-	for(let r=0;r<rows;r++){
-		const colsThisRow=r<6?fullCols:3
-		const offsetCols=r<6?0:1
-		for(let c=0;c<colsThisRow;c++){
-			if(day>33)break
-			const x=startX+(offsetCols+c)*(cellW+gapX)
-			const y=startY+r*(cellH+gapY)
-			const slot=document.createElement("div")
-			slot.className="day-slot"
-			slot.dataset.day=day
-			slot.style.left=`${x/baseW*100}%`
-			slot.style.top=`${y/baseH*100}%`
-			slot.style.width=`${cellW/baseW*100}%`
-			slot.style.height=`${cellH/baseH*100}%`
-			const d=day
-			slot.onclick=()=>pick(d,slot)
-			overlay.appendChild(slot)
-			day++
-		}
-	} */
-	function buildSlots() {
-		overlay.innerHTML = "";
-		const baseW = 900, baseH = 2002;      // size gốc của challenge.jpg
-		const cellW = 145, cellH = 143;       // ô ngày (pixel gốc)
-		const gapX = 7, gapY = 20;            // khoảng cách (pixel gốc)
-		const startX = 74, startY = 739;      // tọa độ gốc ô DAY1 (pixel gốc)
-		const fullCols = 5, rows = 7;
-
-		let day = 1;
-		for (let r = 0; r < rows; r++) {
-			const colsThisRow = r < 6 ? fullCols : 3;
-			const offsetCols = r < 6 ? 0 : 1;
-
-			for (let c = 0; c < colsThisRow; c++) {
-				if (day > 33) break;
-
-				const x = startX + (offsetCols + c) * (cellW + gapX);
-				const y = startY + r * (cellH + gapY);
-
-				const slot = document.createElement("div");
-				slot.className = "day-slot";
-				slot.dataset.day = day;
-
-				// Convert sang %
-				slot.style.left   = (x / baseW * 100) + "%";
-				slot.style.top    = (y / baseH * 100) + "%";
-				slot.style.width  = (cellW / baseW * 100) + "%";
-				slot.style.height = (cellH / baseH * 100) + "%";
-
-				const d = day;
-				slot.onclick = () => pick(d, slot);
-				overlay.appendChild(slot);
-				day++;
+	function buildSlots(){
+		overlay.innerHTML=""
+		const baseW=900,baseH=2002
+		const cellW=145,cellH=143
+		const gapX=7,gapY=20
+		const startX=74,startY=739
+		const fullCols=5,rows=7
+		let day=1
+		for(let r=0;r<rows;r++){
+			const colsThisRow=r<6?fullCols:3
+			const offsetCols=r<6?0:1
+			for(let c=0;c<colsThisRow;c++){
+				if(day>33)break
+				const x=startX+(offsetCols+c)*(cellW+gapX)
+				const y=startY+r*(cellH+gapY)
+				const slot=document.createElement("div")
+				slot.className="day-slot"
+				slot.dataset.day=day
+				slot.style.left=(x/baseW*100)+"%"
+				slot.style.top=(y/baseH*100)+"%"
+				slot.style.width=(cellW/baseW*100)+"%"
+				slot.style.height=(cellH/baseH*100)+"%"
+				const d=day
+				slot.onclick=()=>pick(d,slot)
+				overlay.appendChild(slot)
+				day++
 			}
 		}
 	}
-
-	// tạo slot sau khi ảnh đã load (để overlay có chiều cao chính xác)
-	const baseImg = document.querySelector('.poster .base');
-	if (baseImg.complete) buildSlots();
-	else baseImg.addEventListener('load', buildSlots);
-
-	// optional: handle xoay màn hình; không bắt buộc vì dùng %
-	// window.addEventListener('resize', buildSlots);
-
-
+	const baseImg=document.querySelector(".poster .base")
+	if(baseImg.complete) buildSlots(); else baseImg.addEventListener("load",buildSlots)
 
 	async function pick(d,slot){
 		document.querySelectorAll(".day-slot").forEach(s=>s.classList.remove("active"))
@@ -143,6 +99,8 @@
 		currentDay=d
 		currentDayEl.textContent="Ngày "+d+": "+(prompts[d-1]||"")
 		composer.classList.add("show")
+		pagerEl.style.display="flex"
+		titleEl.textContent="Cảm nghĩ của mọi người"
 		input.value=""
 		imgInput.value=""
 		saveHint.textContent=""
@@ -158,7 +116,7 @@
 		for(let d=1;d<=33;d++) if(hasDone(d)) markDone(d)
 	}
 	function markDone(d){
-		const slot=document.querySelector(`.day-slot[data-day='${d}']`)
+		const slot=document.querySelector(".day-slot[data-day='"+d+"']")
 		if(slot) slot.classList.add("done")
 	}
 	async function loadMine(d){
@@ -167,33 +125,116 @@
 		const snap=await docRef.get()
 		if(snap.exists) input.value=snap.data().text||""
 	}
-	function fmt(ts){const t=ts?new Date(ts):new Date();return t.toLocaleString()}
-	function avatar(name){
-		const s=(name||"U").trim()
-		return s.split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U"
+
+	async function loadRecentFeed(){
+	  currentDay=null
+	  composer.classList.remove("show")
+	  pagerEl.style.display="none"
+	  sortSelect.value="desc"
+	  titleEl.textContent="5 cảm nghĩ gần nhất"
+	  commentsList.innerHTML=""
+	  const snap=await fdb.collectionGroup("comments").orderBy("updatedAt","desc").limit(5).get()
+	  if(snap.empty){
+		const p=document.createElement("p")
+		p.textContent="Chưa có bình luận nào."
+		p.style.color="#8a6b82"
+		commentsList.appendChild(p)
+		return
+	  }
+	  for(const doc of snap.docs){
+		const c=doc.data()
+		const dayId=doc.ref.parent.parent.id
+		const day=parseInt(dayId.replace("day",""))||0
+
+		const card=document.createElement("div")
+		card.className="card"
+		const ava=document.createElement("div")
+		ava.className="avatar"
+		ava.style.background=colorFor(c.username)
+		ava.style.color="#fff"
+		ava.style.borderColor=ava.style.background
+		ava.textContent=avatar(c.username)
+		const body=document.createElement("div")
+
+		const meta=document.createElement("div")
+		meta.className="meta"
+		const n=document.createElement("span")
+		n.className="name"; n.textContent=c.username
+		const t=document.createElement("span")
+		t.textContent="• "+fmt(c.updatedAt)+" • Ngày "+day
+		meta.appendChild(n); meta.appendChild(t)
+
+		const msg=document.createElement("div")
+		msg.className="msg"; msg.textContent=c.text||""
+
+		body.appendChild(meta)
+		body.appendChild(msg)
+		if(c.imageUrl){
+		  const im=document.createElement("img")
+		  im.src=c.imageUrl; im.className="thumb"
+		  body.appendChild(im)
+		}
+
+		const toolsRow=document.createElement("div")
+		toolsRow.className="tools-row"
+		const leftTools=document.createElement("div")
+		leftTools.className="left-tools"
+		const openBtn=document.createElement("button")
+		openBtn.className="tool"
+		openBtn.textContent="Xem ngày "+day
+		openBtn.onclick=()=>{
+		  const slot=document.querySelector(".day-slot[data-day='"+day+"']")
+		  if(slot) pick(day,slot)
+		}
+		leftTools.appendChild(openBtn)
+		toolsRow.appendChild(leftTools)
+		body.appendChild(toolsRow)
+
+		card.appendChild(ava)
+		card.appendChild(body)
+		commentsList.appendChild(card)
+	  }
 	}
+
+	function fmt(ts){const t=ts?new Date(ts):new Date();return t.toLocaleString()}
+	function avatar(name){const s=(name||"U").trim();return s.split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U"}
+
+	let allComments=[]
+	let currentPage=1
+	const pageSize=5
 
 	async function loadAnswers(d){
 		commentsList.innerHTML=""
+		currentPage=1
 		const order=sortSelect.value==="asc"?"asc":"desc"
 		const ref=fdb.collection("challenge33").doc("day"+d).collection("comments").orderBy("updatedAt",order)
 		const snap=await ref.get()
-		if(snap.empty){
+		allComments=snap.docs
+		if(allComments.length===0){
 			const p=document.createElement("p")
 			p.textContent="Chưa có bình luận nào."
 			p.style.color="#8a6b82"
 			commentsList.appendChild(p)
+			document.getElementById("page-info").textContent="0/0"
 			return
 		}
-		for(const doc of snap.docs){
+		await renderPage(d)
+	}
+
+	async function renderPage(day){
+		commentsList.innerHTML=""
+		const start=(currentPage-1)*pageSize
+		const end=start+pageSize
+		const pageDocs=allComments.slice(start,end)
+		for(const doc of pageDocs){
 			const c=doc.data()
 			const card=document.createElement("div")
 			card.className="card"
 			const ava=document.createElement("div")
 			ava.className="avatar"
-			ava.style.background = colorFor(c.username)
-			ava.style.color = "#fff"
-			ava.style.borderColor = ava.style.background
+			ava.style.background=colorFor(c.username)
+			ava.style.color="#fff"
+			ava.style.borderColor=ava.style.background
 			ava.textContent=avatar(c.username)
 			const body=document.createElement("div")
 
@@ -225,7 +266,7 @@
 				you.className="tool ok"; you.textContent="Của bạn"
 				const editAns=document.createElement("button")
 				editAns.className="tool"
-				editAns.textContent=`Sửa`
+				editAns.textContent="Sửa"
 				editAns.onclick=()=>{
 					input.value=c.text||""
 					window.scrollTo({top:0,behavior:"smooth"})
@@ -237,10 +278,10 @@
 			rightTools.className="right-tools"
 			const likeBtn=document.createElement("button")
 			likeBtn.className="tool"; likeBtn.textContent="❤️"
-			likeBtn.onclick=()=>toggleLike(d,doc.id)
+			likeBtn.onclick=()=>toggleLike(day,doc.id)
 			const likeCount=document.createElement("button")
 			likeCount.className="like-count"; likeCount.textContent=String(c.likeCount||0)
-			likeCount.onclick=()=>showLikes(d,doc.id)
+			likeCount.onclick=()=>showLikes(day,doc.id)
 			rightTools.appendChild(likeBtn)
 			rightTools.appendChild(likeCount)
 			toolsRow.appendChild(leftTools)
@@ -250,12 +291,15 @@
 			const replyWrap=document.createElement("div")
 			replyWrap.className="reply-wrap"
 			body.appendChild(replyWrap)
-			await renderReplies(d,doc.id,replyWrap,0)
 
 			card.appendChild(ava)
 			card.appendChild(body)
 			commentsList.appendChild(card)
+
+			await renderReplies(day,doc.id,replyWrap,0)
 		}
+		const totalPages=Math.ceil(allComments.length/pageSize)
+		document.getElementById("page-info").textContent=currentPage+"/"+totalPages
 	}
 
 	async function toggleLike(day,ownerId){
@@ -275,6 +319,7 @@
 
 	function replyBox(day,pathMount,ownerId,replyId){
 		const wrap=document.createElement("div")
+		wrap.className="reply-box"
 		const ta=document.createElement("textarea")
 		ta.placeholder="Viết phản hồi…"
 		const send=document.createElement("button")
@@ -309,9 +354,9 @@
 			item.className="reply-card"
 			const ava=document.createElement("div")
 			ava.className="avatar"; ava.textContent=avatar(d.username)
-			ava.style.background = colorFor(d.username)
-			ava.style.color = "#fff"
-			ava.style.borderColor = ava.style.background
+			ava.style.background=colorFor(d.username)
+			ava.style.color="#fff"
+			ava.style.borderColor=ava.style.background
 			const body=document.createElement("div")
 			const meta=document.createElement("div")
 			meta.className="meta"
@@ -340,6 +385,7 @@
 			const replyBtn=document.createElement("button")
 			replyBtn.className="tool ghost"; replyBtn.textContent="Trả lời"
 			replyBtn.onclick=()=>{
+				item.querySelectorAll(".reply-box").forEach(x=>x.remove())
 				const box=replyBox(day,mount,ownerId,r.id)
 				item.appendChild(box)
 			}
@@ -372,9 +418,7 @@
 		const likes=(snap.data()&&snap.data().likes)||{}
 		const names=Object.keys(likes)
 		if(names.length===0){ul.innerHTML="<li>Chưa có ai</li>"}
-		else names.sort().forEach(n=>{
-			const li=document.createElement("li"); li.textContent=n; ul.appendChild(li)
-		})
+		else names.sort().forEach(n=>{const li=document.createElement("li"); li.textContent=n; ul.appendChild(li)})
 		backdrop.classList.add("show")
 	}
 
@@ -421,5 +465,16 @@
 
 	saveBtn.onclick=save
 	sortSelect.onchange=()=>{if(currentDay)loadAnswers(currentDay)}
-	;(async()=>{await ensureLogin();await loadProgress()})()
+	document.getElementById("prev-page").onclick=()=>{
+		if(currentPage>1){currentPage--; if(currentDay)renderPage(currentDay)}
+	}
+	document.getElementById("next-page").onclick=()=>{
+		const totalPages=Math.ceil(allComments.length/pageSize)
+		if(currentPage<totalPages){currentPage++; if(currentDay)renderPage(currentDay)}
+	}
+	;(async()=>{
+	  await ensureLogin()
+	  await loadProgress()
+	  await loadRecentFeed()
+	})()
 })()
