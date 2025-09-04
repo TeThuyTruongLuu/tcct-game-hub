@@ -61,37 +61,51 @@
 	]
 
 	const overlay=document.getElementById("overlay")
-	function buildSlots(){
-		overlay.innerHTML=""
-		const baseW=900,baseH=2002
-		const cellW=145,cellH=143
-		const gapX=7,gapY=20
-		const startX=74,startY=739
-		const fullCols=5,rows=7
-		let day=1
-		for(let r=0;r<rows;r++){
-			const colsThisRow=r<6?fullCols:3
-			const offsetCols=r<6?0:1
-			for(let c=0;c<colsThisRow;c++){
-				if(day>33)break
-				const x=startX+(offsetCols+c)*(cellW+gapX)
-				const y=startY+r*(cellH+gapY)
-				const slot=document.createElement("div")
-				slot.className="day-slot"
-				slot.dataset.day=day
-				slot.style.left=(x/baseW*100)+"%"
-				slot.style.top=(y/baseH*100)+"%"
-				slot.style.width=(cellW/baseW*100)+"%"
-				slot.style.height=(cellH/baseH*100)+"%"
-				const d=day
-				slot.onclick=()=>pick(d,slot)
-				overlay.appendChild(slot)
-				day++
-			}
-		}
-	}
+
+	const poster=document.querySelector(".poster")
 	const baseImg=document.querySelector(".poster .base")
+	let posterAlt=false
+	const IMG_MAIN="challenge.jpg", IMG_ALT="challenge_p.jpg"
+
+	poster.addEventListener("click",e=>{
+	  if(e.target.closest(".day-slot")) return
+	  posterAlt=!posterAlt
+	  baseImg.src=posterAlt?IMG_ALT:IMG_MAIN
+	})
+
+	function buildSlots(){
+	  overlay.innerHTML=""
+	  const baseW=900,baseH=2002
+	  const cellW=145,cellH=143
+	  const gapX=7,gapY=20
+	  const startX=74,startY=739
+	  const fullCols=5,rows=7
+	  let day=1
+	  for(let r=0;r<rows;r++){
+		const colsThisRow=r<6?fullCols:3
+		const offsetCols=r<6?0:1
+		for(let c=0;c<colsThisRow;c++){
+		  if(day>33)break
+		  const x=startX+(offsetCols+c)*(cellW+gapX)
+		  const y=startY+r*(cellH+gapY)
+		  const slot=document.createElement("div")
+		  slot.className="day-slot"
+		  slot.dataset.day=day
+		  slot.style.left=(x/baseW*100)+"%"
+		  slot.style.top=(y/baseH*100)+"%"
+		  slot.style.width=(cellW/baseW*100)+"%"
+		  slot.style.height=(cellH/baseH*100)+"%"
+		  const d=day
+		  slot.onclick=()=>pick(d,slot)
+		  overlay.appendChild(slot)
+		  day++
+		}
+	  }
+	}
+
+	// khởi tạo slot theo trạng thái tải ảnh hiện tại
 	if(baseImg.complete) buildSlots(); else baseImg.addEventListener("load",buildSlots)
+
 
 	async function pick(d,slot){
 		document.querySelectorAll(".day-slot").forEach(s=>s.classList.remove("active"))
