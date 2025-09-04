@@ -417,7 +417,7 @@
 	backdrop.className="modal-backdrop"
 	backdrop.innerHTML=`
 		<div class="modal">
-			<h3>Người đã thả tim</h3>
+			<h3>Tui thích bạn rồi đó 💖</h3>
 			<ul id="likes-ul"></ul>
 			<button class="tool close">Đóng</button>
 		</div>`
