@@ -407,7 +407,7 @@
 
       totalScore += sunkPoints;
 
-      await db.collection("userScores").doc(`${username}-battleship`).set({
+      await db.collection("userScores").doc(`${username}-Bắn tàu`).set({
         username,
         game: "battleship",
         updatedAt: new Date().toISOString(),
@@ -597,14 +597,14 @@
         pointSelf = Object.values(result).filter(v => v === 'self').length;
         let totalPoint = pointHit * 1 - pointSelf * 5 + pointSunk * 2;
 
-        await db.collection("userScores").doc(`${username}-battleship`).set({
+        await db.collection("userScores").doc(`${username}-Bắn tàu`).set({
           username,
           game: "battleship",
           updatedAt: new Date().toISOString(),
           score: firebase.firestore.FieldValue.increment(totalPoint)
         }, { merge: true });
 
-        const updatedPointRef = await db.collection("userScores").doc(`${username}-battleship`).get();
+        const updatedPointRef = await db.collection("userScores").doc(`${username}-Bắn tàu`).get();
         if (updatedPointRef.exists) {
           document.getElementById("total-score").textContent = updatedPointRef.data().score || 0;
         }
