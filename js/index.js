@@ -33,6 +33,10 @@ document.addEventListener("deviceready", function() {
     }, false);
 }, false);
 
+if (location.protocol === 'file:' || location.hostname === 'localhost') {
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+}
+
 if (!firebase.apps.length) {
     const firebaseConfig = {
         apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
@@ -45,6 +49,11 @@ if (!firebase.apps.length) {
     };
     firebase.initializeApp(firebaseConfig);
 }
+
+window.addEventListener('load', () => {
+  const appCheck = firebase.appCheck();
+  appCheck.activate('6Lce2bMrAAAAADjXD0PhQZE4ub30USoxX2zRrp12', true);
+});
 
 const db = firebase.firestore();
 window.db = db;
