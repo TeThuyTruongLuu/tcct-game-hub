@@ -749,3 +749,440 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+const SHEET_BUN_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSipOhZgsQSx77GrQ684vDS8WwG-d0kfdrU5mqf5ooE2yBvd-WylfduYILmP5CMeqaCkoBpDgutsku/pub?gid=163381156&single=true&output=csv";
+const SHEET_TIMELINE_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSipOhZgsQSx77GrQ684vDS8WwG-d0kfdrU5mqf5ooE2yBvd-WylfduYILmP5CMeqaCkoBpDgutsku/pub?gid=1837407606&single=true&output=csv";
+const SHEET_BANG_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSipOhZgsQSx77GrQ684vDS8WwG-d0kfdrU5mqf5ooE2yBvd-WylfduYILmP5CMeqaCkoBpDgutsku/pub?gid=892637288&single=true&output=csv";
+
+const SHEET_TIMELINE_HTML_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSipOhZgsQSx77GrQ684vDS8WwG-d0kfdrU5mqf5ooE2yBvd-WylfduYILmP5CMeqaCkoBpDgutsku/pubhtml?gid=1837407606&single=true";
+let TL_COLOR_MAP = null;
+
+function tl_normKey(s){
+	return String(s||"").replace(/[\u2013\u2014]/g,"-").replace(/\s+/g," ").trim().toLowerCase();
+}
+function tl_baseKey(s){
+	return tl_normKey(String(s||"").replace(/\[(?:lr3|ly2)\]/ig,"").replace(/\([^)]*\)\s*$/,"").replace(/[.…]+$/g,""));
+}
+function cssToHex(c){
+	let m=c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+	if(m) return "#"+[m[1],m[2],m[3]].map(x=>(+x).toString(16).padStart(2,"0")).join("");
+	m=c.match(/#([0-9a-f]{3,6})/i);
+	if(m){ const v=m[1].toLowerCase(); return "#"+(v.length===3?v.split("").map(ch=>ch+ch).join(""):v); }
+	return "";
+}
+async function tl_fetchColorMap(){
+	const html=await fetch(SHEET_TIMELINE_HTML_URL,{cache:"no-store"}).then(r=>r.text());
+	const doc=new DOMParser().parseFromString(html,"text/html");
+
+	const styleText=Array.from(doc.querySelectorAll("style")).map(s=>s.textContent||"").join("\n");
+	const classBg={};
+	let mm, rx=/\.([^{\s]+)\s*\{[^}]*background(?:-color)?\s*:\s*([^;]+);/ig;
+	while((mm=rx.exec(styleText))){
+		const cls=mm[1], col=cssToHex(mm[2]);
+		if(col) classBg[cls]=col;
+	}
+	const map=new Map();
+	doc.querySelectorAll("table.waffle tbody tr td").forEach(td=>{
+		const txt=(td.textContent||"").trim();
+		if(!txt) return;
+		let hex="";
+		for(const c of td.classList){ if(classBg[c]){ hex=classBg[c]; break; } }
+		if(!hex) return;
+		map.set(tl_normKey(txt),hex);
+		map.set(tl_baseKey(txt),hex);
+	});
+	return map;
+}
+function tl_colorFor(s){
+	const key=tl_normKey(s||"");
+	const base=tl_baseKey(s||"");
+	const hex=(TL_COLOR_MAP?.get(key)||TL_COLOR_MAP?.get(base)||"").toLowerCase();
+	if(hex==="#f4cccc"||hex==="#f5cece") return "red";
+	if(hex==="#fff2cc"||hex==="#ffe699") return "yellow";
+	if(/\[lr3\]/i.test(s)) return "red";
+	if(/\[ly2\]/i.test(s)) return "yellow";
+	return "";
+}
+
+async function renderTimeline(){
+	const sf=document.getElementById("svFilters"); if(sf)sf.style.display="none"
+	const sv=document.getElementById("svContent"); if(sv){sv.innerHTML="";sv.style.display="none"}
+	document.getElementById("timelineControls").style.display="grid"
+	try{
+		const [csv,cmap]=await Promise.all([
+			fetch(SHEET_TIMELINE_URL,{cache:"no-store"}).then(r=>r.text()),
+			tl_fetchColorMap().catch(()=>null)
+		])
+		TL_COLOR_MAP=cmap
+		const {days,labels}=tl_parse(csv)
+		TL_ALL=days;TL_LABELS=labels;TL_WEEKS=tl_splitWeeks(days);TL_WEEK_INDEX=0
+		tl_buildAuthorOptions(TL_ALL)
+		tl_renderWeek(TL_WEEKS[0]||TL_ALL,TL_LABELS)
+	}catch(e){
+		document.getElementById("tlBoard").innerHTML=`<p style="padding:12px;color:#b00">Không tải được Timeline.</p>`
+		console.error(e)
+	}
+}
+
+function parseCSV(text) {
+	const rows = [];
+	let cur = [], s = "", q = false;
+	for (let i = 0; i < text.length; i++) {
+		const c = text[i], n = text[i + 1];
+		if (c === '"') {
+			if (q && n === '"') { s += '"'; i++; } else { q = !q; }
+		} else if (c === ',' && !q) {
+			cur.push(s); s = "";
+		} else if ((c === '\n' || c === '\r') && !q) {
+			if (s !== "" || cur.length) {
+				cur.push(s); rows.push(cur); cur = []; s = "";
+			}
+			if (c === '\r' && n === '\n') { i++; }
+		} else {
+			s += c;
+		}
+	}
+	if (s !== "" || cur.length) { cur.push(s); rows.push(cur); }
+	return rows.filter(r => r.some(c => String(c).trim() !== ""));
+}
+
+function headerIndexMap(head, names) {
+	const map = {};
+	for (const [k, pats] of Object.entries(names)) {
+		map[k] = head.findIndex(h => pats.some(p => new RegExp(p, "i").test(String(h).trim())));
+	}
+	return map;
+}
+
+function renderTable(matrix, opts = {}) {
+	if (!matrix || !matrix.length) return "<p>Không có dữ liệu</p>";
+	const head = matrix[0];
+	const body = matrix.slice(1).map(r => {
+		return `<tr>${r.map((c, i) => {
+			if (opts.linkCols && opts.linkCols.has(i)) {
+				const u = String(c || "").trim();
+				if (!u) return "<td></td>";
+				const url = /^https?:\/\//i.test(u) ? u : `https://${u}`;
+				return `<td><a href="${url}" target="_blank">Link</a></td>`;
+			}
+			return `<td>${(c ?? "").toString().trim()}</td>`;
+		}).join("")}</tr>`;
+	}).join("");
+	return `<table><thead><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function norm(s) {
+	return removeVietnameseTones(String(s || "").toLowerCase());
+}
+
+async function renderBunCa() {
+	const box = document.getElementById("svContent");
+	document.getElementById("timelineControls").style.display = "none";
+	document.getElementById("svFilters").style.display = "flex";
+	const csv = await fetch(SHEET_BUN_URL, { cache: "no-store" }).then(r => r.text());
+	const m = parseCSV(csv);
+	if (!m.length) { box.innerHTML = "<p>Không có dữ liệu</p>"; return; }
+	const head = m[0];
+	const cols = headerIndexMap(head, {
+		tag: ["^tag$"],
+		theloai: ["thể\\s*loại", "the\\s*loai"],
+		bun: ["^bún$", "^bun$"],
+		ca: ["^cá$", "^ca$", "\\bca\\b"],
+		nick: ["nick\\s*4rum", "nick\\s*forum", "^nick", "4rum"],
+		kchu: ["^k\\s*chữ", "k\\s*chu", "kchữ", "k chu"],
+		muc: ["^mục$", "^muc$"],
+		link: ["^link$"]
+	});
+	const order = ["tag", "theloai", "bun", "ca", "nick", "kchu", "muc", "link"];
+	const header = order.map(k => head[cols[k]]).filter(Boolean);
+	const rows = m.slice(1).map(r => order.map(k => cols[k] >= 0 ? r[cols[k]] || "" : ""));
+	box.dataset.bunFull = JSON.stringify([header, ...rows]);
+	const linkIdx = new Set([header.length - 1]);
+	box.innerHTML = renderTable([header, ...rows], { linkCols: linkIdx });
+	document.querySelectorAll("#svContent tbody tr td:nth-child(3)")
+		.forEach(td => td.classList.add("bun-cell"));
+}
+
+function filterBun() {
+	const box = document.getElementById("svContent");
+	const full = box.dataset.bunFull ? JSON.parse(box.dataset.bunFull) : null;
+	if (!full) return;
+	const kw = norm(document.getElementById("svSearch").value);
+	const qBtn = document.querySelector(".sv-quick button.active");
+	const quick = qBtn ? qBtn.dataset.q : "";
+	const head = full[0], rows = full.slice(1);
+	const idxMuc = head.findIndex(h => /mục/i.test(h));
+	const idxs = [...Array(head.length).keys()];
+	const filtered = rows.filter(r => {
+		const text = norm(r.join(" "));
+		const okKw = kw ? text.includes(kw) : true;
+		const okQuick = quick ? (idxMuc >= 0 && String(r[idxMuc]).includes(quick)) : true;
+		return okKw && okQuick;
+	});
+	const linkIdx = new Set([head.length - 1]);
+	box.innerHTML = renderTable([head, ...filtered], { linkCols: linkIdx });
+}
+
+function tl_parse(csv){
+	const m=parseCSV(csv)
+	if(!m.length)return{days:[],headerRow:-1,labels:[]}
+	const wanted=[
+		"Lá nát xen lá lành (3h - 12h)",
+		"Lá lành đùm lá rách (12h - 18h)",
+		"Lá lành (18h - 3h)"
+	]
+	const wantedRe=[
+		/Lá\s*nát\s*xen\s*lá\s*lành\s*\(3h\s*-\s*12h\)/i,
+		/Lá\s*lành\s*đùm\s*lá\s*rách\s*\(12h\s*-\s*18h\)/i,
+		/Lá\s*lành\s*\(18h\s*-\s*3h\)/i
+	]
+	let headerRows = []
+	for(let r=0; r<m.length; r++){
+		if(m[r].some(c => /\d{1,2}\/\d{1,2}/.test(String(c).trim()))) headerRows.push(r)
+	}
+	let allDays = []
+	for(let hi=0; hi<headerRows.length; hi++){
+		let hr = headerRows[hi]
+		let nextHr = (hi+1 < headerRows.length ? headerRows[hi+1] : m.length)
+		let head = m[hr]
+		let dayCols = head.map((c,idx) => ({col:idx, key:String(c).trim()}) ).filter(o => /\d{1,2}\/\d{1,2}/.test(o.key))
+		if(dayCols.length !== 7) continue
+		let colIndexByKey = Object.fromEntries(dayCols.map(o => [o.key, o.col]))
+		let blockDays = dayCols.map(dc => ({key:dc.key, items:[]}))
+		if(hi === 0) continue
+		let section = -1
+		for(let r=hr+1; r<nextHr; r++){
+			let a0 = String( (m[r].length > 0 ? m[r][0] : "") || "" ).trim()
+			let hit = wantedRe.findIndex(re => re.test(a0))
+			if(hit >=0 ){ section = hit; }
+			if(section <0 && !a0) continue
+			let hasValue = false
+			for(let d_idx=0; d_idx < blockDays.length; d_idx++){
+				let d = blockDays[d_idx]
+				let cidx = dayCols[d_idx].col
+				let val = String( (m[r].length > cidx ? m[r][cidx] : "") || "" ).trim()
+				if(val){ d.items.push({text:val, sec:section}); hasValue=true }
+			}
+			if(!hasValue && section >=0) continue
+		}
+		allDays = allDays.concat(blockDays)
+	}
+	return{days:allDays,headerRow:-1,labels:wanted}
+}
+
+function tl_splitWeeks(days){
+	const packs=[]
+	for(let i=0;i<days.length;i+=7)packs.push(days.slice(i,i+7))
+	return packs
+}
+
+function tl_extractAuthor(text){
+	const m=text.match(/^\s*([^–-]+?)\s*[-–]\s*/)
+	return m?m[1].trim():"Khác"
+}
+
+function tl_buildAuthorOptions(days){
+	const set=new Set()
+	days.forEach(d=>d.items.forEach(it=>set.add(tl_extractAuthor(it.text))))
+	const sel=document.getElementById("tlAuthor")
+	sel.innerHTML=`<option value="">Tất cả người đăng</option>`+[...set].sort().map(n=>`<option>${n}</option>`).join("")
+}
+
+function tl_renderWeek(pack, labels){
+	const board=document.getElementById("tlBoard")
+	const thu=["T2","T3","T4","T5","T6","T7","CN"]
+	const author=document.getElementById("tlAuthor").value
+
+	let h=`<div class="tl-rowhead"><a href="https://tethuytruongluu.github.io/tcct-game-hub/">Link web game</a></div>`
+	for(let i=0;i<pack.length;i++){
+		const d=pack[i]
+		h+=`<div class="tl-th"><span>${thu[i]}</span><span>${d.key}</span></div>`
+	}
+
+	const SEC_CLASS=["tl-sec-312","tl-sec-1218","tl-sec-183"]
+	let b=""
+
+	for(let sec=0;sec<labels.length;sec++){
+		const lab=labels[sec]
+		b+=`<div class="tl-rowhead sec-${sec}">${lab}</div>`
+		for(let i=0;i<pack.length;i++){
+			const d=pack[i]
+			let items=""
+			for(let j=0;j<d.items.length;j++){
+				const it=d.items[j]
+				if(it.sec!==sec) continue
+				const txt=it.text
+				if(author && txt.indexOf(author+" - ")<0) continue
+				const color=tl_colorFor(it.text||it.raw||"")
+				const clean=String(it.text||"").replace(/\[(?:lr3|ly2)\]/ig,"")
+				items+=`<div class="tl-item ${color}">${clean}</div>`
+			}
+			b+=`<div class="tl-cell ${SEC_CLASS[sec]}"><div class="tl-items">${items}</div></div>`
+		}
+	}
+
+	const n=Math.min(7,pack.length)
+	board.innerHTML=`<div class="tl-table" style="--n:${n}">${h+b}</div>`
+	window.TL_CURR_PACK=pack
+	const table=board.querySelector(".tl-table")
+	table?.querySelectorAll(".tl-ol").forEach(x=>x.remove())
+}
+
+function tl_todayKey(){
+	const d=new Date()
+	return `${d.getDate()}/${d.getMonth()+1}`
+}
+
+function tl_cmpKey(a,b){
+	const [da,ma]=a.split("/").map(Number)
+	const [db,mb]=b.split("/").map(Number)
+	if(ma!==mb)return ma-mb
+	return da-db
+}
+
+function tl_applyOverlays(todayKey){
+	const table=document.querySelector("#tlBoard .tl-table")
+	if(!table||!window.TL_CURR_PACK)return
+	table.querySelectorAll(".tl-ol").forEach(x=>x.remove())
+	for(let i=0;i<TL_CURR_PACK.length;i++){
+		const k=TL_CURR_PACK[i].key
+		let cls=""
+		if(k===todayKey) cls="tl-ol-today"
+		else if(tl_cmpKey(k,todayKey)<0) cls="tl-ol-past"
+		else continue
+		const ol=document.createElement("div")
+		ol.className=`tl-ol ${cls}`
+		ol.style.gridColumn=String(2+i)
+		ol.style.gridRow="2 / -1"
+		table.appendChild(ol)
+	}
+	const heads=table.querySelectorAll(".tl-th")
+	const idx=TL_CURR_PACK.findIndex(d=>d.key===todayKey)
+	if(heads[idx]) heads[idx].scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"})
+}
+
+function tl_goToday(){
+	const key=tl_todayKey()
+	const idx=TL_ALL.findIndex(d=>d.key===key)
+	if(idx<0)return
+	TL_WEEK_INDEX=Math.floor(idx/7)
+	tl_renderWeek(TL_WEEKS[TL_WEEK_INDEX],TL_LABELS)
+	tl_applyOverlays(key)
+}
+
+let TL_ALL=[],TL_WEEKS=[],TL_WEEK_INDEX=0,TL_LABELS=[]
+
+function tl_prevWeek(){
+	if(!TL_WEEKS.length)return
+	TL_WEEK_INDEX=(TL_WEEK_INDEX-1+TL_WEEKS.length)%TL_WEEKS.length
+	tl_renderWeek(TL_WEEKS[TL_WEEK_INDEX],TL_LABELS)
+}
+
+function tl_nextWeek(){
+	if(!TL_WEEKS.length)return
+	TL_WEEK_INDEX=(TL_WEEK_INDEX+1)%TL_WEEKS.length
+	tl_renderWeek(TL_WEEKS[TL_WEEK_INDEX],TL_LABELS)
+}
+
+async function renderBangDiem(){
+	const box=document.getElementById("svContent")
+	document.getElementById("timelineControls").style.display="none"
+	document.getElementById("svFilters").style.display="none"
+	const csv=await fetch(SHEET_BANG_URL,{cache:"no-store"}).then(r=>r.text())
+	const m=parseCSV(csv)
+	if(!m.length){box.innerHTML="<p>Không có dữ liệu</p>";return}
+	box.style.display="block"
+	box.innerHTML=renderTable(m)
+}
+
+function switchSVTab(key){
+  document.querySelectorAll(".sv-tab").forEach(b=>b.classList.toggle("active",b.dataset.view===key))
+  const embed = document.getElementById('proj-score-embed')
+  if (key==="bun"){
+    if(embed) embed.style.display="none"
+    renderBunCa()
+  } else if (key==="timeline"){
+    if(embed) embed.style.display="none"
+    renderTimeline()
+  } else {
+    renderBangDiem()
+  }
+}
+
+function showScoreEmbed(){
+  const embed = document.getElementById('proj-score-embed');
+  const tl = document.getElementById('timelineControls');
+  const sv = document.getElementById('svContent');
+  const sf = document.getElementById('svFilters');
+  if (tl) tl.style.display = 'none';
+  if (sf) sf.style.display = 'none';
+  if (sv) sv.style.display = 'none';
+  if (embed) embed.style.display = 'block';
+}
+
+function hideScoreEmbed(){
+  const embed = document.getElementById('proj-score-embed');
+  if (embed) embed.style.display = 'none';
+}
+
+document.querySelector(".sv-tabs")?.addEventListener("click",e=>{
+  const btn=e.target.closest(".sv-tab")
+  if(!btn) return
+  document.querySelectorAll(".sv-tab").forEach(b=>b.classList.toggle("active",b===btn))
+  const view=btn.dataset.view
+  const tl=document.getElementById("timelineControls")
+  const sv=document.getElementById("svContent")
+  const sf=document.getElementById("svFilters")
+  const embed=document.getElementById("proj-score-embed")
+  if(view==="timeline"){
+    if(embed) embed.style.display="none"
+    tl.style.display="grid"
+    if(sv) sv.style.display="none"
+    if(sf) sf.style.display="none"
+    renderTimeline()
+  }else if(view==="bun"){
+    if(embed) embed.style.display="none"
+    tl.style.display="none"
+    if(sv) sv.style.display="block"
+    if(sf) sf.style.display="flex"
+    renderBunCa()
+  }else if(view==="bang"){
+    tl.style.display="none"
+    if(sv) sv.style.display="none"
+    if(sf) sf.style.display="none"
+    if(embed) embed.style.display="block"
+  }
+})
+
+document.addEventListener("DOMContentLoaded",()=>{
+	document.getElementById("tlToday")?.addEventListener("click",tl_goToday)
+	document.getElementById("tlPrevWeek")?.addEventListener("click",tl_prevWeek)
+	document.getElementById("tlNextWeek")?.addEventListener("click",tl_nextWeek)
+	document.getElementById("tlAuthor")?.addEventListener("change",()=>{
+		const pack=TL_WEEKS[TL_WEEK_INDEX]||TL_ALL
+		tl_renderWeek(pack,TL_LABELS)
+	})
+	document.getElementById("tlToggle")?.addEventListener("click",()=>{
+		const sb=document.querySelector(".tl-sidebar")
+		const wrap=document.getElementById("timelineControls")
+		sb?.classList.toggle("collapsed")
+		wrap?.classList.toggle("is-collapsed")
+	})
+	document.getElementById("svSearch")?.addEventListener("input",filterBun)
+	document.getElementById("svQuick")?.addEventListener("click",e=>{
+		if(e.target.tagName!=="BUTTON")return
+		e.currentTarget.querySelectorAll("button").forEach(x=>x.classList.remove("active"))
+		e.target.classList.add("active")
+		filterBun()
+	})
+	const toggle=document.getElementById("project-info-toggle")
+	if(toggle){
+		toggle.addEventListener("click",()=>{
+			const viewer=document.getElementById("sheet-viewer")
+			const open=viewer.style.display!=="none"
+			viewer.style.display=open?"none":"block"
+			toggle.classList.toggle("active",!open)
+			if(!open&&!viewer.dataset.loaded){switchSVTab("bun");viewer.dataset.loaded="1"}
+		})
+	}
+})

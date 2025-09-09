@@ -5,7 +5,7 @@
 	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 	<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-check-compat.js"></script>
-	<script src="js/index.js"></script>
+	<script src="js/index.js" defer></script>
 	<link rel="icon" href="favicon.ico" type="image/x-icon" />
 	<meta charset="utf-8"/>
 	<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -16,6 +16,14 @@
 <body>
 	<h1>Kho game hê hê<br/>Phong tạo</h1>
 	
+	<div class="head-banner">
+		<div class="head-marquee" id="headMarquee">
+			<span>Muahahahahahahahahahaha! Trời lạnh rồi, cho nole đi cày thôi. Project Noletuban bắt đầu từ ngày 16/9 - 20/10</span>
+			<span>Muahahahahahahahahahaha! Trời lạnh rồi, cho nole đi cày thôi. Project Noletuban bắt đầu từ ngày 16/9 - 20/10</span>
+			<span>Muahahahahahahahahahaha! Trời lạnh rồi, cho nole đi cày thôi. Project Noletuban bắt đầu từ ngày 16/9 - 20/10</span>
+		</div>
+	</div>
+
 	<div id="login-modal">
 	<h2>Đăng nhập để lưu điểm</h2>
 		<input id="code-input" placeholder="Nhập code chung = 'TCCT'" type="text"/>
@@ -34,8 +42,62 @@
 	<div class="scoreboard-container" style="display: none;">
 		<button onclick="showPersonalScores()">Bảng điểm cá nhân</button>
 		<button onclick="showLeaderboard()">Bảng kỷ lục</button>
+		<button id="project-info-toggle" style="background:#ea4236;">Thông tin Project</button>
 	</div>
 	
+	<div id="sheet-viewer" style="display:none">
+		<div class="sv-tabs">
+			<button class="sv-tab active" data-view="bun">Bún cá</button>
+			<button class="sv-tab" data-view="timeline">Timeline</button>
+			<button class="sv-tab" data-view="bang">Bảng điểm</button>
+		</div>
+
+		<div class="sv-filters" id="svFilters" style="display:none">
+			<input id="svSearch" class="sv-input" placeholder="Tìm: bún, cá, nick, tag...">
+			<div class="sv-quick" id="svQuick">
+				<button data-q="" class="active">Tất cả</button>
+				<button data-q="Lá lành">Lá lành</button>
+				<button data-q="Lá rách">Lá rách</button>
+				<button data-q="Lá nát">Lá nát</button>
+			</div>
+		</div>
+		
+		<div id="timelineControls" class="tl-wrap" style="display:none">
+			<div id="tlBoard" class="tl-board"></div>
+
+			<aside class="tl-sidebar">
+				<button id="tlToggle">☰</button>
+
+				<div class="tl-row">
+					<button id="tlToday">Hôm nay</button>
+				</div>
+
+				<div class="tl-field">
+					<label>Người đăng:</label>
+					<select id="tlAuthor"></select>
+				</div>
+
+				<div class="tl-row">
+					<button id="tlPrevWeek">Tuần trước</button>
+					<button id="tlNextWeek">Tuần sau</button>
+				</div>
+
+				<div class="tl-legend">
+					<div class="row"><span class="swatch sw-red"></span><span>Lá nát</span></div>
+					<div class="row"><span class="swatch sw-yellow"></span><span>Lá rách</span></div>
+				</div>
+			</aside>
+		</div>
+
+		<div id="proj-score-embed" class="board-embed" style="display:none">
+		  <div class="frame">
+			<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSNjq_x4gKdk_Ezru6lE9GGYzSrHQCeXxJeUmUrsz8B1y_Udu_hg1iO-XaM9pzD6yYBmjSV4oa_eZOV/pubhtml?widget=true&headers=false"></iframe>
+		  </div>
+		</div>
+
+		<div id="svContent"></div>
+	</div>
+
 	<div id="leaderboard-section" style="display: none;">
 	<div class="tab-group-wrapper">
 	<button class="tab-group-btn left" onclick="switchTabPage(-1)">‹</button>
