@@ -94,6 +94,21 @@
 		"image": "img/07.jpg"
 	},
 	{
+		"id": "TCG-JS-08",
+		"name": "Thạch Bất Chuyển",
+		"char": "Trương Tân Kiệt",
+		"main": 7,
+		"support": 1,
+		"describe": "Khi nhân vật này là bài tẩy, 2 lá trên cùng của bộ bài cũng được xem là nhân vật hỗ trợ.",
+		"skill": {
+			"trigger": "bottom",
+			"actions": [
+				{ "action": "support_from_deck_top", "target": "self", "amount": 2 }
+			]
+		},
+		"image": "img/08.jpg"
+	},
+	{
 		"id": "TCG-JS-09",
 		"name": "Nhất Diệp Chi Thu",
 		"char": "Tôn Tường",
@@ -122,6 +137,106 @@
 		"image": "img/10.jpg"
 	},
 	{
+		"id": "TCG-JS-11",
+		"name": "Mộc Ân",
+		"char": "Cao Anh Kiệt",
+		"main": 4,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ 'Vương Bất Lưu Hành', điểm hỗ trợ +2.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-05" },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 2 }]
+		},
+		"image": "img/11.jpg"
+	},
+	{
+		"id": "TCG-JS-12",
+		"name": "Hải Vô Lượng",
+		"char": "Phương Duệ",
+		"main": 7,
+		"support": 1,
+		"describe": "Khi nhân vật này là chiến tướng, sau khi đối thủ xác nhận số lượng bài tẩy, bạn có thể xem tất cả bài tẩy của họ.",
+		"skill": {
+			"trigger": "main",
+			"actions": [{ "action": "reveal_bottom_cards", "target": "opponent" }]
+		},
+		"image": "img/12.jpg"
+	},
+	{
+		"id": "TCG-JS-13",
+		"name": "Phong Thành Yên Vũ",
+		"char": "Sở Vân Tú",
+		"main": 7,
+		"support": 1,
+		"describe": "Khi nhân vật này là chiến tướng, nếu đây là lượt đầu tiên của ván đấu, điểm chiến tướng +1.",
+		"skill": {
+			"trigger": "main",
+			"condition": { "isFirstTurn": true },
+			"actions": [{ "action": "add_main", "target": "self", "amount": 1 }]
+		},
+		"image": "img/13.jpg"
+	},
+	{
+		"id": "TCG-JS-14",
+		"name": "Phùng Sơn Quỷ Khấp",
+		"char": "Lý Hiên",
+		"main": 7,
+		"support": 1,
+		"describe": "Khi nhân vật này là chiến tướng, nếu đây là nhân vật cuối cùng của bạn, rút 2 thẻ.",
+		"skill": {
+			"trigger": "main",
+			"condition": { "isLastCharacter": true },
+			"actions": [{ "action": "draw", "target": "self", "amount": 2 }]
+		},
+		"image": "img/14.jpg"
+	},
+	{
+		"id": "TCG-JS-15",
+		"name": "Sinh Linh Diệt",
+		"char": "Tiêu Thời Khâm",
+		"main": 6,
+		"support": 1,
+		"describe": "Khi nhân vật này là chiến tướng, nếu đối thủ đã thắng 2 lần, điểm chiến tướng +2.",
+		"skill": {
+			"trigger": "main",
+			"condition": { "opponentWinsAtLeast": 2 },
+			"actions": [{ "action": "add_main", "target": "self", "amount": 2 }]
+		},
+		"image": "img/15.jpg"
+	},
+	{
+		"id": "TCG-JS-16",
+		"name": "Đường Tam Đả",
+		"char": "Đường Hạo",
+		"main": 6,
+		"support": 1,
+		"describe": "Khi nhân vật này là chiến tướng, nếu đây là lượt đầu tiên của ván đấu, rút 1 thẻ.",
+		"skill": {
+			"trigger": "main",
+			"condition": { "isFirstTurn": true },
+			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+		},
+		"image": "img/16.jpg"
+	},
+	{
+		"id": "TCG-JS-17",
+		"name": "Một Tấc Tro",
+		"char": "Kiều Nhất Phàm",
+		"main": 5,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ 'Quân Mạc Tiếu', bạn chọn 1 lá bài tẩy của mình bỏ vào khu bỏ bài rồi rút 2 thẻ.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-01" },
+			"actions": [
+				{ "action": "discard_from_bottom", "target": "self", "amount": 1 },
+				{ "action": "draw", "target": "self", "amount": 2 }
+			]
+		},
+		"image": "img/17.jpg"
+	},
+	{
 		"id": "TCG-JS-18",
 		"name": "Hàn Yên Nhu",
 		"char": "Đường Nhu",
@@ -134,6 +249,20 @@
 			"actions": [{ "action": "add_support", "target": "self", "amount": 1 }]
 		},
 		"image": "img/18.jpg"
+	},
+	{
+		"id": "TCG-JS-19",
+		"name": "Lưu Vân",
+		"char": "Lư Hãn Văn",
+		"main": 6,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ 'Sách Khắc Tát Nhĩ', điểm hỗ trợ +2.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-06" },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 2 }]
+		},
+		"image": "img/19.jpg"
 	},
 	{
 		"id": "TCG-JS-20",
@@ -149,6 +278,109 @@
 		"image": "img/20.jpg"
 	},
 	{
+		"id": "TCG-JS-21",
+		"name": "Tay Nhỏ Lạnh Giá",
+		"char": "An Văn Dật",
+		"main": 5,
+		"support": 3,
+		"describe": "Khi nhân vật này là chiến tướng, đổi vị trí với một lá 'Quân Mạc Tiếu' bạn đã thắng.",
+		"skill": {
+			"trigger": "main",
+			"actions": [{ "action": "swap_with_won_card", "target": "self", "card_id": "TCG-JS-01" }]
+		},
+		"image": "img/21.jpg"
+	},
+	{
+		"id": "TCG-JS-22",
+		"name": "Muội Quang",
+		"char": "La Tập",
+		"main": 4,
+		"support": 3,
+		"describe": "Khi nhân vật này là bài tẩy, điểm hỗ trợ -3. Sau đó rút 3 thẻ.",
+		"skill": {
+			"trigger": "bottom",
+			"actions": [
+				{ "action": "add_support", "target": "self", "amount": -3 },
+				{ "action": "draw", "target": "self", "amount": 3 }
+			]
+		},
+		"image": "img/22.jpg"
+	},
+	{
+		"id": "TCG-JS-23",
+		"name": "Vô Lãng",
+		"char": "Giang Ba Đào",
+		"main": 5,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ, nếu số bài trong khu bỏ bài của đối thủ nhiều hơn bạn, rút 1 thẻ.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "opponentDiscardMore": true },
+			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+		},
+		"image": "img/23.jpg"
+	},
+	{
+		"id": "TCG-JS-24",
+		"name": "Bánh Bao Xâm Lấn",
+		"char": "Bao Vinh Hưng",
+		"main": 6,
+		"support": 3,
+		"describe": "Khi nhân vật này hỗ trợ 'Quân Mạc Tiếu', xem 1 lá trên cùng bộ bài đối thủ rồi đặt lại.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-01" },
+			"actions": [{ "action": "peek_opponent_deck_top", "target": "opponent", "amount": 1 }]
+		},
+		"image": "img/24.jpg"
+	},
+	{
+		"id": "TCG-JS-25",
+		"name": "Nghênh Phong Bố Trận",
+		"char": "Ngụy Sâm",
+		"main": 6,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ 'Quân Mạc Tiếu', bạn rút 1 thẻ.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-01" },
+			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+		},
+		"image": "img/25.jpg"
+	},
+	{
+		"id": "TCG-JS-26",
+		"name": "Thương Lâm Đạn Vũ",
+		"char": "Trịnh Hiên",
+		"main": 5,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ 'Sách Khắc Tát Nhĩ', bạn có thể bỏ 1 thẻ để điểm hỗ trợ -3 và rút 2 thẻ.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-06" },
+			"actions": [
+				{ "action": "discard_from_hand_top", "target": "self", "amount": 1 },
+				{ "action": "add_support", "target": "self", "amount": -3 },
+				{ "action": "draw", "target": "self", "amount": 2 }
+			]
+		},
+		"image": "img/26.jpg"
+	},
+	{
+		"id": "TCG-JS-27",
+		"name": "Linh Hồn Ngữ Giả",
+		"char": "Từ Cảnh Hi",
+		"main": 4,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ, nếu số thẻ trên tay bạn nhiều hơn đối thủ, điểm hỗ trợ +2.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "handMoreThanOpponent": true },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 2 }]
+		},
+		"image": "img/27.jpg"
+	},
+	{
 		"id": "TCG-JS-28",
 		"name": "Quỷ Khắc",
 		"char": "Ngô Vũ Sách",
@@ -161,6 +393,48 @@
 			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
 		},
 		"image": "img/28.jpg"
+	},
+	{
+		"id": "TCG-JS-29",
+		"name": "Thanh Chi Khu",
+		"char": "Cái Tài Tiệp",
+		"main": 5,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ 'Phùng Sơn Quỷ Khấp', điểm hỗ trợ +2.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-14" },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 2 }]
+		},
+		"image": "img/29.jpg"
+	},
+	{
+		"id": "TCG-JS-30",
+		"name": "Trường Hà Lạc Nhật",
+		"char": "Tống Kỳ Anh",
+		"main": 6,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ 'Đại Mạc Cô Yên', 1 lá trên cùng bộ bài của bạn cũng được tính là nhân vật hỗ trợ.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-04" },
+			"actions": [{ "action": "support_from_deck_top", "target": "self", "amount": 1 }]
+		},
+		"image": "img/30.jpg"
+	},
+	{
+		"id": "TCG-JS-31",
+		"name": "Lãnh Ám Lôi",
+		"char": "Lâm Kính Ngôn",
+		"main": 6,
+		"support": 3,
+		"describe": "Khi nhân vật này hỗ trợ 'Đại Mạc Cô Yên', điểm hỗ trợ +1.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-04" },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 1 }]
+		},
+		"image": "img/31.jpg"
 	},
 	{
 		"id": "TCG-JS-32",
@@ -190,6 +464,64 @@
 		"image": "img/33.jpg"
 	},
 	{
+		"id": "TCG-JS-34",
+		"name": "Phi Đao Kiếm",
+		"char": "Lưu Tiểu Biệt",
+		"main": 6,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ 'Vương Bất Lưu Hành', điểm hỗ trợ +3. Sau đó đối thủ phải bỏ 1 thẻ.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "main_id": "TCG-JS-05" },
+			"actions": [
+				{ "action": "add_support", "target": "self", "amount": 3 },
+				{ "action": "discard_from_hand_top", "target": "opponent", "amount": 1 }
+			]
+		},
+		"image": "img/34.jpg"
+	},
+	{
+		"id": "TCG-JS-35",
+		"name": "Đông Trùng Hạ Thảo",
+		"char": "Viên Bách Thanh",
+		"main": 6,
+		"support": 1,
+		"describe": "Khi nhân vật này là bài tẩy, nếu chiến tướng là 'Vương Bất Lưu Hành', điểm hỗ trợ +1.",
+		"skill": {
+			"trigger": "bottom",
+			"condition": { "main_id": "TCG-JS-05" },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 1 }]
+		},
+		"image": "img/35.jpg"
+	},
+	{
+		"id": "TCG-JS-36",
+		"name": "Loan Lộ Âm Trần",
+		"char": "Đới Nghiên Kỳ",
+		"main": 5,
+		"support": 2,
+		"describe": "Khi nhân vật này hỗ trợ, nếu đối thủ đã thắng 2 lần, điểm hỗ trợ +2.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "opponentWinsAtLeast": 2 },
+			"actions": [{ "action": "add_support", "target": "self", "amount": 2 }]
+		},
+		"image": "img/36.jpg"
+	},
+	{
+		"id": "TCG-JS-37",
+		"name": "Ám Vô Thiên Nhật",
+		"char": "Lưu Hạo",
+		"main": 5,
+		"support": 3,
+		"describe": "Khi nhân vật này là chiến tướng, trong lượt này cả hai người chơi đều không thể rút bài.",
+		"skill": {
+			"trigger": "main",
+			"actions": [{ "action": "ban_draw", "target": "both" }]
+		},
+		"image": "img/37.jpg"
+	},
+	{
 		"id": "TCG-JS-38",
 		"name": "Lạc Hoa Lang Tạ",
 		"char": "Vu Phong",
@@ -202,6 +534,33 @@
 			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
 		},
 		"image": "img/38.jpg"
+	},
+	{
+		"id": "TCG-JS-39",
+		"name": "Hoa Phồn Tự Cẩm",
+		"char": "Trâu Viễn",
+		"main": 5,
+		"support": 1,
+		"describe": "Khi nhân vật này hỗ trợ, nếu đối thủ đã thắng 2 lần, bạn rút 1 thẻ.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "opponentWinsAtLeast": 2 },
+			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+		},
+		"image": "img/39.jpg"
+	},
+	{
+		"id": "TCG-JS-40",
+		"name": "Lâm Ám Thảo Kinh",
+		"char": "Lý Hoa",
+		"main": 5,
+		"support": 3,
+		"describe": "Khi nhân vật này hỗ trợ, nếu đây là lượt đầu tiên của ván đấu, điểm chiến tướng +1.",
+		"skill": {
+			"trigger": "support",
+			"condition": { "isFirstTurn": true },
+			"actions": [{ "action": "add_main", "target": "self", "amount": 1 }]
+		},
+		"image": "img/40.jpg"
 	}
-
 ]
