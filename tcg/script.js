@@ -687,12 +687,7 @@ function ensureReadyButton() {
 	if (document.querySelector('.prep-ready')) return
 	const btn = document.createElement('button')
 	btn.textContent = 'Sẵn sàng'
-	btn.className = 'prep-ready'
-	btn.style.position = 'absolute'
-	btn.style.right = '12px'
-	btn.style.top = '50%'
-	btn.style.transform = 'translateY(-50%)'
-	btn.style.zIndex = '1200'
+	btn.className = `tcg-btn ready prep-ready ${G.role === 'player1' ? 'btn-p1' : 'btn-p2'}`
 	btn.addEventListener('click', onClickReadyPrep)
 	DOMC.play.appendChild(btn)
 }
@@ -818,11 +813,7 @@ function ensurePassButton() {
 	if (document.querySelector('.support-pass')) return
 	const btn = document.createElement('button')
 	btn.textContent = 'Dừng hỗ trợ'
-	btn.className = 'support-pass'
-	btn.style.position = 'absolute'
-	btn.style.right = '12px'
-	btn.style.bottom = '10%'
-	btn.style.zIndex = '1200'
+	btn.className = `tcg-btn pass support-pass ${G.role === 'player1' ? 'btn-p1' : 'btn-p2'}`
 	btn.addEventListener('click', () => endSupportPhase(G.role))
 	DOMC.play.appendChild(btn)
 }
@@ -861,8 +852,8 @@ async function playSupport(player, cardId, slot, source) {
 		counts[key] = (counts[key] || 0) + 1
 		await dbSet(['rooms', G.roomId, 'gameState', 'handSupportCount'], counts)
 	}
-	logStep(`${player === 'player1' ? 'P1' : 'P2'} ra hỗ trợ slot ${slot}: ${cObj?.name || cardId}`)
 	const cObj = cardById(cardId)
+	logStep(`${player === 'player1' ? 'P1' : 'P2'} ra hỗ trợ slot ${slot}: ${cObj?.name || cardId}`)
 	const ctx = buildCtx(player)
 	ctx.source = source
 	await applyCardSkill(cObj, TRIGGER_SUPPORT, ctx)

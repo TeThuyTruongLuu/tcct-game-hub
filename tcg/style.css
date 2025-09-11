@@ -315,3 +315,58 @@ body {
 .card-stack .card.support-active { 
   z-index: 999; 
 }
+
+.tcg-btn {
+  font-family: 'Quicksand', sans-serif;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 0.6rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tcg-btn.ready {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  color: white;
+}
+.tcg-btn.ready:hover {
+  background: linear-gradient(135deg, #66bb6a, #388e3c);
+}
+
+.tcg-btn.pass {
+  background: linear-gradient(135deg, #f44336, #c62828);
+  color: white;
+}
+.tcg-btn.pass:hover {
+  background: linear-gradient(135deg, #ef5350, #d32f2f);
+}
+
+.btn-p1.ready {
+  position: absolute;
+  top: 42%;
+  right: 2%;
+  z-index: 1500;
+}
+
+.btn-p1.pass {
+  position: absolute;
+  top: 42%;
+  right: 15%;
+  z-index: 1500;
+}
+
+.btn-p2.ready {
+  position: absolute;
+  bottom: 42%;
+  left: 2%;
+  z-index: 1500;
+}
+
+.btn-p2.pass {
+  position: absolute;
+  bottom: 42%;
+  left: 15%;
+  z-index: 1500;
+}
