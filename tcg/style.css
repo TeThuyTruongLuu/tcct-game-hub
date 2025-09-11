@@ -299,7 +299,7 @@ body {
   background: rgba(0, 0, 0, 0.9);
   color: white;
   border-radius: 0.4rem;
-  z-index: 30;
+  z-index: 1200;
 }
 
 .card-info.p1 {
@@ -310,4 +310,8 @@ body {
 .card-info.p2 {
   top: calc(var(--card-width) + 10vw);
   left: 30%;
+}
+
+.card-stack .card.support-active { 
+  z-index: 999; 
 }
