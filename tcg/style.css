@@ -316,6 +316,30 @@ body {
   z-index: 999; 
 }
 
+.card-hand .card.to-discard img {
+	outline: 3px solid #ef4444;
+	outline-offset: -3px;
+	transition: outline-color .15s ease, outline-offset .15s ease;
+}
+
+.card-hand.discard-mode .card {
+	cursor: pointer;
+}
+
+.turn-status {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 2px 8px;
+  border-radius: 0.6rem;
+  font-weight: 600;
+  font-size: 14px;
+  z-index: 10;
+  transition: all 0.3s ease;
+  color: white;
+}
+
 .tcg-btn {
   font-family: 'Quicksand', sans-serif;
   padding: 0.5rem 1.1rem;

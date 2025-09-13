@@ -75,8 +75,8 @@
 		"describe": "Khi nhân vật này là chiến tướng, bạn rút 2 thẻ. Sau đó bỏ 1 thẻ trên tay.",
 		"skill": {
 			"trigger": "main",
-			"actions": [{ "action": "draw", "target": "self", "amount": 2 },
-			{ "action": "discard_from_hand_top", "target": "self", "amount": 1 }]
+			"actions": [{ "action": "draw_manual", "target": "self", "amount": 2 },
+			{ "action": "discard_select", "target": "self", "amount": 1 }]
 		},
 		"image": "img/06.jpg"
 	},
@@ -89,7 +89,7 @@
 		"describe": "Khi nhân vật này là chiến tướng, đưa 2 lá bài đầu từ tay đối thủ vào khu bỏ bài.",
 		"skill": {
 			"trigger": "main",
-			"actions": [{ "action": "discard_from_hand_top", "target": "opponent", "amount": 2 }]
+			"actions": [{ "action": "discard_from_opponent_hand_select", "target": "opponent", "amount": 2 }]
 		},
 		"image": "img/07.jpg"
 	},
@@ -187,7 +187,7 @@
 		"skill": {
 			"trigger": "main",
 			"condition": { "isLastCharacter": true },
-			"actions": [{ "action": "draw", "target": "self", "amount": 2 }]
+			"actions": [{ "action": "draw_manual", "target": "self", "amount": 2 }]
 		},
 		"image": "img/14.jpg"
 	},
@@ -215,7 +215,7 @@
 		"skill": {
 			"trigger": "main",
 			"condition": { "isFirstTurn": true },
-			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+			"actions": [{ "action": "draw_manual", "target": "self", "amount": 1 }]
 		},
 		"image": "img/16.jpg"
 	},
@@ -231,7 +231,7 @@
 			"condition": { "main_id": "TCG-JS-01" },
 			"actions": [
 				{ "action": "discard_from_bottom", "target": "self", "amount": 1 },
-				{ "action": "draw", "target": "self", "amount": 2 }
+				{ "action": "draw_manual", "target": "self", "amount": 2 }
 			]
 		},
 		"image": "img/17.jpg"
@@ -301,7 +301,7 @@
 			"trigger": "bottom",
 			"actions": [
 				{ "action": "add_support", "target": "self", "amount": -3 },
-				{ "action": "draw", "target": "self", "amount": 3 }
+				{ "action": "draw_manual", "target": "self", "amount": 3 }
 			]
 		},
 		"image": "img/22.jpg"
@@ -316,7 +316,7 @@
 		"skill": {
 			"trigger": "support",
 			"condition": { "opponentDiscardMore": true },
-			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+			"actions": [{ "action": "draw_manual", "target": "self", "amount": 1 }]
 		},
 		"image": "img/23.jpg"
 	},
@@ -344,7 +344,7 @@
 		"skill": {
 			"trigger": "support",
 			"condition": { "main_id": "TCG-JS-01" },
-			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+			"actions": [{ "action": "draw_manual", "target": "self", "amount": 1 }]
 		},
 		"image": "img/25.jpg"
 	},
@@ -361,7 +361,7 @@
 			"actions": [
 				{ "action": "discard_from_hand_top", "target": "self", "amount": 1 },
 				{ "action": "add_support", "target": "self", "amount": -3 },
-				{ "action": "draw", "target": "self", "amount": 2 }
+				{ "action": "draw_manual", "target": "self", "amount": 2 }
 			]
 		},
 		"image": "img/26.jpg"
@@ -390,7 +390,7 @@
 		"skill": {
 			"trigger": "support",
 			"condition": { "main_name": "Phùng Sơn Quỷ Khấp" },
-			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+			"actions": [{ "action": "draw_manual", "target": "self", "amount": 1 }]
 		},
 		"image": "img/28.jpg"
 	},
@@ -459,7 +459,7 @@
 		"skill": {
 			"trigger": "support",
 			"condition": { "main_id": "TCG-JS-05" },
-			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+			"actions": [{ "action": "draw_manual", "target": "self", "amount": 1 }]
 		},
 		"image": "img/33.jpg"
 	},
@@ -531,7 +531,7 @@
 		"skill": {
 			"trigger": "main",
 			"condition": { "opponentWinsAtLeast": 2 },
-			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+			"actions": [{ "action": "draw_manual", "target": "self", "amount": 1 }]
 		},
 		"image": "img/38.jpg"
 	},
@@ -545,7 +545,7 @@
 		"skill": {
 			"trigger": "support",
 			"condition": { "opponentWinsAtLeast": 2 },
-			"actions": [{ "action": "draw", "target": "self", "amount": 1 }]
+			"actions": [{ "action": "draw_manual", "target": "self", "amount": 1 }]
 		},
 		"image": "img/39.jpg"
 	},
