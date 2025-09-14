@@ -186,73 +186,78 @@ const questionsLevel2 = [
         correct: [2]
     },
     {
-        question: "Kỹ năng nào không phải của Pháp Sư Nguyên Tố?",
-        options: ["Liệt Diễm Xung Kích", "Bình Thủy Tinh Dung Nham", "Thiên Lôi Địa Hỏa"],
-        correct: [1]
-    },
-    {
-        question: "Acc nào là Ma Kiếm Sĩ?",
-        options: ["Thiều Quang Hoán", "Vô Lãng", "Quỷ Khắc"],
-        correct: [1]
-    },
-    {
-        question: "Bạch Thứ hiện cầm acc tên gì tại 301?",
-        options: ["Bough", "Bàn Sơn", "Triều Tịch"],
-        correct: [2]
-    },
-    {
-        question: "Ai không thuộc Thế hệ mới?",
-        options: ["Mạnh Vĩnh Minh", "Phương Học Tài", "Tằng Thăng Hà", "Giả Hưng", "Vương Trạch"],
-        correct: [1]
-    },
-    {
-        question: "Ai không thuộc Thế hệ Hoàng kim?",
-        options: ["Chu Trạch Khải", "Điền Sâm", "Hoàng Thiếu Thiên", "Sở Vân Tú", "Lý Diệc Huy"],
-        correct: [0]
-    },
-    {
-        question: "Thông tin nào sau đây sai về Triệu Dương?",
+        question: "Lộ trình chuyển nghề 3 lần của Phương Duệ không theo thứ tự nào sau đây?",
         options: [
-            "Thuộc chiến đội Lâm Hải, có lên sân mùa 10",
-            "Trúng cử đội hình ngôi sao 7 năm liên tục",
-            "Chưa từng góp mặt ở vòng chung kết"
-        ],
-        correct: [0]
-    },
-    {
-        question: "Mũi Tên Thiêu Đốt có lửa màu gì?",
-        options: ["Đỏ", "Đen", "Tím", "Nâu", "Xanh"],
+			"Khí công sư -> lưu manh -> đạo tặc -> khí công sư",
+			"Khí công sư -> đạo tặc -> lưu manh -> khí công sư",
+			"Lam Vũ -> trại huấn luyện Hô Khiếu -> chiến đội Hô Khiếu -> Hưng Hân",
+		],
         correct: [1]
     },
     {
-        question: "Lẩu 9 ngăn là đặc trưng của vùng nào?",
-        options: ["Tô Châu", "Trùng Khánh", "Tây An"],
+        question: "Máy chủ 10 của Vinh Quang mở cửa vào năm nào?",
+        options: ["2021", "2022", "2023"],
         correct: [1]
     },
     {
-        question: "Chiến đội có biểu tượng ngọn lửa trong logo?",
-        options: ["Hưng Hân", "Hô Khiếu", "Lôi Đình"],
+        question: "Tôn Triết Bình giải nghệ ở mùa giải nào?",
+        options: ["Mùa 2", "Mùa 3", "Mùa 4", "Mùa 5"],
+        correct: [3]
+    },
+    {
+        question: "Mùa giải thứ 7, ai là người mới tốt nhất?",
+        options: ["Tôn Tường", "Đường Hạo", "Lưu Tiểu Biệt", "Vu Phong"],
         correct: [0]
     },
     {
-        question: "Hạ Trọng Thiên là ai?",
+        question: "Ai dưới đây thuộc cung Bảo Bình?",
+        options: ["An Văn Dật", "Bạch Ngôn Phi", "Lư Hãn Văn", "Bánh Bao", "Phương Thế Kính"],
+        correct: [3]
+    },
+    {
+        question: "Thông tin nào sau đây sai về Ngụy Sâm?",
         options: [
-            "Bán trà dạo trên đường",
-            "Thành viên Nghĩa Trảm",
-            "Ông chủ Gia Thế",
-            "Thành viên chiến đội Gia Thế"
+            "Là đội trưởng đầu tiên của Lam Vũ",
+            "Chơi nghề Thuật Sĩ",
+            "Giải nghệ sau mùa 3",
+			"Sáng lập công hội Lam Khê Các"
         ],
         correct: [2]
     },
     {
-        question: "Tác giả Toàn Chức Cao Thủ là?",
-        options: ["Hồ Diệp Lam", "Hồ Điệp Lam", "Hu Di Lam"],
+        question: "Kỹ năng nào sau đây không giúp nhân vật bay lên?",
+        options: ["Chong Chóng Máy", "Đôi Cánh Thiên Sứ", "Gió Cuốn Mây Bay", "Điều Khiển Chổi"],
+        correct: [2]
+    },
+    {
+        question: "Hư Không lọt top 8 bao nhiêu lần trong tổng 9 mùa giải?",
+        options: ["6", "7", "8", "9"],
         correct: [1]
     },
     {
-        question: "Ai là đội trưởng chiến đội Lam Vũ?",
-        options: ["Dụ Văn Châu", "Chu Trạch Khải", "Tôn Triết Bình", "Diệp Tu"],
+        question: "Trung tâm thể thao Olympic Nam Kinh là sân nhà của chiến đội nào?",
+        options: ["Hô Khiếu", "Lôi Đình", "Ba Lẻ Một", "Nghĩa Trảm"],
         correct: [0]
+    },
+    {
+        question: "Tên acc của ai sau đây không có bốn chữ?",
+        options: [
+            "Lý Hoa",
+            "Điền Sâm",
+            "Ngô Tuyết Phong",
+            "Lữ Bạc Viễn"
+        ],
+        correct: [3]
+    },
+    {
+        question: "'2025, hẹn gặp nhau ở Zurich' đề cập đến sự kiện nào diễn ra năm nay?",
+        options: ["Giải Vinh Quang Thế giới", "Ngày kết thúc truyện", "Đến lúc xách vali lên và đi rồi"],
+        correct: [0]
+    },
+    {
+        question: "Mỗi mùa giải sẽ có tổng cộng bao nhiêu đội tham gia?",
+        options: ["8", "16", "18", "20"],
+        correct: [3]
     }
 ];
 
