@@ -1,18 +1,14 @@
-@font-face {
-    font-family: 'AmpleSoft';
-    src: url('../css/fonts/AmpleSoft.ttf') format('truetype');
-}
-
 body {
     display: flex;
     flex-direction: column;
     align-items: center;
     background: #f5deb3;
-    font-family: AmpleSoft;
+    font-family: 'Quicksand', sans-serif;
 }
 
 h1 {
     margin-bottom: 20px;
+	font-weight: bold;
 }
 
 .game-board {
