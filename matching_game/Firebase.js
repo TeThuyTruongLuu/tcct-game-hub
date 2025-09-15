@@ -186,12 +186,12 @@ function compareTimeStrings(timeA, timeB) {
 
 // Hàm tính điểm dựa trên thứ hạng
 function getPointsForRank(rank) {
-    if (rank === 1) return 10;
-    else if (rank === 2) return 9;
-    else if (rank === 3) return 8;
-    else if (rank <= 5) return 7;
-    else if (rank <= 10) return 6;
-    return 5;
+    if (rank === 1) return 100;
+    else if (rank === 2) return 90;
+    else if (rank === 3) return 80;
+    else if (rank <= 5) return 70;
+    else if (rank <= 10) return 60;
+    return 50;
 }
 
 function convertTimeToSeconds(timeString) {
