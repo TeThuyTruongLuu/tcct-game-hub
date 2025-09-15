@@ -391,71 +391,82 @@ async function showLeaderboard() {
 
 
 async function updateTotalScore() {
-  const username = localStorage.getItem("username");
-  const totalScoreElement = document.getElementById("user-points");
-  const projectScoreElement = document.getElementById("project-score");
-  const projectPointsRow = document.getElementById("project-points");
-  const projectNote = document.getElementById("project-note");
-  if (!username) {
-    totalScoreElement.innerText = "N/A";
-    if (projectPointsRow) projectPointsRow.style.display = "none";
-    if (projectNote) projectNote.style.display = "none";
-    return;
-  }
-  let cachedScore = localStorage.getItem("totalScore");
-  if (cachedScore !== null && cachedScore !== "0") {
-    totalScoreElement.innerText = cachedScore;
-  } else {
-    totalScoreElement.innerText = "N/A";
-    localStorage.setItem("totalScore", "N/A");
-  }
-  if (!navigator.onLine) {
-    return;
-  }
-  const scoresRef = firebase.firestore().collection("userScores");
-  const q = scoresRef.where("username", "==", username);
-  try {
-    const querySnapshot = await q.get();
-    let totalScore = 0;
-    let projectScore = 0;
-    const weight = (game) => {
-      if (game === "Puzzle" || game === "2048") return 1 / 5;
-      if (game === "Nối hình" || game === "Sorting") return 1 / 4;
-      if (game === "battleship" || game === "Lật hình") return 1 / 3;
-      return 0;
-    };
-    if (querySnapshot.empty) {
-      totalScoreElement.innerText = "N/A";
-      localStorage.setItem("totalScore", "N/A");
-      if (projectPointsRow) projectPointsRow.style.display = "none";
-      if (projectNote) projectNote.style.display = "none";
-      return;
-    }
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      const sc = Number(data.score) || 0;
-      totalScore += sc;
-      projectScore += sc * weight(data.game);
-    });
-    if (totalScore === 0) {
-      totalScoreElement.innerText = "N/A";
-      localStorage.setItem("totalScore", "N/A");
-    } else {
-      totalScoreElement.innerText = totalScore;
-      localStorage.setItem("totalScore", totalScore);
-    }
-    projectScore = Math.round(projectScore);
-    if (projectPointsRow) {
-      projectPointsRow.style.display = "block";
-      projectScoreElement.innerText = projectScore > 0 ? projectScore : "N/A";
-    }
-    if (projectNote) projectNote.style.display = "block";
-    const userRef = firebase.firestore().collection("users").doc(username);
-    await userRef.set({ totalScore }, { merge: true });
-  } catch (error) {
-    console.error(error);
-    totalScoreElement.innerText = cachedScore || "N/A";
-  }
+	if (!firebase.apps.length) {
+		console.error("Firebase chưa khởi tạo")
+		return
+	}
+	const username = localStorage.getItem("username")
+	const totalScoreElement = document.getElementById("user-points")
+	if (!username) {
+		totalScoreElement.innerText = "N/A"
+		return
+	}
+	let cachedScore = localStorage.getItem("totalScore")
+	if (cachedScore !== null && cachedScore !== "0") {
+		totalScoreElement.innerText = cachedScore
+	} else {
+		totalScoreElement.innerText = "N/A"
+		localStorage.setItem("totalScore", "N/A")
+	}
+	if (!navigator.onLine) {
+		return
+	}
+	const scoresRef = firebase.firestore().collection("userScores")
+	const q = scoresRef.where("username", "==", username)
+	try {
+		const querySnapshot = await q.get()
+		let totalScore = 0
+		let projectScore = 0
+		if (querySnapshot.empty) {
+			totalScoreElement.innerText = "N/A"
+			localStorage.setItem("totalScore", "N/A")
+			return
+		}
+		querySnapshot.forEach((doc) => {
+			const data = doc.data()
+			const sc = Number(data.score) || 0
+			totalScore += sc
+			if (data.game === "2048" || data.game === "Puzzle") {
+				projectScore += sc / 3
+			} else if (data.game === "Nối hình" || data.game === "Sorting") {
+				projectScore += sc / 2
+			} else if (data.game === "battleship" || data.game === "Lật hình") {
+				projectScore += sc
+			}
+		})
+		if (totalScore === 0) {
+			totalScoreElement.innerText = "N/A"
+			localStorage.setItem("totalScore", "N/A")
+		} else {
+			totalScoreElement.innerText = totalScore
+			localStorage.setItem("totalScore", totalScore)
+		}
+		projectScore = Math.floor(projectScore / 10)
+		let projectRow = document.getElementById("project-points")
+		let noteRow = document.getElementById("project-note")
+		if (!projectRow) {
+			const p1 = document.createElement("p")
+			p1.className = "points"
+			p1.id = "project-points"
+			p1.innerHTML = `Điểm project noletuban: <span id="project-score">${projectScore}</span>`
+			totalScoreElement.parentElement.insertAdjacentElement("afterend", p1)
+			const p2 = document.createElement("p")
+			p2.id = "project-note"
+			p2.style.fontSize = "12px"
+			p2.style.opacity = ".8"
+			p2.innerText = "* Điểm này chưa tính điểm xếp hạng."
+			p1.insertAdjacentElement("afterend", p2)
+		} else {
+			document.getElementById("project-score").innerText = projectScore
+			projectRow.style.display = "block"
+			if (noteRow) noteRow.style.display = "block"
+		}
+		const userRef = firebase.firestore().collection("users").doc(username)
+		await userRef.set({ totalScore }, { merge: true })
+	} catch (error) {
+		console.error(error)
+		totalScoreElement.innerText = cachedScore || "N/A"
+	}
 }
 
 async function updateOldLeaderboardData() {
