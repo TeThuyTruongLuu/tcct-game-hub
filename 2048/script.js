@@ -535,7 +535,7 @@ function checkGameOver() {
 				stopTimer();
 				const minutes = Math.floor(timer / 60);
 				const seconds = timer % 60;
-                alert(`Hooray! Chúc mừng bồ tu thành chính quả 128 vẻ mặt sau ${formatTime(minutes)}:${formatTime(seconds)} bị bào mòn bởi tư bản!`);
+                alert(`Hooray! Chúc mừng bồ tu thành chính quả 2048 vẻ mặt sau ${formatTime(minutes)}:${formatTime(seconds)} bị bào mòn bởi tư bản!`);
 				saveScoreToDB("2048", playerScore);
                 restartGame();
                 return;
@@ -570,10 +570,10 @@ function canMove() {
 function checkWin() {
     for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col < gridSize; col++) {
-            if (grid[row][col] === 128) {  // Ô giá trị cao nhất (Testplay)
+            if (grid[row][col] === 2048) {
                 stopTimer();
-                alert(`🎉 Hooray! Chúc mừng bồ tu thành chính quả 128 vẻ mặt sau ${formatTime(Math.floor(timer / 60))}:${formatTime(timer % 60)} bị bào mòn bởi tư bản!`);
-				saveScoreToDB("2048", playerScore);
+                alert(`🎉 Hooray! Chúc mừng bồ tu thành chính quả 2048 sau ${formatTime(Math.floor(timer / 60))}:${formatTime(timer % 60)} bị bào mòn bởi tư bản!`);
+                saveScoreToDB("2048", playerScore);
                 restartGame();
                 return true;
             }
