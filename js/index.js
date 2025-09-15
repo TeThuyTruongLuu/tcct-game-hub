@@ -391,58 +391,71 @@ async function showLeaderboard() {
 
 
 async function updateTotalScore() {
-    const username = localStorage.getItem("username");
-    const totalScoreElement = document.getElementById("user-points");
-
-    if (!username) {
-        totalScoreElement.innerText = "N/A";
-        return;
+  const username = localStorage.getItem("username");
+  const totalScoreElement = document.getElementById("user-points");
+  const projectScoreElement = document.getElementById("project-score");
+  const projectPointsRow = document.getElementById("project-points");
+  const projectNote = document.getElementById("project-note");
+  if (!username) {
+    totalScoreElement.innerText = "N/A";
+    if (projectPointsRow) projectPointsRow.style.display = "none";
+    if (projectNote) projectNote.style.display = "none";
+    return;
+  }
+  let cachedScore = localStorage.getItem("totalScore");
+  if (cachedScore !== null && cachedScore !== "0") {
+    totalScoreElement.innerText = cachedScore;
+  } else {
+    totalScoreElement.innerText = "N/A";
+    localStorage.setItem("totalScore", "N/A");
+  }
+  if (!navigator.onLine) {
+    return;
+  }
+  const scoresRef = firebase.firestore().collection("userScores");
+  const q = scoresRef.where("username", "==", username);
+  try {
+    const querySnapshot = await q.get();
+    let totalScore = 0;
+    let projectScore = 0;
+    const weight = (game) => {
+      if (game === "Puzzle" || game === "2048") return 1 / 5;
+      if (game === "Nối hình" || game === "Sorting") return 1 / 4;
+      if (game === "battleship" || game === "Lật hình") return 1 / 3;
+      return 0;
+    };
+    if (querySnapshot.empty) {
+      totalScoreElement.innerText = "N/A";
+      localStorage.setItem("totalScore", "N/A");
+      if (projectPointsRow) projectPointsRow.style.display = "none";
+      if (projectNote) projectNote.style.display = "none";
+      return;
     }
-
-    let cachedScore = localStorage.getItem("totalScore");
-    if (cachedScore !== null && cachedScore !== "0") {
-        totalScoreElement.innerText = cachedScore;
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      const sc = Number(data.score) || 0;
+      totalScore += sc;
+      projectScore += sc * weight(data.game);
+    });
+    if (totalScore === 0) {
+      totalScoreElement.innerText = "N/A";
+      localStorage.setItem("totalScore", "N/A");
     } else {
-        totalScoreElement.innerText = "N/A";
-        localStorage.setItem("totalScore", "N/A");
+      totalScoreElement.innerText = totalScore;
+      localStorage.setItem("totalScore", totalScore);
     }
-
-    if (!navigator.onLine) {
-        return;
+    projectScore = Math.round(projectScore);
+    if (projectPointsRow) {
+      projectPointsRow.style.display = "block";
+      projectScoreElement.innerText = projectScore > 0 ? projectScore : "N/A";
     }
-
-    const scoresRef = firebase.firestore().collection("userScores");
-    const q = scoresRef.where("username", "==", username);
-
-    try {
-        const querySnapshot = await q.get();
-        let totalScore = 0;
-
-        if (querySnapshot.empty) {
-            totalScoreElement.innerText = "N/A";
-            localStorage.setItem("totalScore", "N/A");
-            return;
-        }
-
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            totalScore += data.score;
-        });
-
-        if (totalScore === 0) {
-            totalScoreElement.innerText = "N/A";
-            localStorage.setItem("totalScore", "N/A");
-        } else {
-            totalScoreElement.innerText = totalScore;
-            localStorage.setItem("totalScore", totalScore);
-        }
-
-        const userRef = firebase.firestore().collection("users").doc(username);
-        await userRef.set({ totalScore }, { merge: true });
-    } catch (error) {
-        console.error(error);
-        totalScoreElement.innerText = cachedScore || "N/A";
-    }
+    if (projectNote) projectNote.style.display = "block";
+    const userRef = firebase.firestore().collection("users").doc(username);
+    await userRef.set({ totalScore }, { merge: true });
+  } catch (error) {
+    console.error(error);
+    totalScoreElement.innerText = cachedScore || "N/A";
+  }
 }
 
 async function updateOldLeaderboardData() {
