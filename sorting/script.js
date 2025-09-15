@@ -297,7 +297,9 @@ function restoreProgressLocal() {
 }
 
 window.addEventListener("beforeunload", () => {
-	saveProgressLocal();
+	if (gameInProgress) {
+		saveProgressLocal();
+	}
 	if (totalScore > 0) saveScoreToFirebase(totalScore);
 });
 
