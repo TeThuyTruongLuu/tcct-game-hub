@@ -103,6 +103,13 @@ function createItemElement(type, shelfIndex, isBack = false) {
 	return item;
 }
 
+function removeOneFromFront(si, type) {
+	const arr = shelves[si].front;
+	const idx = arr.lastIndexOf(type);
+	if (idx !== -1) arr.splice(idx, 1);
+}
+
+
 let draggedItem = null;
 let sourceShelfIndex = null;
 
@@ -144,7 +151,7 @@ function touchEnd(e) {
 		const validItems = shelves[targetIndex].front.filter(it => it != null);
 		if (validItems.length < 3) {
 			const itemType = touchStartItem.dataset.type;
-			shelves[sourceShelfIndex].front = shelves[sourceShelfIndex].front.filter(it => it !== itemType);
+			removeOneFromFront(sourceShelfIndex, itemType);
 			shelves[targetIndex].front.push(itemType);
 			updateShelvesUI();
 			checkMatch(targetIndex);
@@ -162,7 +169,7 @@ function dropItem(e) {
 		let targetIndex = parseInt(targetShelf.dataset.index);
 		const validItems = shelves[targetIndex].front.filter(it => it != null);
 		if (validItems.length < 3) {
-			shelves[sourceShelfIndex].front = shelves[sourceShelfIndex].front.filter(it => it !== draggedItem.dataset.type);
+			removeOneFromFront(sourceShelfIndex, draggedItem.dataset.type);
 			shelves[targetIndex].front.push(draggedItem.dataset.type);
 			updateShelvesUI();
 			checkMatch(targetIndex);
@@ -185,8 +192,7 @@ function updateShelvesUI() {
 		const frontItems = shelves[i].front.filter(it => it != null);
 		const backItems = shelves[i].back.filter(it => it != null);
 		if (frontItems.length === 0 && backItems.length > 0) {
-			shelves[i].front = shelves[i].back;
-			shelves[i].back = [];
+			shelves[i].front = shelves[i].back.splice(0);
 		}
 		const updatedFrontItems = shelves[i].front.filter(it => it != null);
 		updatedFrontItems.forEach(type => {
@@ -196,6 +202,7 @@ function updateShelvesUI() {
 		gameBoard.appendChild(shelf);
 	}
 }
+
 
 function updateTimerUI() {
 	const el = document.getElementById("timer");
