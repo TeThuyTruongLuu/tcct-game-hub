@@ -367,6 +367,7 @@ function enableMobileDragging(piece) {
 
     piece.addEventListener("touchstart", function (e) {
         if (piece.parentElement.classList.contains("puzzle-slot")) return;
+		e.preventDefault();
         let touch = e.touches[0];
         piece.dataset.offsetX = touch.clientX - piece.getBoundingClientRect().left;
         piece.dataset.offsetY = touch.clientY - piece.getBoundingClientRect().top;
