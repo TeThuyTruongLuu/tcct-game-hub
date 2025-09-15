@@ -464,6 +464,7 @@ function drop(e) {
 
                 if (currentLevel === 1) {
 					localStorage.setItem("puzzleLevel1Done", "true");
+					localStorage.setItem("puzzleLevel1Score", levelScore.score);
                     setTimeout(() => {
                         alert(`Hooray, xong level 1 rồi :> Điểm level 1: ${levelScore.score} trong ${levelScore.time} giây. Tiến tới level 2!`);
                         nextLevel();
@@ -589,11 +590,18 @@ function checkAnswer(index, selectedOriginalIndex, piece) {
     }
 }
 
-if (localStorage.getItem("puzzleLevel1Done") === "true") {
+const doneLv1 = localStorage.getItem("puzzleLevel1Done") === "true";
+const scoreLv1 = parseInt(localStorage.getItem("puzzleLevel1Score") || "0");
+if (doneLv1 && scoreLv1 > 0) {
     currentLevel = 2;
 }
 createPuzzle();
 
+document.getElementById("reset-btn").addEventListener("click", () => {
+    localStorage.removeItem("puzzleLevel1Done");
+    localStorage.removeItem("puzzleLevel1Score");
+    location.reload();
+});
 
 let timer;
 let timeElapsed = 0;

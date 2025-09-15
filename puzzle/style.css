@@ -184,6 +184,26 @@ body {
     color: #333;
 }
 
+#reset-btn {
+    background: #ff9f1c;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 15px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+#reset-btn:hover {
+    background: #ffbf69;
+    transform: scale(1.05);
+}
+
+
 @media screen and (max-width: 768px) {
     body {
         display: flex;
