@@ -254,7 +254,7 @@ function removeItems(shelfIndex) {
 	checkLevelClear();
 }
 
-function checkLevelClear() {
+async function checkLevelClear() {
 	if (remainingItems() === 0) {
 		clearInterval(timer);
 		const levelScore = Math.floor(timeLeft / 2);
