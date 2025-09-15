@@ -607,91 +607,71 @@ function resetCards(isMatch) {
 // Hiển thị điểm cuối và cập nhật bảng xếp hạng
 async function showFinalScore() {
     stopTimer();
-    console.log("🏆 Hiển thị bảng điểm cuối cùng!");
+    const mm = minutes.toString().padStart(2,'0');
+    const ss = seconds.toString().padStart(2,'0');
+    const newTotalTime = `${mm}:${ss}`;
+    if (!playerName) return;
 
-    const newTotalTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    if (!playerName) {
-        console.error("❌ Không có tên người chơi!");
-        return;
-    }
-	
-    const totalTimeInSeconds = minutes * 60 + seconds; // Chuyển thành giây
-
-    console.log(`🔥 Cập nhật thời gian cho ${playerName}: ${newTotalTime} (${totalTimeInSeconds}s)`);
-
-    // Gọi hàm lưu điểm từ index.js
-    if (window.saveScoreToDB) {
-        window.saveScoreToDB("Lật hình", 0, newTotalTime, totalTimeInSeconds);
-    } else {
-        console.error("❌ Lỗi: Không tìm thấy hàm saveScoreToDB!");
-    }
-
-
-    // ✅ Định dạng document ID theo `username-game`
+    const totalTimeInSeconds = minutes*60 + seconds;
     const docId = `${playerName}-Lật hình`;
-
-    console.log(`🔥 Cập nhật thời gian cho ${playerName}: ${newTotalTime} | ID: ${docId}`);
+    const scoresRef = db.collection("userScores").doc(docId);
 
     try {
-        const scoresRef = db.collection("userScores").doc(docId);
-        const docSnapshot = await scoresRef.get();
+        const snap = await scoresRef.get();
+        let improved = false;
+        let oldTime = null;
 
-        if (!docSnapshot.exists) {
-            // 🆕 Nếu chưa có dữ liệu, tạo mới document theo đúng format
+        if (!snap.exists) {
             await scoresRef.set({
                 username: playerName,
                 game: "Lật hình",
                 totalTime: newTotalTime,
-                score: 0, // Điểm sẽ tính sau
+                totalTimeInSeconds,
+                score: 0,
                 updatedAt: new Date().toISOString()
             });
+            improved = true;
         } else {
-            // 🔄 Nếu đã có dữ liệu, chỉ cập nhật nếu thời gian mới tốt hơn
-            const existingData = docSnapshot.data();
-            if (compareTimeStrings(newTotalTime, existingData.totalTime) < 0) {
+            const data = snap.data();
+            oldTime = data.totalTime || null;
+            if (!oldTime || compareTimeStrings(newTotalTime, oldTime) < 0) {
                 await scoresRef.update({
                     totalTime: newTotalTime,
+                    totalTimeInSeconds,
                     updatedAt: new Date().toISOString()
                 });
+                improved = true;
             }
         }
 
-        // 🔥 Cập nhật lại thứ hạng & điểm số
-        const recalculateResult = await recalculateAllRanksAndPoints();
-        if (!recalculateResult.success) {
-            console.error("❌ Lỗi tính lại thứ hạng:", recalculateResult.message);
-            return;
-        }
+        const recalc = await recalculateAllRanksAndPoints();
+        if (!recalc.success) return;
 
-        // ✅ Lấy lại điểm số mới từ Firebase theo đúng `username-game`
-        console.log("📡 Lấy điểm mới từ Firebase...");
-        const updatedDoc = await db.collection("userScores").doc(docId).get();
-
-        if (updatedDoc.exists) {
-            const playerData = updatedDoc.data();
-            console.log(`✅ Điểm mới của ${playerName}: ${playerData.score}`);
-
-            // 🔥 Hiển thị điểm ngay lập tức
-			document.getElementById('result-time').textContent = `Thời gian hoàn thành nhanh nhất: ${playerData.totalTime}`;
-            document.getElementById('result-score').textContent = `Điểm: ${playerData.score}`;
-			
-        } else {
-            console.error("❌ Không tìm thấy điểm mới của người chơi!");
+        const updated = await scoresRef.get();
+        if (updated.exists) {
+            const p = updated.data();
+            document.getElementById('result-player-name').textContent = `Người chơi: ${p.username}`;
+            document.getElementById('result-time').textContent = `Kỷ lục tốt nhất: ${p.totalTime}`;
+            document.getElementById('result-rank').textContent = `Hạng: ${p.rank ?? "-"}`;
+            document.getElementById('result-score').textContent = `Điểm: ${p.score ?? 0}`;
+            const oldEl = document.getElementById('result-old-record');
+            if (oldTime && !improved) {
+                oldEl.textContent = `Không phá kỷ lục. Kỷ lục hiện tại: ${oldTime}`;
+                oldEl.style.display = 'block';
+            } else if (oldTime && improved) {
+                oldEl.textContent = `Phá kỷ lục! Trước đó: ${oldTime}`;
+                oldEl.style.display = 'block';
+            } else {
+                oldEl.textContent = '';
+                oldEl.style.display = 'none';
+            }
         }
 
         document.getElementById('result-panel').style.display = 'block';
-        console.log("✅ Cập nhật bảng điểm thành công!");
-
-    } catch (error) {
-        console.error("❌ Lỗi khi cập nhật kết quả:", error);
+    } catch (e) {
+        console.error(e);
     }
 }
-
-
-
-
-
-
 
 // Khởi động lại trò chơi
 window.restartGame = function restartGame() {
@@ -705,11 +685,13 @@ function viewLeaderboard() {
 }
 
 // Hiển thị bảng xếp hạng khi nhấn nút
-window.viewLeaderboard = function viewLeaderboard() {
+window.viewLeaderboard = function () {
     document.getElementById('result-panel').style.display = 'none';
+    const tb = document.querySelector('.timer-board');
+    if (tb) tb.style.display = 'none';
     document.querySelector('.leaderboard-container').style.display = 'block';
     displayLeaderboard();
-}
+};
 
 
 
