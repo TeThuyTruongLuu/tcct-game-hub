@@ -259,6 +259,7 @@ function checkLevelClear() {
 		clearInterval(timer);
 		const levelScore = Math.floor(timeLeft / 2);
 		totalScore += levelScore;
+		await saveScoreToFirebase(totalScore);
 		const timeUsed = LEVELS[currentLevel].time - timeLeft;
 		alert(`Hoàn thành Level ${currentLevel} trong ${timeUsed}s\nĐiểm level: ${levelScore}`);
 		onLevelComplete();
@@ -296,7 +297,8 @@ function restoreProgressLocal() {
 }
 
 window.addEventListener("beforeunload", () => {
-	if (gameInProgress) saveProgressLocal();
+	saveProgressLocal();
+	if (totalScore > 0) saveScoreToFirebase(totalScore);
 });
 
 async function saveScoreToFirebase(score) {
