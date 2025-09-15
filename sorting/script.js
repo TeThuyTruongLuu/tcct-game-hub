@@ -304,7 +304,7 @@ async function saveScoreToFirebase(score) {
 		alert("Chưa có tên người chơi!");
 		return;
 	}
-	const gameName = "SortingMultiLevel";
+	const gameName = "Sorting";
 	const docId = `${playerName}-${gameName}`;
 	try {
 		const ref = db.collection("userScores").doc(docId);
