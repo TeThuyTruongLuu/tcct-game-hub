@@ -343,11 +343,14 @@ function finishGame() {
 function initGame() {
 	const saved = restoreProgressLocal();
 	if (saved && saved.playerName === playerName) {
-		currentLevel = saved.currentLevel;
-		totalScore = saved.totalScore;
-		timeLeft = saved.timeLeft;
+		currentLevel = Math.min(Math.max(saved.currentLevel,1),3);
+		totalScore = saved.totalScore || 0;
+		timeLeft = LEVELS[currentLevel].time;
 		startLevel(currentLevel);
 	} else {
+		currentLevel = 1;
+		totalScore = 0;
+		timeLeft = LEVELS[1].time;
 		startLevel(1);
 	}
 }
