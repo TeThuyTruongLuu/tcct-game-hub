@@ -245,8 +245,6 @@ if (step === "match") {
 	
 	async function joinRoom() {
 		const snapshot = await get(roomsRef);
-		let joined = false;
-
 		if (snapshot.exists()) {
 			const rooms = snapshot.val();
 			for (const roomId in rooms) {
@@ -259,20 +257,41 @@ if (step === "match") {
 					await update(ref(db), updates);
 					await update(userRef, { inBattle: roomId });
 					listenToRoom(roomId, "player2");
-					joined = true;
-					break;
+					return;
 				}
 			}
 		}
 
-		if (!joined) {
-			const newRoomRef = push(roomsRef);
-			const roomId = newRoomRef.key;
-			await set(newRoomRef, { player1: username, status: "waiting" });
-			await update(userRef, { inBattle: roomId });
-			listenToRoom(roomId, "player1");
+		const newRoomRef = push(roomsRef);
+		const myId = newRoomRef.key;
+		await set(newRoomRef, { player1: username, status: "waiting" });
+		await update(userRef, { inBattle: myId });
+
+		const recheck = await get(roomsRef);
+		if (recheck.exists()) {
+			const all = recheck.val();
+			let earliest = null;
+			for (const rid in all) {
+				const r = all[rid];
+				if (r.status === "waiting" && r.player1 !== username) {
+					if (!earliest || rid < earliest) earliest = rid;
+				}
+			}
+			if (earliest && earliest < myId) {
+				try { await remove(newRoomRef); } catch(e) {}
+				const updates = {};
+				updates[`rooms-battleship/${earliest}/player2`] = username;
+				updates[`rooms-battleship/${earliest}/status`] = "playing";
+				updates[`rooms-battleship/${earliest}/turn`] = "player1";
+				await update(ref(db), updates);
+				await update(userRef, { inBattle: earliest });
+				listenToRoom(earliest, "player2");
+				return;
+			}
 		}
-  }
+
+		listenToRoom(myId, "player1");
+	}
 
 	function listenToRoom(roomId, role) {
 		const roomRef = ref(db, `rooms-battleship/${roomId}`); // chỉ tạo khi có roomId
@@ -371,13 +390,6 @@ if (step === "battle") {
 		if (!rd.log) init.log = [];
 		if (rd.status !== "playing") init.status = "playing";
 		if (Object.keys(init).length) await update(roomRef, init);
-
-		await update(roomRef, {
-			[`${role}Board`]: you.shipPositions || [],
-			[`${role}Hits`]: [],
-			log: [],
-			status: "playing"
-		});
 	}
 
 	function buildBoard(container) {
