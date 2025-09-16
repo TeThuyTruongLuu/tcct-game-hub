@@ -625,24 +625,43 @@ function checkIfAllTilesMatched() {
     return true; // Tất cả các ô đã bị ẩn (đã ghép hết các cặp)
 }
 
-function checkGameOver() {   
+let isGameOver = false
+
+function checkGameOver() {	
     if (checkIfAllTilesMatched()) {
-        stopTimer();
-        let bonus = (currentLevel === 0 || currentLevel === 1)
-            ? timeLeft
-            : Math.max(0, 1000 - timeElapsed);
-        playerScore += bonus;
-        updateScoreUI();
-        alert(`🎉 Hết game! Bạn nhận được ${bonus} điểm thưởng. Tổng điểm: ${playerScore}`);
-        
+        stopTimer()
+        let bonus = (currentLevel === 0 || currentLevel === 1) ? timeLeft : Math.max(0, 1000 - timeElapsed)
+        playerScore += bonus
+        updateScoreUI()
+
         if (currentLevel < levels.length - 1) {
-            localStorage.setItem("savedLevel", currentLevel + 1);
-            localStorage.setItem("savedScore", playerScore);
-            loadLevel(currentLevel + 1);
-        } else {
-            alert("🎉 Bạn đã hoàn thành toàn bộ game!");
-            saveScoreToDB("Nối hình", playerScore);
+            localStorage.setItem("savedLevel", currentLevel + 1)
+            localStorage.setItem("savedScore", playerScore)
+            alert(`🎉 Hết game! Bạn nhận được ${bonus} điểm thưởng. Tổng điểm: ${playerScore}`)
+            loadLevel(currentLevel + 1)
+            return
         }
+
+        let best = parseInt(localStorage.getItem("bestScore_Onet") || "0", 10)
+        let isNewBest = playerScore > best
+
+        if (isNewBest) {
+            localStorage.setItem("bestScore_Onet", String(playerScore))
+            saveScoreToDB("Nối hình", playerScore)
+            alert(`🎉 Bạn đã hoàn thành toàn bộ game!\nKỷ lục mới: ${playerScore}`)
+        } else {
+            alert(`🎉 Bạn đã hoàn thành toàn bộ game!\nTổng điểm: ${playerScore}\nKỷ lục: ${best}`)
+        }
+
+        isGameOver = true
+        currentLevel = 0
+        playerScore = 0
+        timeLeft = 120
+        shuffleCount = 3
+        updateShuffleButton()
+        updateScoreUI()
+        updateTimerUI()
+        loadLevel(0)
     }
 }
 
