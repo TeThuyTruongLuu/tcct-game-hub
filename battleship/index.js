@@ -277,111 +277,167 @@ if (step === "match") {
 
 // PART 5: battle
 if (step === "battle") {
-    document.getElementById("setup-container").style.display = "none";
-    document.getElementById("length-config-container").style.display = "none";
-    document.getElementById("game-container").innerHTML = `
-        <h2>Đang chiến đấu với đối thủ...</h2>
-        <div class="battle-board" id="battle-board"></div>
-        <p id="turn-info"></p>
-    `;
-    document.getElementById("game-container").style.display = "block";
+	document.getElementById("setup-container").style.display = "none";
+	document.getElementById("length-config-container").style.display = "none";
+	document.getElementById("game-container").innerHTML = `
+		<h2>Đang chiến đấu với đối thủ...</h2>
+		<div class="arena">
+			<div class="panel">
+				<h3>Bạn</h3>
+				<div class="battle-board" id="board-you"></div>
+			</div>
+			<div class="panel">
+				<h3>Đối thủ</h3>
+				<div class="battle-board" id="board-opp"></div>
+			</div>
+		</div>
+		<p id="turn-info"></p>
+		<div id="shot-result" class="sr"></div>
+		<div id="battle-log" class="blog"></div>
+	`;
+	document.getElementById("game-container").style.display = "block";
 
-    const username = localStorage.getItem("username");
-    const roomId = localStorage.getItem("roomId");
-    const role = localStorage.getItem("role");
-    const opponent = localStorage.getItem("opponent");
-    const youBoard = [];
-    const COLS = 10;
-    const boardSize = COLS * COLS;
-    const boardEl = document.getElementById("battle-board");
-    const turnInfo = document.getElementById("turn-info");
-    const roomRef = ref(db, `rooms-battleship/${roomId}`);
-    let gameEnded = false;
+	const username = localStorage.getItem("username");
+	const roomId = localStorage.getItem("roomId");
+	const role = localStorage.getItem("role");
+	const opponent = localStorage.getItem("opponent");
+	const COLS = 10;
+	const boardSize = COLS * COLS;
+	const youEl = document.getElementById("board-you");
+	const oppEl = document.getElementById("board-opp");
+	const turnInfo = document.getElementById("turn-info");
+	const shotResult = document.getElementById("shot-result");
+	const battleLog = document.getElementById("battle-log");
+	const roomRef = ref(db, `rooms-battleship/${roomId}`);
+	let gameEnded = false;
+	let oppImg = "";
+	let youBoard = [];
+	let oppBoard = [];
 
-    async function getBoards() {
-        const youRef = ref(db, `users/${username}`);
-        const oppRef = ref(db, `users/${opponent}`);
-        const youSnap = await get(youRef);
-        const oppSnap = await get(oppRef);
-        const you = youSnap.val();
-        const opp = oppSnap.val();
-        youBoard.push(...(you.shipPositions || []));
-        await update(roomRef, {
-            [`${role}Board`]: you.shipPositions || [],
-            [`${role}Hits`]: [],
-            log: [],
-            status: "playing"
-        });
-    }
+	async function getBoards() {
+		const youRef = ref(db, `users/${username}`);
+		const oppRef = ref(db, `users/${opponent}`);
+		const youSnap = await get(youRef);
+		const oppSnap = await get(oppRef);
+		const you = youSnap.val();
+		const opp = oppSnap.val();
+		youBoard = [...(you.shipPositions || [])];
+		const allChars = [
+			{ n: "Dụ", i: "img/Du.webp" },{ n: "Diệp", i: "img/Diep.webp" },{ n: "Lam", i: "img/Lam.webp" },{ n: "Duệ", i: "img/Due.webp" },{ n: "Lư", i: "img/Lu.webp" },{ n: "Chu", i: "img/Chu.webp" },{ n: "Tranh", i: "img/Tranh.webp" },{ n: "Cao", i: "img/Cao.webp" },{ n: "Hàn", i: "img/Han.webp" },{ n: "Lâu", i: "img/Lau.webp" },{ n: "Hoàng", i: "img/Hoang.webp" },{ n: "Kiều", i: "img/Kieu.webp" },{ n: "Vương", i: "img/Vuong.webp" },{ n: "Tống", i: "img/Tong.webp" },{ n: "Tán", i: "img/Tan.webp" },{ n: "Tiêu", i: "img/Tieu.webp" },{ n: "Tôn", i: "img/Ton.webp" },{ n: "Bao", i: "img/Bao.webp" },{ n: "La", i: "img/La.webp" },{ n: "An", i: "img/An.webp" },{ n: "Ngụy", i: "img/Nguy.webp" },{ n: "Phương", i: "img/Phuong.webp" },{ n: "Nhu", i: "img/Nhu.webp" },{ n: "Quả", i: "img/Qua.webp" },{ n: "Mạc", i: "img/Mac.webp" },{ n: "Quan", i: "img/Quan.webp" },{ n: "Trịnh", i: "img/Trinh.webp" },{ n: "Bình", i: "img/Binh.webp" }
+		];
+		const found = allChars.find(x => x.n === opp.char);
+		oppImg = found ? found.i : "";
 
-    function renderBoard(roomData) {
-        boardEl.innerHTML = "";
-        const hitsYou = roomData[`${role}Hits`] || [];
-        const oppHits = roomData[`${role === "player1" ? "player2" : "player1"}Hits`] || [];
-        const currentTurn = roomData.turn;
+		await update(roomRef, {
+			[`${role}Board`]: you.shipPositions || [],
+			[`${role}Hits`]: [],
+			log: [],
+			status: "playing"
+		});
+	}
 
-        for (let i = 0; i < boardSize; i++) {
-            const cell = document.createElement("div");
-            cell.className = "cell";
-            if (roomData.winner) cell.classList.add("disabled");
+	function buildBoard(container) {
+		container.innerHTML = "";
+		for (let i = 0; i < boardSize; i++) {
+			const cell = document.createElement("div");
+			cell.className = "cell";
+			container.appendChild(cell);
+		}
+	}
 
-            if (hitsYou.includes(i)) {
-                cell.textContent = "🔥";
-                cell.classList.add("hit");
-            } else if (oppHits.includes(i)) {
-                cell.classList.add("danger");
-            }
+	function render(roomData) {
+		youEl.innerHTML = "";
+		oppEl.innerHTML = "";
+		const myHits = roomData[`${role}Hits`] || [];
+		const oppHits = roomData[`${role === "player1" ? "player2" : "player1"}Hits`] || [];
+		const currentTurn = roomData.turn;
+		oppBoard = roomData[`${role === "player1" ? "player2" : "player1"}Board`] || [];
 
-            if (currentTurn === role && !hitsYou.includes(i)) {
-                cell.addEventListener("click", () => shoot(i, roomData));
-                cell.classList.add("clickable");
-            }
+		for (let i = 0; i < boardSize; i++) {
+			const cYou = document.createElement("div");
+			cYou.className = "cell";
+			if (youBoard.includes(i)) {
+				cYou.classList.add("occupied");
+				const myImg = localStorage.getItem("selectedImg");
+				if (myImg) cYou.style.backgroundImage = `url('${myImg}')`;
+			}
+			if (oppHits.includes(i)) {
+				if (youBoard.includes(i)) {
+					cYou.textContent = "🔥";
+					cYou.classList.add("hit");
+				} else {
+					cYou.classList.add("miss");
+				}
+			}
+			youEl.appendChild(cYou);
 
-            boardEl.appendChild(cell);
-        }
+			const cOpp = document.createElement("div");
+			cOpp.className = "cell";
+			const wasShot = myHits.includes(i);
+			const isHit = oppBoard.includes(i) && wasShot;
+			if (isHit) {
+				cOpp.classList.add("hit");
+				cOpp.textContent = "🎯";
+				if (oppImg) cOpp.style.backgroundImage = `url('${oppImg}')`;
+			} else if (wasShot) {
+				cOpp.classList.add("miss");
+			}
+			if (!roomData.winner && currentTurn === role && !wasShot) {
+				cOpp.addEventListener("click", () => shoot(i, roomData));
+				cOpp.classList.add("clickable");
+			}
+			oppEl.appendChild(cOpp);
+		}
 
-        if (roomData.winner) {
-            turnInfo.textContent = roomData.winner === username ? "🎉 Bạn thắng!" : "💥 Bạn thua!";
-        } else {
-            turnInfo.textContent = currentTurn === role ? "🔫 Lượt của bạn" : "⏳ Chờ đối thủ...";
-        }
-    }
+		if (roomData.winner) {
+			turnInfo.textContent = roomData.winner === username ? "🎉 Bạn thắng!" : "💥 Bạn thua!";
+		} else {
+			turnInfo.textContent = currentTurn === role ? "🔫 Lượt của bạn" : "⏳ Chờ đối thủ...";
+		}
 
-    async function shoot(index, roomData) {
-        if (gameEnded) return;
+		const logs = roomData.log || [];
+		const last = logs[logs.length - 1];
+		if (last) {
+			const me = last.by === role;
+			const msg = me ? (last.result === "hit" ? "🎯 TRÚNG!" : "💨 HỤT!") : (last.result === "hit" ? "⚠️ ĐỐI THỦ TRÚNG" : "👌 ĐỐI THỦ HỤT");
+			shotResult.textContent = msg;
+			shotResult.className = "sr " + (last.result === "hit" ? "hit" : "miss");
+			const recent = logs.slice(-6).map(e => `${e.by === role ? "Bạn" : "Đối thủ"} → ${e.index} : ${e.result}`).join(" • ");
+			battleLog.textContent = recent;
+		}
+	}
 
-        const targetBoard = roomData[`${role === "player1" ? "player2" : "player1"}Board`] || [];
-        const hits = roomData[`${role}Hits`] || [];
-        const isHit = targetBoard.includes(index);
-        const updatedHits = [...hits, index];
-        const log = roomData.log || [];
-        log.push({ by: role, index, result: isHit ? "hit" : "miss" });
+	async function shoot(index, roomData) {
+		if (gameEnded) return;
+		const targetBoard = roomData[`${role === "player1" ? "player2" : "player1"}Board`] || [];
+		const hits = roomData[`${role}Hits`] || [];
+		if (hits.includes(index)) return;
+		const isHit = targetBoard.includes(index);
+		const updatedHits = [...hits, index];
+		const log = roomData.log || [];
+		log.push({ by: role, index, result: isHit ? "hit" : "miss" });
+		const allHitPositions = updatedHits;
+		const isSunk = targetBoard.length > 0 && targetBoard.every(pos => allHitPositions.includes(pos));
+		const winner = isSunk ? username : null;
 
-        const allHitPositions = updatedHits;
-        const isSunk = checkSunk(targetBoard, allHitPositions);
-        const winner = isSunk ? username : null;
+		const updates = {};
+		updates[`${role}Hits`] = updatedHits;
+		updates[`log`] = log;
+		if (winner) {
+			updates[`winner`] = winner;
+			updates[`status`] = "ended";
+		} else {
+			updates[`turn`] = role === "player1" ? "player2" : "player1";
+		}
+		await update(roomRef, updates);
 
-        const updates = {};
-        updates[`${role}Hits`] = updatedHits;
-        updates[`log`] = log;
-        if (winner) {
-            updates[`winner`] = winner;
-            updates[`status`] = "ended";
-        } else {
-            updates[`turn`] = role === "player1" ? "player2" : "player1";
-        }
-
-        await update(roomRef, updates);
-
-        if (winner) {
-            gameEnded = true;
-            await handleWin(winner);
-        }
-    }
-
-    function checkSunk(board, hits) {
-        return board.every(pos => hits.includes(pos));
-    }
+		shotResult.textContent = isHit ? "🎯 TRÚNG!" : "💨 HỤT!";
+		shotResult.className = "sr " + (isHit ? "hit" : "miss");
+		if (winner) {
+			gameEnded = true;
+			await handleWin(winner);
+		}
+	}
 
 	async function handleWin(winnerName) {
 		const loser = winnerName === username ? opponent : username;
@@ -398,38 +454,10 @@ if (step === "battle") {
 	onValue(roomRef, snap => {
 		const roomData = snap.val();
 		if (!roomData) return;
-		renderBoard(roomData);
-		if (roomData.winner && !document.getElementById("after-match-buttons")) {
-			const wrapper = document.createElement("div");
-			wrapper.id = "after-match-buttons";
-			wrapper.style.marginTop = "12px";
-			document.getElementById("game-container").appendChild(wrapper);
-		}
+		if (youEl.childElementCount === 0) buildBoard(youEl);
+		if (oppEl.childElementCount === 0) buildBoard(oppEl);
+		render(roomData);
 	});
 
-    getBoards();
-
-	if (roomData.winner && !document.getElementById("after-match-buttons")) {
-		const wrapper = document.createElement("div");
-		wrapper.id = "after-match-buttons";
-		wrapper.style.marginTop = "20px";
-
-		const btnRematch = document.createElement("button");
-		btnRematch.textContent = "🔁 Chơi lại";
-		btnRematch.onclick = () => {
-			window.location.href = "index.html?step=match";
-		};
-
-		const btnReset = document.createElement("button");
-		btnReset.textContent = "🔙 Về lại đầu";
-		btnReset.style.marginLeft = "10px";
-		btnReset.onclick = () => {
-			localStorage.clear();
-			window.location.href = "index.html";
-		};
-
-		wrapper.appendChild(btnRematch);
-		wrapper.appendChild(btnReset);
-		document.getElementById("game-container").appendChild(wrapper);
-	}
+	getBoards();
 }

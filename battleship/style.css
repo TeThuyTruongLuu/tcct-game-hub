@@ -195,6 +195,58 @@ button:disabled{background:var(--disabled);box-shadow:none;cursor:not-allowed}
   user-select:none;
 }
 
+.arena{
+	display:grid;
+	grid-template-columns:1fr 1fr;
+	gap:18px;
+	align-items:start;
+	justify-content:center;
+	margin-top:12px;
+}
+.panel{
+	background:var(--card);
+	border-radius:12px;
+	box-shadow:var(--shadow);
+	padding:16px;
+}
+.panel h3{
+	margin:0 0 8px 0;
+	color:var(--text);
+	font-size:16px;
+	font-weight:700;
+}
+.cell.miss{
+	background:linear-gradient(135deg,rgba(31,41,55,.06),rgba(31,41,55,.02));
+	border-color:#d1d5db;
+}
+.cell.hit{
+	background:var(--cell-hit);
+	color:#fff;
+	font-weight:700;
+	border-color:#dc2626;
+}
+.cell{
+	background-size:cover;
+	background-position:center;
+}
+.sr{
+	margin:12px auto 6px;
+	font-weight:700;
+	letter-spacing:.3px;
+}
+.sr.hit{color:#16a34a}
+.sr.miss{color:#64748b}
+.blog{
+	font-size:12px;
+	color:#6b7280;
+	margin-top:4px;
+	min-height:16px;
+}
+@media (max-width:768px){
+	.arena{grid-template-columns:1fr;gap:12px}
+}
+
+
 @media (max-width:768px){
   .char-option img{width:52px;height:52px}
   .input-group input{font-size:14px;padding:10px 38px 10px 12px}
