@@ -214,66 +214,77 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 if (step === "match") {
-  document.getElementById("setup-container").style.display = "none";
-  document.getElementById("length-config-container").style.display = "none";
-  document.getElementById("game-container").innerHTML = "<h2>Đang tìm đối thủ...</h2>";
-  document.getElementById("game-container").style.display = "block";
+	document.getElementById("setup-container").style.display = "none";
+	document.getElementById("length-config-container").style.display = "none";
+	document.getElementById("game-container").innerHTML = "<h2>Đang tìm đối thủ...</h2>";
+	document.getElementById("game-container").style.display = "block";
 
-  const username = localStorage.getItem("username");
-  const userRef = ref(db, `users/${username}`);
-  const roomsRef = ref(db, "rooms-battleship"); // ✅ thêm dòng này
+	const username = localStorage.getItem("username");
+	const userRef = ref(db, `users/${username}`);
+	const roomsRef = ref(db, "rooms-battleship");
+	const leftoverRoomId = localStorage.getItem("roomId");
+	if (leftoverRoomId) {
+		const oldRef = ref(db, `rooms-battleship/${leftoverRoomId}`);
+		const oldSnap = await get(oldRef);
+		if (!oldSnap.exists() || oldSnap.val().status === "ended" || oldSnap.val().player1 === username || oldSnap.val().player2 === username) {
+			try { await remove(oldRef); } catch(e) {}
+		}
+		await update(userRef, { inBattle: false });
+		localStorage.removeItem("roomId");
+		localStorage.removeItem("opponent");
+		localStorage.removeItem("role");
+	}
+	
+	async function joinRoom() {
+		const snapshot = await get(roomsRef);
+		let joined = false;
 
-  async function joinRoom() {
-    const snapshot = await get(roomsRef);
-    let joined = false;
+		if (snapshot.exists()) {
+			const rooms = snapshot.val();
+			for (const roomId in rooms) {
+				const room = rooms[roomId];
+				if (room.status === "waiting" && room.player1 !== username) {
+					const updates = {};
+					updates[`rooms-battleship/${roomId}/player2`] = username;
+					updates[`rooms-battleship/${roomId}/status`] = "playing";
+					updates[`rooms-battleship/${roomId}/turn`] = "player1";
+					await update(ref(db), updates);
+					await update(userRef, { inBattle: roomId });
+					listenToRoom(roomId, "player2");
+					joined = true;
+					break;
+				}
+			}
+		}
 
-    if (snapshot.exists()) {
-      const rooms = snapshot.val();
-      for (const roomId in rooms) {
-        const room = rooms[roomId];
-        if (room.status === "waiting" && room.player1 !== username) {
-          const updates = {};
-          updates[`rooms-battleship/${roomId}/player2`] = username;
-          updates[`rooms-battleship/${roomId}/status`] = "playing";
-          updates[`rooms-battleship/${roomId}/turn`] = "player1";
-          await update(ref(db), updates);
-          await update(userRef, { inBattle: roomId });
-          listenToRoom(roomId, "player2");
-          joined = true;
-          break;
-        }
-      }
-    }
-
-    if (!joined) {
-      const newRoomRef = push(roomsRef);
-      const roomId = newRoomRef.key;
-      await set(newRoomRef, { player1: username, status: "waiting" });
-      await update(userRef, { inBattle: roomId });
-      listenToRoom(roomId, "player1");
-    }
+		if (!joined) {
+			const newRoomRef = push(roomsRef);
+			const roomId = newRoomRef.key;
+			await set(newRoomRef, { player1: username, status: "waiting" });
+			await update(userRef, { inBattle: roomId });
+			listenToRoom(roomId, "player1");
+		}
   }
 
-  function listenToRoom(roomId, role) {
-    const roomRef = ref(db, `rooms-battleship/${roomId}`); // chỉ tạo khi có roomId
-    onValue(roomRef, async snap => {
-      const room = snap.val();
-      if (!room) return;
+	function listenToRoom(roomId, role) {
+		const roomRef = ref(db, `rooms-battleship/${roomId}`); // chỉ tạo khi có roomId
+		onValue(roomRef, async snap => {
+			const room = snap.val();
+			if (!room) return;
 
-      if (room.status === "playing" && room.player1 && room.player2) {
-        const you = localStorage.getItem("username");
-        const opponent = role === "player1" ? room.player2 : room.player1;
-        localStorage.setItem("roomId", roomId);
-        localStorage.setItem("opponent", opponent);
-        localStorage.setItem("role", role);
-        window.location.href = "index.html?step=battle";
-      }
-    });
-  }
+			if (room.status === "playing" && room.player1 && room.player2) {
+				const you = localStorage.getItem("username");
+				const opponent = role === "player1" ? room.player2 : room.player1;
+				localStorage.setItem("roomId", roomId);
+				localStorage.setItem("opponent", opponent);
+				localStorage.setItem("role", role);
+				window.location.href = "index.html?step=battle";
+			}
+		});
+	}
 
-  joinRoom();
+	joinRoom();
 }
-
 
 // PART 5: battle
 if (step === "battle") {
@@ -313,6 +324,19 @@ if (step === "battle") {
 	let oppImg = "";
 	let youBoard = [];
 	let oppBoard = [];
+	
+	async function cleanupRoom() {
+		const rid = localStorage.getItem("roomId");
+		if (!rid) return;
+		const updates = {};
+		updates[`users/${username}/inBattle`] = false;
+		if (opponent) updates[`users/${opponent}/inBattle`] = false;
+		await update(ref(db), updates);
+		try { await remove(ref(db, `rooms-battleship/${rid}`)); } catch(e) {}
+		localStorage.removeItem("roomId");
+		localStorage.removeItem("opponent");
+		localStorage.removeItem("role");
+	}
 
 	async function getBoards() {
 		const youRef = ref(db, `users/${username}`);
@@ -455,11 +479,17 @@ if (step === "battle") {
 		const loseScore = loseSnap.exists() ? (loseSnap.data().score || 0) : 0;
 		await updateDoc(winRef, { score: winScore + 110, updatedAt: new Date().toISOString() });
 		await updateDoc(loseRef, { score: loseScore + 10, updatedAt: new Date().toISOString() });
+		await cleanupRoom();
 	}
 
 	onValue(roomRef, snap => {
 		const roomData = snap.val();
 		if (!roomData) return;
+		if (roomData.status === "ended" && !gameEnded) {
+			gameEnded = true;
+			cleanupRoom();
+		}
+
 		if (youEl.childElementCount === 0) buildBoard(youEl);
 		if (oppEl.childElementCount === 0) buildBoard(oppEl);
 		render(roomData);
