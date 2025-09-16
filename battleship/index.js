@@ -86,7 +86,7 @@ document.getElementById("start-button").addEventListener("click", async () => {
 		await set(userRef, { username, password, char: selectedChar });
 	}
 
-	const scoreDocRef = doc(fdb, "userScores", `${username}-battleship`);
+	const scoreDocRef = doc(fdb, "userScores", `${username}-Bắn tàu`);
 	const fsSnap = await getDoc(scoreDocRef);
 	if (!fsSnap.exists()) {
 		await setDoc(scoreDocRef, { username, game: "battleship", score: 0, updatedAt: new Date().toISOString() });
@@ -471,8 +471,8 @@ if (step === "battle") {
 
 	async function handleWin(winnerName) {
 		const loser = winnerName === username ? opponent : username;
-		const winRef = doc(fdb, "userScores", `${winnerName}-battleship`);
-		const loseRef = doc(fdb, "userScores", `${loser}-battleship`);
+		const winRef = doc(fdb, "userScores", `${winnerName}-Bắn tàu`);
+		const loseRef = doc(fdb, "userScores", `${loser}-Bắn tàu`);
 		const winSnap = await getDoc(winRef);
 		const loseSnap = await getDoc(loseRef);
 		const winScore = winSnap.exists() ? (winSnap.data().score || 0) : 0;
