@@ -288,6 +288,9 @@ if (step === "match") {
 
 // PART 5: battle
 if (step === "battle") {
+	if (!roomId) {
+	  location.replace("index.html");
+	}
 	document.getElementById("setup-container").style.display = "none";
 	document.getElementById("length-config-container").style.display = "none";
 	document.getElementById("game-container").innerHTML = `
@@ -486,8 +489,10 @@ if (step === "battle") {
 		const roomData = snap.val();
 		if (!roomData) return;
 		if (roomData.status === "ended" && !gameEnded) {
-			gameEnded = true;
-			cleanupRoom();
+		  gameEnded = true;
+		  cleanupRoom().then(() => {
+			location.replace("index.html");
+		  });
 		}
 
 		if (youEl.childElementCount === 0) buildBoard(youEl);
@@ -496,4 +501,9 @@ if (step === "battle") {
 	});
 
 	getBoards();
+	window.addEventListener("beforeunload", () => {
+	  if (!gameEnded) {
+		update(roomRef, { winner: opponent, status: "ended" });
+	  }
+	});
 }
