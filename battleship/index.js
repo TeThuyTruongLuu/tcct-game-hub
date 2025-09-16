@@ -230,6 +230,17 @@ if (step === "match") {
 	const username = localStorage.getItem("username");
 	const userRef = ref(db, `users/${username}`);
 	const roomsRef = ref(db, "rooms-battleship");
+	const sweepSnap = await get(roomsRef);
+	if (sweepSnap.exists()) {
+		const rooms = sweepSnap.val();
+		for (const rid in rooms) {
+			const r = rooms[rid];
+			if (r.status === "waiting" && r.player1 === username) {
+				try { await remove(ref(db, `rooms-battleship/${rid}`)); } catch(e) {}
+			}
+		}
+	}
+
 	const leftoverRoomId = localStorage.getItem("roomId");
 	if (leftoverRoomId) {
 		const oldRef = ref(db, `rooms-battleship/${leftoverRoomId}`);
