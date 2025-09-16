@@ -290,7 +290,8 @@ if (step === "match") {
 if (step === "battle") {
 	const roomId = localStorage.getItem("roomId");
 	if (!roomId) {
-	  location.replace("index.html");
+		location.replace("index.html");
+		return;
 	}
 	document.getElementById("setup-container").style.display = "none";
 	document.getElementById("length-config-container").style.display = "none";
