@@ -17,11 +17,12 @@ function onDeviceReady() {
     homepagePaths.add("/tcct-game-hub/index.html");
   }
   const isHomepage = homepagePaths.has(path);
-  if (!username && !(isAnonymous && origin === "homepage") && !isHomepage) {
+  const allowedGamePaths = ["/battleship/", "/battleship/index.html"]; // thêm dòng này
+  const isAllowedGame = allowedGamePaths.includes(path);
+  if (!username && !(isAnonymous && origin === "homepage") && !isHomepage && !isAllowedGame) {
     location.href = onGhPages ? "/tcct-game-hub/" : "/";
   }
 })();
-
 
 document.addEventListener("deviceready", function() {
     document.addEventListener("backbutton", function(e) {

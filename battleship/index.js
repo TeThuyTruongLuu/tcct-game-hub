@@ -1,5 +1,8 @@
 // PART 2: setup.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const fdb = getFirestore(app);
+
 import {
 	getDatabase,
 	ref,
@@ -21,6 +24,22 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+
+const qs = new URLSearchParams(location.search);
+const step = qs.get("step");
+const existingUser = localStorage.getItem("username");
+const existingChar = localStorage.getItem("selectedChar");
+if (existingUser && !step) {
+  document.getElementById("setup-container").style.display = "none";
+  document.getElementById("length-config-container").style.display = "block";
+}
+
+const scoreDocRef = doc(fdb, "userScores", `${username}-battleship`);
+const scoreSnapFs = await getDoc(scoreDocRef);
+if (!scoreSnapFs.exists()) {
+  await setDoc(scoreDocRef, { username, game: "battleship", score: 0, updatedAt: new Date().toISOString() });
+}
+
 
 let selectedChar = null;
 let selectedImg = "";
@@ -51,7 +70,9 @@ document.querySelectorAll(".char-option").forEach(option => {
 });
 
 document.getElementById("start-button").addEventListener("click", async () => {
-	const username = document.getElementById("username").value.trim();
+	localStorage.setItem("username", nicknameInputValue);
+	username = nicknameInputValue;
+	document.getElementById("display-name").innerText = username;
 	const password = document.getElementById("password").value;
 	const loading = document.getElementById("loading");
 
@@ -95,10 +116,7 @@ document.getElementById("start-button").addEventListener("click", async () => {
 	const scoreSnap = await get(scoreRef);
 	const currentScore = scoreSnap.exists() ? (scoreSnap.val().score || 0) : 0;
 
-	await update(scoreRef, {
-		score: -100,
-		updatedAt: new Date().toISOString()
-	});
+	await updateDoc(scoreDocRef, { score: -100, updatedAt: new Date().toISOString() });
 
 	localStorage.setItem("username", username);
 	window.location.href = "index.html?step=place";
@@ -218,9 +236,6 @@ import {
     remove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-const urlParams = new URLSearchParams(window.location.search);
-const step = urlParams.get("step");
-
 if (step === "match") {
     document.getElementById("setup-container").style.display = "none";
     document.getElementById("length-config-container").style.display = "none";
@@ -229,7 +244,7 @@ if (step === "match") {
 
     const username = localStorage.getItem("username");
     const userRef = ref(db, `users/${username}`);
-    const roomsRef = ref(db, "rooms");
+    const roomRef = ref(db, `rooms-battleship/${roomId}`);
 
     async function joinRoom() {
         const snapshot = await get(roomsRef);
@@ -266,7 +281,7 @@ if (step === "match") {
     }
 
     function listenToRoom(roomId, role) {
-        const roomRef = ref(db, `rooms/${roomId}`);
+        const roomRef = ref(db, `rooms-battleship/${roomId}`);
         onValue(roomRef, async snap => {
             const room = snap.val();
             if (!room) return;
@@ -305,7 +320,7 @@ if (step === "battle") {
     const boardSize = COLS * COLS;
     const boardEl = document.getElementById("battle-board");
     const turnInfo = document.getElementById("turn-info");
-    const roomRef = ref(db, `rooms/${roomId}`);
+    const roomRef = ref(db, `rooms-battleship/${roomId}`);
     let gameEnded = false;
 
     async function getBoards() {
@@ -393,55 +408,53 @@ if (step === "battle") {
         return board.every(pos => hits.includes(pos));
     }
 
-    async function handleWin(winnerName) {
-        const loser = winnerName === username ? opponent : username;
-        const winnerRef = ref(db, `userScores/${winnerName}-battleship`);
-        const loserRef = ref(db, `userScores/${loser}-battleship`);
-        const winSnap = await get(winnerRef);
-        const loseSnap = await get(loserRef);
-        const winScore = winSnap.exists() ? (winSnap.val().score || 0) : 0;
-        const loseScore = loseSnap.exists() ? (loseSnap.val().score || 0) : 0;
+	async function handleWin(winnerName) {
+		const loser = winnerName === username ? opponent : username;
+		const winRef = doc(fdb, "userScores", `${winnerName}-battleship`);
+		const loseRef = doc(fdb, "userScores", `${loser}-battleship`);
+		const winSnap = await getDoc(winRef);
+		const loseSnap = await getDoc(loseRef);
+		const winScore = winSnap.exists() ? (winSnap.data().score || 0) : 0;
+		const loseScore = loseSnap.exists() ? (loseSnap.data().score || 0) : 0;
+		await updateDoc(winRef, { score: winScore + 150, updatedAt: new Date().toISOString() });
+		await updateDoc(loseRef, { score: loseScore + 50, updatedAt: new Date().toISOString() });
+	}
 
-        await update(winnerRef, {
-            score: winScore + 150,
-            updatedAt: new Date().toISOString()
-        });
-
-        await update(loserRef, {
-            score: loseScore + 50,
-            updatedAt: new Date().toISOString()
-        });
-    }
-
-    onValue(roomRef, snap => {
-        const roomData = snap.val();
-        if (!roomData) return;
-        renderBoard(roomData);
-    });
+	onValue(roomRef, snap => {
+		const roomData = snap.val();
+		if (!roomData) return;
+		renderBoard(roomData);
+		if (roomData.winner && !document.getElementById("after-match-buttons")) {
+			const wrapper = document.createElement("div");
+			wrapper.id = "after-match-buttons";
+			wrapper.style.marginTop = "12px";
+			document.getElementById("game-container").appendChild(wrapper);
+		}
+	});
 
     getBoards();
-}
 
-if (roomData.winner && !document.getElementById("after-match-buttons")) {
-    const wrapper = document.createElement("div");
-    wrapper.id = "after-match-buttons";
-    wrapper.style.marginTop = "20px";
+	if (roomData.winner && !document.getElementById("after-match-buttons")) {
+		const wrapper = document.createElement("div");
+		wrapper.id = "after-match-buttons";
+		wrapper.style.marginTop = "20px";
 
-    const btnRematch = document.createElement("button");
-    btnRematch.textContent = "🔁 Chơi lại";
-    btnRematch.onclick = () => {
-        window.location.href = "index.html?step=match";
-    };
+		const btnRematch = document.createElement("button");
+		btnRematch.textContent = "🔁 Chơi lại";
+		btnRematch.onclick = () => {
+			window.location.href = "index.html?step=match";
+		};
 
-    const btnReset = document.createElement("button");
-    btnReset.textContent = "🔙 Về lại đầu";
-    btnReset.style.marginLeft = "10px";
-    btnReset.onclick = () => {
-        localStorage.clear();
-        window.location.href = "index.html";
-    };
+		const btnReset = document.createElement("button");
+		btnReset.textContent = "🔙 Về lại đầu";
+		btnReset.style.marginLeft = "10px";
+		btnReset.onclick = () => {
+			localStorage.clear();
+			window.location.href = "index.html";
+		};
 
-    wrapper.appendChild(btnRematch);
-    wrapper.appendChild(btnReset);
-    document.getElementById("game-container").appendChild(wrapper);
+		wrapper.appendChild(btnRematch);
+		wrapper.appendChild(btnReset);
+		document.getElementById("game-container").appendChild(wrapper);
+	}
 }
