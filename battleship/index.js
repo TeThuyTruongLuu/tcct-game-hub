@@ -72,7 +72,7 @@ document.getElementById("start-button").addEventListener("click", async () => {
 	const username = document.getElementById("username").value.trim();
 	const password = document.getElementById("password").value;
 	const loading = document.getElementById("loading");
-	if (!username || !password || !selectedChar) { alert("Điền đầy đủ..."); return; }
+	if (!username || !password || !selectedChar) { alert("Điền đầy đủ thông tin và chọn nhân vật trước khi chơi."); return; }
 	loading.style.display = "block";
 
 	const userRef = ref(db, `users/${username}`);
@@ -80,8 +80,15 @@ document.getElementById("start-button").addEventListener("click", async () => {
 
 	if (snapshot.exists()) {
 		const data = snapshot.val();
-		if (data.password !== password) { alert("Sai mật khẩu."); loading.style.display = "none"; return; }
-		await update(userRef, { char: selectedChar });
+		if (!data.password) {
+			await update(userRef, { password, char: selectedChar });
+		} else if (data.password !== password) {
+			alert("Sai mật khẩu.");
+			loading.style.display = "none";
+			return;
+		} else {
+			await update(userRef, { char: selectedChar });
+		}
 	} else {
 		await set(userRef, { username, password, char: selectedChar });
 	}
@@ -98,6 +105,7 @@ document.getElementById("start-button").addEventListener("click", async () => {
 	sessionStorage.setItem("justAuthed", "1");
 	window.location.href = "index.html?step=place";
 });
+
 
 window.togglePassword = function () {
 	const pw = document.getElementById("password");
