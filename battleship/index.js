@@ -1,7 +1,7 @@
 // PART 2: setup.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getDatabase, ref, get, set, update, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getDatabase, ref, get, set, update, child, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
 	apiKey: "AIzaSyBtpLSSNBj9lHtzibLh5QSRAPg3iQ46Q3g",
@@ -98,7 +98,7 @@ document.getElementById("start-button").addEventListener("click", async () => {
 	if (!fsSnap.exists()) {
 		await setDoc(scoreDocRef, { username, game: "battleship", score: 0, updatedAt: new Date().toISOString() });
 	}
-	await updateDoc(scoreDocRef, { score: -100, updatedAt: new Date().toISOString() });
+	await updateDoc(scoreDocRef, { score: increment(-100), updatedAt: new Date().toISOString() });
 
 	localStorage.setItem("username", username);
 	localStorage.setItem("selectedChar", selectedChar);
@@ -224,8 +224,12 @@ import {
 if (step === "match") {
 	document.getElementById("setup-container").style.display = "none";
 	document.getElementById("length-config-container").style.display = "none";
-	document.getElementById("game-container").innerHTML = "<h2>Đang tìm đối thủ...</h2>";
+	document.getElementById("game-container").innerHTML = `
+		<h2>Đang tìm đối thủ...</h2>
+		<p id="match-status"></p>
+	`;
 	document.getElementById("game-container").style.display = "block";
+	const matchStatus = document.getElementById("match-status");
 
 	const username = localStorage.getItem("username");
 	const userRef = ref(db, `users/${username}`);
@@ -261,14 +265,23 @@ if (step === "match") {
 			for (const roomId in rooms) {
 				const room = rooms[roomId];
 				if (room.status === "waiting" && room.player1 !== username) {
-					const updates = {};
-					updates[`rooms-battleship/${roomId}/player2`] = username;
-					updates[`rooms-battleship/${roomId}/status`] = "playing";
-					updates[`rooms-battleship/${roomId}/turn`] = "player1";
-					await update(ref(db), updates);
-					await update(userRef, { inBattle: roomId });
-					listenToRoom(roomId, "player2");
-					return;
+					const roomRef = ref(db, `rooms-battleship/${roomId}`);
+					const res = await runTransaction(roomRef, cur => {
+						if (!cur) return cur;
+						if (cur.status === "waiting" && !cur.player2 && cur.player1 !== username) {
+							return { ...cur, player2: username, status: "playing", turn: "player1" };
+						}
+						return cur;
+					});
+					if (res.committed && res.snapshot.val() && res.snapshot.val().player2 === username) {
+						matchStatus.textContent = `Đối thủ - ${room.player1}`;
+						localStorage.setItem("roomId", roomId);
+						localStorage.setItem("role", "player2");
+						localStorage.setItem("opponent", room.player1);
+						await update(userRef, { inBattle: roomId });
+						listenToRoom(roomId, "player2");
+						return;
+					}
 				}
 			}
 		}
@@ -276,18 +289,26 @@ if (step === "match") {
 		const myId = newRoomRef.key;
 		await set(newRoomRef, { player1: username, status: "waiting" });
 		await update(userRef, { inBattle: myId });
+		localStorage.setItem("roomId", myId);
+		localStorage.setItem("role", "player1");
+		localStorage.removeItem("opponent");
+		matchStatus.textContent = "Đang chờ đối thủ...";
 		listenToRoom(myId, "player1");
 	}
 
-
 	function listenToRoom(roomId, role) {
-		const roomRef = ref(db, `rooms-battleship/${roomId}`); // chỉ tạo khi có roomId
+		const roomRef = ref(db, `rooms-battleship/${roomId}`);
 		onValue(roomRef, async snap => {
 			const room = snap.val();
 			if (!room) return;
 
+			if (room.player1 && room.player2 && !room.winner) {
+				const opp = role === "player1" ? room.player2 : room.player1;
+				matchStatus.textContent = `Đối thủ - ${opp}`;
+				localStorage.setItem("opponent", opp);
+			}
+
 			if (room.status === "playing" && room.player1 && room.player2) {
-				const you = localStorage.getItem("username");
 				const opponent = role === "player1" ? room.player2 : room.player1;
 				localStorage.setItem("roomId", roomId);
 				localStorage.setItem("opponent", opponent);
@@ -492,12 +513,16 @@ if (step === "battle") {
 		const loser = winnerName === username ? opponent : username;
 		const winRef = doc(fdb, "userScores", `${winnerName}-Bắn tàu`);
 		const loseRef = doc(fdb, "userScores", `${loser}-Bắn tàu`);
-		const winSnap = await getDoc(winRef);
-		const loseSnap = await getDoc(loseRef);
-		const winScore = winSnap.exists() ? (winSnap.data().score || 0) : 0;
-		const loseScore = loseSnap.exists() ? (loseSnap.data().score || 0) : 0;
-		await updateDoc(winRef, { score: winScore + 110, updatedAt: new Date().toISOString() });
-		await updateDoc(loseRef, { score: loseScore + 50, updatedAt: new Date().toISOString() });
+		const ensure = async (refDoc, user) => {
+			const s = await getDoc(refDoc);
+			if (!s.exists()) {
+				await setDoc(refDoc, { username: user, game: "battleship", score: 0, updatedAt: new Date().toISOString() });
+			}
+		};
+		await ensure(winRef, winnerName);
+		await ensure(loseRef, loser);
+		await updateDoc(winRef, { score: increment(110), updatedAt: new Date().toISOString() });
+		await updateDoc(loseRef, { score: increment(50), updatedAt: new Date().toISOString() });
 		await cleanupRoom();
 	}
 
