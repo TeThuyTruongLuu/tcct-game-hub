@@ -487,7 +487,7 @@ if (step === "battle") {
 		if (!roomData) return;
 		if (roomData.status === "ended" && !gameEnded) {
 			gameEnded = true;
-			await cleanupRoom();
+			cleanupRoom();
 		}
 
 		if (youEl.childElementCount === 0) buildBoard(youEl);
