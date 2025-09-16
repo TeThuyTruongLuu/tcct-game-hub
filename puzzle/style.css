@@ -83,7 +83,7 @@ body {
 }
 
 .puzzle-piece {
-	-webkit-user-drag: none;
+	-webkit-user-drag: element;
 	-webkit-touch-callout: none;
 	user-select: none;
     width: 52.5px;
