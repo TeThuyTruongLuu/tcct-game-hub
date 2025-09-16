@@ -95,19 +95,13 @@ document.getElementById("start-button").addEventListener("click", async () => {
 	const scoreSnap = await get(scoreRef);
 	const currentScore = scoreSnap.exists() ? (scoreSnap.val().score || 0) : 0;
 
-	if (currentScore < 100) {
-		alert(`Bạn cần ít nhất 100 điểm để chơi. Hiện tại: ${currentScore} điểm.`);
-		loading.style.display = "none";
-		return;
-	}
-
 	await update(scoreRef, {
-		score: currentScore - 100,
+		score: -100,
 		updatedAt: new Date().toISOString()
 	});
 
 	localStorage.setItem("username", username);
-	window.location.href = "placeShips.html";
+	window.location.href = "index.html?step=place";
 });
 
 window.togglePassword = function () {
