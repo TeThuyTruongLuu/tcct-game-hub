@@ -290,7 +290,7 @@ if (step === "match") {
 if (step === "battle") {
 	const roomId = localStorage.getItem("roomId");
 	if (!roomId) {
-	  location.replace("index.html");
+		location.replace("index.html");
 	}
 	document.getElementById("setup-container").style.display = "none";
 	document.getElementById("length-config-container").style.display = "none";
@@ -354,6 +354,15 @@ if (step === "battle") {
 		];
 		const found = allChars.find(x => x.n === opp.char);
 		oppImg = found ? found.i : "";
+
+		const snap = await get(roomRef);
+		const rd = snap.val() || {};
+		const init = {};
+		if (!rd[`${role}Board`]) init[`${role}Board`] = you.shipPositions || [];
+		if (!rd[`${role}Hits`]) init[`${role}Hits`] = [];
+		if (!rd.log) init.log = [];
+		if (rd.status !== "playing") init.status = "playing";
+		if (Object.keys(init).length) await update(roomRef, init);
 
 		await update(roomRef, {
 			[`${role}Board`]: you.shipPositions || [],
