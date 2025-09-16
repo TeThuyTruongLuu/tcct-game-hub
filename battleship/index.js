@@ -272,37 +272,13 @@ if (step === "match") {
 				}
 			}
 		}
-
 		const newRoomRef = push(roomsRef);
 		const myId = newRoomRef.key;
 		await set(newRoomRef, { player1: username, status: "waiting" });
 		await update(userRef, { inBattle: myId });
-
-		const recheck = await get(roomsRef);
-		if (recheck.exists()) {
-			const all = recheck.val();
-			let earliest = null;
-			for (const rid in all) {
-				const r = all[rid];
-				if (r.status === "waiting" && r.player1 !== username) {
-					if (!earliest || rid < earliest) earliest = rid;
-				}
-			}
-			if (earliest && earliest < myId) {
-				try { await remove(newRoomRef); } catch(e) {}
-				const updates = {};
-				updates[`rooms-battleship/${earliest}/player2`] = username;
-				updates[`rooms-battleship/${earliest}/status`] = "playing";
-				updates[`rooms-battleship/${earliest}/turn`] = "player1";
-				await update(ref(db), updates);
-				await update(userRef, { inBattle: earliest });
-				listenToRoom(earliest, "player2");
-				return;
-			}
-		}
-
 		listenToRoom(myId, "player1");
 	}
+
 
 	function listenToRoom(roomId, role) {
 		const roomRef = ref(db, `rooms-battleship/${roomId}`); // chỉ tạo khi có roomId
