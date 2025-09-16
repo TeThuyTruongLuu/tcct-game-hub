@@ -478,7 +478,7 @@ if (step === "battle") {
 		const winScore = winSnap.exists() ? (winSnap.data().score || 0) : 0;
 		const loseScore = loseSnap.exists() ? (loseSnap.data().score || 0) : 0;
 		await updateDoc(winRef, { score: winScore + 110, updatedAt: new Date().toISOString() });
-		await updateDoc(loseRef, { score: loseScore + 10, updatedAt: new Date().toISOString() });
+		await updateDoc(loseRef, { score: loseScore + 50, updatedAt: new Date().toISOString() });
 		await cleanupRoom();
 	}
 
