@@ -288,6 +288,7 @@ if (step === "match") {
 
 // PART 5: battle
 if (step === "battle") {
+	const roomId = localStorage.getItem("roomId");
 	if (!roomId) {
 	  location.replace("index.html");
 	}
@@ -312,7 +313,6 @@ if (step === "battle") {
 	document.getElementById("game-container").style.display = "block";
 
 	const username = localStorage.getItem("username");
-	const roomId = localStorage.getItem("roomId");
 	const role = localStorage.getItem("role");
 	const opponent = localStorage.getItem("opponent");
 	const COLS = 10;
