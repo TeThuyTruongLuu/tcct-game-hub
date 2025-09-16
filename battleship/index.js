@@ -363,8 +363,12 @@ if (step === "battle") {
 			}
 			if (oppHits.includes(i)) {
 				if (youBoard.includes(i)) {
-					cYou.textContent = "🔥";
 					cYou.classList.add("hit");
+					const myImg = localStorage.getItem("selectedImg");
+					if (myImg) cYou.style.backgroundImage = `url('${myImg}')`;
+					const ov = document.createElement("span");
+					ov.className = "overlay";
+					cYou.appendChild(ov);
 				} else {
 					cYou.classList.add("miss");
 				}
@@ -377,8 +381,10 @@ if (step === "battle") {
 			const isHit = oppBoard.includes(i) && wasShot;
 			if (isHit) {
 				cOpp.classList.add("hit");
-				cOpp.textContent = "🎯";
 				if (oppImg) cOpp.style.backgroundImage = `url('${oppImg}')`;
+				const ov = document.createElement("span");
+				ov.className = "overlay";
+				cOpp.appendChild(ov);
 			} else if (wasShot) {
 				cOpp.classList.add("miss");
 			}
