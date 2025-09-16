@@ -447,8 +447,8 @@ if (step === "battle") {
 		const loseSnap = await getDoc(loseRef);
 		const winScore = winSnap.exists() ? (winSnap.data().score || 0) : 0;
 		const loseScore = loseSnap.exists() ? (loseSnap.data().score || 0) : 0;
-		await updateDoc(winRef, { score: winScore + 150, updatedAt: new Date().toISOString() });
-		await updateDoc(loseRef, { score: loseScore + 50, updatedAt: new Date().toISOString() });
+		await updateDoc(winRef, { score: winScore + 110, updatedAt: new Date().toISOString() });
+		await updateDoc(loseRef, { score: loseScore + 10, updatedAt: new Date().toISOString() });
 	}
 
 	onValue(roomRef, snap => {
