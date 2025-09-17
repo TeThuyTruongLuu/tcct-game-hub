@@ -384,104 +384,79 @@ function dragOver(e) {
 function enableMobileDragging(piece) {
 	if (piece.classList.contains("hidden-piece")) return;
 
-	piece.addEventListener("touchstart", function (e) {
+	let startX=0,startY=0,offX=0,offY=0,parentBeforeMove=null;
+
+	function onTouchStart(e){
 		if (piece.parentElement.classList.contains("puzzle-slot")) return;
 		e.preventDefault();
-		let touch = e.touches[0];
-		piece.dataset.offsetX = touch.clientX - piece.getBoundingClientRect().left;
-		piece.dataset.offsetY = touch.clientY - piece.getBoundingClientRect().top;
-
+		const t=e.touches[0];
+		parentBeforeMove=piece.parentNode;
+		const rect=piece.getBoundingClientRect();
+		offX=t.clientX-rect.left;
+		offY=t.clientY-rect.top;
+		startX=t.clientX;
+		startY=t.clientY;
 		document.body.appendChild(piece);
-		piece.style.position = "fixed";
-		piece.style.zIndex = "1000";
+		piece.style.position="fixed";
+		piece.style.zIndex="1000";
+		draggedPiece=piece;
+		originalParent=parentBeforeMove;
+	}
 
-		draggedPiece = piece;
-		originalParent = piece.parentNode;
-	});
-
-	piece.addEventListener("touchmove", function (e) {
+	function onTouchMove(e){
 		if (piece.parentElement.classList.contains("puzzle-slot")) return;
 		e.preventDefault();
-		let touch = e.touches[0];
+		const t=e.touches[0];
+		piece.style.left=`${t.clientX-offX}px`;
+		piece.style.top=`${t.clientY-offY}px`;
+	}
 
-		let offsetX = parseFloat(piece.dataset.offsetX);
-		let offsetY = parseFloat(piece.dataset.offsetY);
-
-		piece.style.left = `${touch.clientX - offsetX}px`;
-		piece.style.top = `${touch.clientY - offsetY}px`;
-	});
-
-	piece.addEventListener("touchend", function (e) {
+	function onTouchEnd(e){
 		if (!draggedPiece) return;
-
-		let touch = e.changedTouches[0];
-		let pieceRect = draggedPiece.getBoundingClientRect();
-		let pieceCenterX = pieceRect.left + pieceRect.width / 2;
-		let pieceCenterY = pieceRect.top + pieceRect.height / 2;
-
-		let slots = document.querySelectorAll(".puzzle-slot");
-		let closestSlot = null;
-		let minDistance = Infinity;
-
-		slots.forEach(slot => {
-			let slotRect = slot.getBoundingClientRect();
-			let slotCenterX = slotRect.left + slotRect.width / 2;
-			let slotCenterY = slotRect.top + slotRect.height / 2;
-
-			let distance = Math.sqrt(
-				Math.pow(pieceCenterX - slotCenterX, 2) + 
-				Math.pow(pieceCenterY - slotCenterY, 2)
-			);
-
-			if (distance < minDistance) {
-				minDistance = distance;
-				closestSlot = slot;
-			}
+		const pieceRect=draggedPiece.getBoundingClientRect();
+		const cx=pieceRect.left+pieceRect.width/2;
+		const cy=pieceRect.top+pieceRect.height/2;
+		let closest=null,minD=Infinity;
+		document.querySelectorAll(".puzzle-slot").forEach(slot=>{
+			const r=slot.getBoundingClientRect();
+			const sx=r.left+r.width/2;
+			const sy=r.top+r.height/2;
+			const d=Math.hypot(cx-sx,cy-sy);
+			if(d<minD){minD=d;closest=slot;}
 		});
-
-		if (closestSlot) {
-			drop({ preventDefault: () => {}, target: closestSlot });
-		} else {
+		if(closest){drop({preventDefault:()=>{},target:closest});}
+		else{
 			originalParent.appendChild(draggedPiece);
-			draggedPiece.style.position = "absolute";
-			draggedPiece.style.left = `${touch.clientX - piece.dataset.offsetX}px`;
-			draggedPiece.style.top = `${touch.clientY - piece.dataset.offsetY}px`;
+			draggedPiece.style.position="absolute";
+			draggedPiece.style.left=`${startX-offX}px`;
+			draggedPiece.style.top=`${startY-offY}px`;
 		}
+		draggedPiece=null;
+	}
 
-		draggedPiece = null;
-	});
+	piece.addEventListener("touchstart", onTouchStart, {passive:false});
+	piece.addEventListener("touchmove", onTouchMove, {passive:false});
+	piece.addEventListener("touchend", onTouchEnd);
 }
 
 function drop(e) {
 	e.preventDefault();
-
 	if (!draggedPiece) return;
-
-	let target = e.target.classList.contains("puzzle-slot") ? e.target : e.target;
-
+	let target = e.target;
 	if (target.classList.contains("puzzle-slot")) {
 		let correctIndex = parseInt(target.dataset.index);
 		let pieceIndex = parseInt(draggedPiece.dataset.index);
-
 		if (correctIndex === pieceIndex) {
 			target.appendChild(draggedPiece);
-
 			draggedPiece.draggable = false;
 			draggedPiece.style.cursor = "default";
 			draggedPiece.style.position = "static";
 			draggedPiece.removeEventListener("dragstart", dragStart);
-
-			draggedPiece.removeEventListener("touchstart", enableMobileDragging);
-			draggedPiece.removeEventListener("touchmove", enableMobileDragging);
-			draggedPiece.removeEventListener("touchend", enableMobileDragging);
-
 			placedPieces++;
-
 			if (placedPieces === totalPieces) {
 				stopTimer();
 				let levelScore = calculateScore();
 				levelScores[currentLevel] = levelScore.score;
-
 				if (currentLevel === 1) {
 					localStorage.setItem("puzzleLevel1Done", "true");
 					localStorage.setItem("puzzleLevel1Score", levelScore.score);
@@ -503,7 +478,6 @@ function drop(e) {
 	} else {
 		originalParent.appendChild(draggedPiece);
 	}
-
 	draggedPiece = null;
 }
 
@@ -539,23 +513,17 @@ function showQuestion(index, piece) {
 	const questionContainer = document.getElementById("question-container");
 	const questionText = document.getElementById("question-text");
 	const optionsContainer = document.getElementById("options");
-
 	let questionIndex;
 	do {
 		questionIndex = Math.floor(Math.random() * questions[currentLevel].length);
 	} while (usedQuestions.has(questionIndex) && usedQuestions.size < questions[currentLevel].length);
-
 	usedQuestions.add(questionIndex);
-
 	const question = questions[currentLevel][questionIndex];
 	questionText.textContent = question.question;
 	optionsContainer.innerHTML = "";
-
 	let shuffledOptions = question.options.map((option, i) => ({ option, originalIndex: i }));
 	shuffleArray(shuffledOptions);
-
 	questionContainer.dataset.correctIndexes = JSON.stringify(question.correct);
-
 	shuffledOptions.forEach(({ option, originalIndex }, btnIndex) => {
 		const button = document.createElement("button");
 		button.textContent = option;
@@ -563,7 +531,6 @@ function showQuestion(index, piece) {
 		button.onclick = () => checkAnswer(questionIndex, originalIndex, piece);
 		optionsContainer.appendChild(button);
 	});
-
 	questionContainer.style.display = "block";
 }
 
@@ -575,26 +542,21 @@ function resetProgress() {
 function checkAnswer(index, selectedOriginalIndex, piece) {
 	const question = questions[currentLevel][index % questions[currentLevel].length];
 	const correctAnswers = question.correct;
-
 	const buttons = document.querySelectorAll(".question-container button");
-
 	if (correctAnswers.includes(selectedOriginalIndex)) {
 		buttons.forEach(button => {
 			if (parseInt(button.dataset.originalIndex) === selectedOriginalIndex) {
 				button.classList.add("correct");
 			}
 		});
-
 		setTimeout(() => {
 			piece.classList.remove("hidden-piece");
 			piece.draggable = true;
 			piece.removeEventListener("click", piece._clickToShowQuestion);
 			piece.addEventListener("dragstart", dragStart);
-
 			if (window.innerWidth <= 768) {
 				enableMobileDragging(piece);
 			}
-
 			document.getElementById("question-text").textContent = "🎉 Chính xác! Bạn đã mở khóa mảnh ghép này!";
 			document.getElementById("options").innerHTML = "";
 		}, 1000);
@@ -604,7 +566,6 @@ function checkAnswer(index, selectedOriginalIndex, piece) {
 				button.classList.add("wrong");
 			}
 		});
-
 		setTimeout(() => {
 			buttons.forEach(button => button.classList.remove("wrong"));
 		}, 1000);
@@ -655,14 +616,30 @@ function calculateScore() {
 }
 
 function safeSaveScore(totalScore) {
-	try {
-		if (typeof saveScoreToDB === "function") {
-			saveScoreToDB("Puzzle", totalScore);
+	try { localStorage.setItem("puzzleTotalScore", String(totalScore)); } catch (e) {}
+	function tryCall(){
+		if(typeof saveScoreToDB==="function"){
+			try{
+				const maybe=saveScoreToDB("Puzzle", totalScore);
+				if(maybe&&typeof maybe.then==="function"){
+					maybe.then(()=>{ if(typeof updateTotalScore==="function"){ try{ updateTotalScore(); }catch(e){} }});
+				}else{
+					if(typeof updateTotalScore==="function"){ try{ updateTotalScore(); }catch(e){} }
+				}
+				const u=document.getElementById("user-points");
+				if(u){ try{ u.innerText=String(totalScore); }catch(e){} }
+				return true;
+			}catch(e){}
 		}
-	} catch (e) {}
-	try {
-		localStorage.setItem("puzzleTotalScore", String(totalScore));
-	} catch (e) {}
+		return false;
+	}
+	if(!tryCall()){
+		let n=0;
+		const iv=setInterval(()=>{
+			n++;
+			if(tryCall()||n>20) clearInterval(iv);
+		},150);
+	}
 }
 
 document.addEventListener("pointerdown", ()=>{}, {once:true});
