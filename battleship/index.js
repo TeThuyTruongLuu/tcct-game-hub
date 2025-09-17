@@ -510,9 +510,20 @@ if (step === "battle") {
 	}
 
 	async function handleWin(winnerName) {
-		const loser = winnerName === username ? opponent : username;
+		const snap = await get(roomRef);
+		const rd = snap.val() || {};
+		if (rd.status !== "ended" || !rd.winner) {
+			await update(roomRef, { winner: winnerName, status: "ended" });
+		}
+	}
+
+	async function finalizeAndScore(roomData) {
+		if (!roomData || !roomData.winner) return;
+		if (roomData.scored) return;
+		const winnerName = roomData.winner;
+		const loserName = winnerName === username ? opponent : username;
 		const winRef = doc(fdb, "userScores", `${winnerName}-Bắn tàu`);
-		const loseRef = doc(fdb, "userScores", `${loser}-Bắn tàu`);
+		const loseRef = doc(fdb, "userScores", `${loserName}-Bắn tàu`);
 		const ensure = async (refDoc, user) => {
 			const s = await getDoc(refDoc);
 			if (!s.exists()) {
@@ -520,22 +531,22 @@ if (step === "battle") {
 			}
 		};
 		await ensure(winRef, winnerName);
-		await ensure(loseRef, loser);
+		await ensure(loseRef, loserName);
 		await updateDoc(winRef, { score: increment(110), updatedAt: new Date().toISOString() });
 		await updateDoc(loseRef, { score: increment(50), updatedAt: new Date().toISOString() });
-		await cleanupRoom();
+		await update(roomRef, { scored: true });
 	}
 
-	onValue(roomRef, snap => {
+	onValue(roomRef, async snap => {
 		const roomData = snap.val();
 		if (!roomData) return;
 		if (roomData.status === "ended" && !gameEnded) {
-		  gameEnded = true;
-		  cleanupRoom().then(() => {
+			gameEnded = true;
+			await finalizeAndScore(roomData);
+			await cleanupRoom();
 			location.replace("index.html");
-		  });
+			return;
 		}
-
 		if (youEl.childElementCount === 0) buildBoard(youEl);
 		if (oppEl.childElementCount === 0) buildBoard(oppEl);
 		render(roomData);
