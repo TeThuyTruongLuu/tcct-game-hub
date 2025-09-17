@@ -363,18 +363,19 @@ if (step === "battle") {
 	let oppImg = "";
 	let youBoard = [];
 	let oppBoard = [];
-		
+			
 	async function tryChargeEntryFee() {
 		if (feeChargedLocal) return;
 		const tx = await runTransaction(roomRef, cur => {
 			if (!cur) return cur;
 			if (cur.feeCharged) return cur;
 			if (!cur.player1 || !cur.player2) return cur;
-			return { ...cur, feeCharged: true };
+			return { ...cur, feeCharged: true, feeChargedBy: username };
 		});
 		if (!tx.committed) return;
-		feeChargedLocal = true;
 		const data = tx.snapshot.val() || {};
+		if (data.feeChargedBy !== username) { feeChargedLocal = true; return; }
+		feeChargedLocal = true;
 		const p1 = data.player1;
 		const p2 = data.player2;
 		const d1 = doc(fdb, "userScores", `${p1}-Bắn tàu`);
@@ -425,8 +426,6 @@ if (step === "battle") {
 		if (rd.status !== "playing") init.status = "playing";
 		if (Object.keys(init).length) await update(roomRef, init);
 	}
-
-	await getBoards();
 	
 	function buildBoard(container) {
 		container.innerHTML = "";
@@ -543,24 +542,23 @@ if (step === "battle") {
 		const tx = await runTransaction(roomRef, cur => {
 			if (!cur || !cur.winner) return cur;
 			if (cur.scored) return cur;
-			return { ...cur, scored: true };
+			return { ...cur, scored: true, scoredBy: cur.winner };
 		});
 		if (!tx.committed) return;
 		const data = tx.snapshot.val() || {};
 		if (!data.scored || !data.winner) return;
+		if (username !== data.scoredBy) return;
 		const winnerName = data.winner;
 		const loserName = winnerName === username ? opponent : username;
 		const winRef = doc(fdb, "userScores", `${winnerName}-Bắn tàu`);
 		const loseRef = doc(fdb, "userScores", `${loserName}-Bắn tàu`);
 		const ensure = async (refDoc, user) => {
 			const s = await getDoc(refDoc);
-			if (!s.exists()) {
-				await setDoc(refDoc, { username: user, game: "battleship", score: 0, updatedAt: new Date().toISOString() });
-			}
+			if (!s.exists()) await setDoc(refDoc, { username: user, game: "battleship", score: 0, updatedAt: new Date().toISOString() });
 		};
 		await ensure(winRef, winnerName);
 		await ensure(loseRef, loserName);
-		await updateDoc(winRef, { score: increment(110), updatedAt: new Date().toISOString() });
+		await updateDoc(winRef, { score: increment(125), updatedAt: new Date().toISOString() });
 		await updateDoc(loseRef, { score: increment(50), updatedAt: new Date().toISOString() });
 	}
 
@@ -591,4 +589,5 @@ if (step === "battle") {
 			});
 		} catch(e) {}
 	});
+	getBoards();
 }
