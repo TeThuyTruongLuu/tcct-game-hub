@@ -426,7 +426,7 @@ if (step === "battle") {
 		if (Object.keys(init).length) await update(roomRef, init);
 	}
 
-	await tryChargeEntryFee();
+	await getBoards();
 	
 	function buildBoard(container) {
 		container.innerHTML = "";
