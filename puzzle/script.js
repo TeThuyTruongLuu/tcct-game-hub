@@ -190,7 +190,7 @@ const questionsLevel2 = [
 		options: [
 			"Khí công sư -> lưu manh -> đạo tặc -> khí công sư",
 			"Khí công sư -> đạo tặc -> lưu manh -> khí công sư",
-			"Lam Vũ -> trại huấn luyện Hô Khiếu -> chiến đội Hô Khiếu -> Hưng Hân",
+			"Lam Vũ -> trại huấn luyện Hô Khiếu -> chiến đội Hô Khiếu -> Hưng Hân"
 		],
 		correct: [1]
 	},
@@ -551,6 +551,7 @@ function showQuestion(index, piece) {
 	questionContainer.dataset.correctIndexes = JSON.stringify(question.correct);
 
 	shuffledOptions.forEach(({ option, originalIndex }, btnIndex) => {
+<|diff_marker|> ADD A1020
 		const button = document.createElement("button");
 		button.textContent = option;
 		button.dataset.originalIndex = originalIndex;
@@ -571,6 +572,7 @@ function checkAnswer(index, selectedOriginalIndex, piece) {
 	const correctAnswers = question.correct;
 
 	const buttons = document.querySelectorAll(".question-container button");
+<|diff_marker|> ADD A1040
 
 	if (correctAnswers.includes(selectedOriginalIndex)) {
 		buttons.forEach(button => {
@@ -591,6 +593,7 @@ function checkAnswer(index, selectedOriginalIndex, piece) {
 
 			document.getElementById("question-text").textContent = "🎉 Chính xác! Bạn đã mở khóa mảnh ghép này!";
 			document.getElementById("options").innerHTML = "";
+<|diff_marker|> ADD A1060
 		}, 1000);
 	} else {
 		buttons.forEach(button => {
@@ -611,6 +614,7 @@ if (doneLv1 && scoreLv1 > 0) {
 	currentLevel = 2;
 }
 createPuzzle();
+<|diff_marker|> ADD A1080
 
 document.getElementById("reset-btn").addEventListener("click", () => {
 	localStorage.removeItem("puzzleLevel1Done");
@@ -631,7 +635,9 @@ function startTimer() {
 		}, 1000);
 		clearTimeout(window.previewTimeout);
 		window.previewTimeout = setTimeout(() => {
-			document.getElementById("preview-overlay").style.display = "none";
+<|diff_marker|> ADD A1100
+			const p = document.getElementById("preview-overlay");
+			if (p) p.style.display = "none";
 		}, 30000);
 	}
 }
@@ -650,6 +656,7 @@ function safeSaveScore(totalScore) {
 	try {
 		if (typeof saveScoreToDB === "function") {
 			saveScoreToDB("Puzzle", totalScore);
+<|diff_marker|> ADD A1120
 		}
 	} catch (e) {}
 	try {
