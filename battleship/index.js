@@ -98,7 +98,6 @@ document.getElementById("start-button").addEventListener("click", async () => {
 	if (!fsSnap.exists()) {
 		await setDoc(scoreDocRef, { username, game: "battleship", score: 0, updatedAt: new Date().toISOString() });
 	}
-	await updateDoc(scoreDocRef, { score: increment(-100), updatedAt: new Date().toISOString() });
 
 	localStorage.setItem("username", username);
 	localStorage.setItem("selectedChar", selectedChar);
@@ -323,6 +322,8 @@ if (step === "match") {
 
 // PART 5: battle
 if (step === "battle") {
+	let feeChargedLocal = false;
+	let shooting = false;
 	const roomId = localStorage.getItem("roomId");
 	if (!roomId) {
 		location.replace("index.html");
@@ -362,7 +363,32 @@ if (step === "battle") {
 	let oppImg = "";
 	let youBoard = [];
 	let oppBoard = [];
-	
+		
+	async function tryChargeEntryFee() {
+		if (feeChargedLocal) return;
+		const tx = await runTransaction(roomRef, cur => {
+			if (!cur) return cur;
+			if (cur.feeCharged) return cur;
+			if (!cur.player1 || !cur.player2) return cur;
+			return { ...cur, feeCharged: true };
+		});
+		if (!tx.committed) return;
+		feeChargedLocal = true;
+		const data = tx.snapshot.val() || {};
+		const p1 = data.player1;
+		const p2 = data.player2;
+		const d1 = doc(fdb, "userScores", `${p1}-Bắn tàu`);
+		const d2 = doc(fdb, "userScores", `${p2}-Bắn tàu`);
+		const ensure = async (refDoc, user) => {
+			const s = await getDoc(refDoc);
+			if (!s.exists()) await setDoc(refDoc, { username: user, game: "battleship", score: 0, updatedAt: new Date().toISOString() });
+		};
+		await ensure(d1, p1);
+		await ensure(d2, p2);
+		await updateDoc(d1, { score: increment(-100), updatedAt: new Date().toISOString() });
+		await updateDoc(d2, { score: increment(-100), updatedAt: new Date().toISOString() });
+	}
+
 	async function cleanupRoom() {
 		const rid = localStorage.getItem("roomId");
 		if (!rid) return;
@@ -400,6 +426,8 @@ if (step === "battle") {
 		if (Object.keys(init).length) await update(roomRef, init);
 	}
 
+	await tryChargeEntryFee();
+	
 	function buildBoard(container) {
 		container.innerHTML = "";
 		for (let i = 0; i < boardSize; i++) {
@@ -477,50 +505,50 @@ if (step === "battle") {
 		}
 	}
 
-	async function shoot(index, roomData) {
-		if (gameEnded) return;
-		const targetBoard = roomData[`${role === "player1" ? "player2" : "player1"}Board`] || [];
-		const hits = roomData[`${role}Hits`] || [];
-		if (hits.includes(index)) return;
-		const isHit = targetBoard.includes(index);
-		const updatedHits = [...hits, index];
-		const log = roomData.log || [];
-		log.push({ by: role, index, result: isHit ? "hit" : "miss" });
-		const allHitPositions = updatedHits;
-		const isSunk = targetBoard.length > 0 && targetBoard.every(pos => allHitPositions.includes(pos));
-		const winner = isSunk ? username : null;
-
-		const updates = {};
-		updates[`${role}Hits`] = updatedHits;
-		updates[`log`] = log;
-		if (winner) {
-			updates[`winner`] = winner;
-			updates[`status`] = "ended";
-		} else {
-			updates[`turn`] = role === "player1" ? "player2" : "player1";
-		}
-		await update(roomRef, updates);
-
-		shotResult.textContent = isHit ? "🎯 TRÚNG!" : "💨 HỤT!";
-		shotResult.className = "sr " + (isHit ? "hit" : "miss");
-		if (winner) {
-			gameEnded = true;
-			await handleWin(winner);
+	async function shoot(index) {
+		if (gameEnded || shooting) return;
+		shooting = true;
+		try {
+			await runTransaction(roomRef, cur => {
+				if (!cur || cur.winner || cur.turn !== role) return cur;
+				const targetBoard = cur[`${role === "player1" ? "player2" : "player1"}Board`] || [];
+				const hits = cur[`${role}Hits`] || [];
+				if (hits.includes(index)) return cur;
+				const updatedHits = hits.concat(index);
+				const log = (cur.log || []).concat({ by: role, index, result: targetBoard.includes(index) ? "hit" : "miss" });
+				const isSunk = targetBoard.length > 0 && targetBoard.every(pos => updatedHits.includes(pos));
+				const next = { ...cur, [`${role}Hits`]: updatedHits, log };
+				if (isSunk) {
+					next.winner = username;
+					next.status = "ended";
+				} else {
+					next.turn = role === "player1" ? "player2" : "player1";
+				}
+				return next;
+			});
+		} finally {
+			if (!gameEnded) shooting = false;
 		}
 	}
 
 	async function handleWin(winnerName) {
-		const snap = await get(roomRef);
-		const rd = snap.val() || {};
-		if (rd.status !== "ended" || !rd.winner) {
-			await update(roomRef, { winner: winnerName, status: "ended" });
-		}
+		await runTransaction(roomRef, cur => {
+			if (!cur) return cur;
+			if (cur.status === "ended" && cur.winner) return cur;
+			return { ...cur, winner: winnerName, status: "ended" };
+		});
 	}
 
 	async function finalizeAndScore(roomData) {
-		if (!roomData || !roomData.winner) return;
-		if (roomData.scored) return;
-		const winnerName = roomData.winner;
+		const tx = await runTransaction(roomRef, cur => {
+			if (!cur || !cur.winner) return cur;
+			if (cur.scored) return cur;
+			return { ...cur, scored: true };
+		});
+		if (!tx.committed) return;
+		const data = tx.snapshot.val() || {};
+		if (!data.scored || !data.winner) return;
+		const winnerName = data.winner;
 		const loserName = winnerName === username ? opponent : username;
 		const winRef = doc(fdb, "userScores", `${winnerName}-Bắn tàu`);
 		const loseRef = doc(fdb, "userScores", `${loserName}-Bắn tàu`);
@@ -534,11 +562,13 @@ if (step === "battle") {
 		await ensure(loseRef, loserName);
 		await updateDoc(winRef, { score: increment(110), updatedAt: new Date().toISOString() });
 		await updateDoc(loseRef, { score: increment(50), updatedAt: new Date().toISOString() });
-		await update(roomRef, { scored: true });
 	}
 
 	onValue(roomRef, async snap => {
 		const roomData = snap.val();
+		if (roomData.status === "playing" && roomData.player1 && roomData.player2) {
+			await tryChargeEntryFee();
+		}
 		if (!roomData) return;
 		if (roomData.status === "ended" && !gameEnded) {
 			gameEnded = true;
@@ -551,11 +581,14 @@ if (step === "battle") {
 		if (oppEl.childElementCount === 0) buildBoard(oppEl);
 		render(roomData);
 	});
-
-	getBoards();
-	window.addEventListener("beforeunload", () => {
-	  if (!gameEnded) {
-		update(roomRef, { winner: opponent, status: "ended" });
-	  }
+	window.addEventListener("beforeunload", async () => {
+		if (gameEnded) return;
+		try {
+			await runTransaction(roomRef, cur => {
+				if (!cur) return cur;
+				if (cur.status === "ended" && cur.winner) return cur;
+				return { ...cur, winner: opponent, status: "ended" };
+			});
+		} catch(e) {}
 	});
 }
