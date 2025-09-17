@@ -363,7 +363,7 @@ if (step === "battle") {
 	let oppImg = "";
 	let youBoard = [];
 	let oppBoard = [];
-			
+
 	async function tryChargeEntryFee() {
 		if (feeChargedLocal) return;
 		const tx = await runTransaction(roomRef, cur => {
@@ -561,12 +561,10 @@ if (step === "battle") {
 		await updateDoc(winRef, { score: increment(125), updatedAt: new Date().toISOString() });
 		await updateDoc(loseRef, { score: increment(50), updatedAt: new Date().toISOString() });
 	}
-
+	
+	await tryChargeEntryFee();
 	onValue(roomRef, async snap => {
 		const roomData = snap.val();
-		if (roomData.status === "playing" && roomData.player1 && roomData.player2) {
-			await tryChargeEntryFee();
-		}
 		if (!roomData) return;
 		if (roomData.status === "ended" && !gameEnded) {
 			gameEnded = true;
