@@ -1,17 +1,11 @@
-html,body{
-	height:100%;
-	margin:0;
-	background:#ffffff;
-	overflow:hidden;
-	-webkit-font-smoothing:antialiased;
-	-moz-osx-font-smoothing:grayscale;
-	-webkit-tap-highlight-color:transparent;
-}
+html,body{height:auto;margin:0;background:transparent;overflow:visible}
 
 #stage{
-	position:relative;
-	width:100vw;
-	height:100vh;
+  position:fixed;
+  inset:0;
+  width:auto;
+  height:auto;
+  pointer-events:none;
 }
 
 .pet{
@@ -23,6 +17,7 @@ html,body{
 	display:flex;
 	align-items:flex-end;
 	justify-content:center;
+	pointer-events:auto
 }
 .pet:active{
 	cursor:grabbing;

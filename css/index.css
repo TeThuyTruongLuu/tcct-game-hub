@@ -328,9 +328,17 @@ h1 {
 .slider:before{content:"";position:absolute;height:24px;width:24px;left:4px;top:4px;border-radius:50%;background:#fff;transition:.2s}
 .switch input:checked+.slider{background:#14a38b}
 .switch input:checked+.slider:before{transform:translateX(26px)}
-#stage{position:fixed;inset:0;pointer-events:none;z-index:2147483646}
 
-.pet{position:fixed;pointer-events:auto}
+#stage{
+  position: fixed;
+  left: 0; right: 0; top: 0; bottom: 0;
+  width: auto !important;
+  height: auto !important;
+  pointer-events: none;
+  z-index: 2147483646;
+}
+
+.pet{ position: fixed; pointer-events: auto; }
 
 /* Scoreboard Buttons */
 .scoreboard-container {
