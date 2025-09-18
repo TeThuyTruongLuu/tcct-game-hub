@@ -1,0 +1,13 @@
+html,body{height:100%;margin:0;background:#ffffff;overflow:hidden}
+#stage{position:relative;width:100vw;height:100vh}
+.pet{position:fixed;left:0;top:0;user-select:none;cursor:grab;display:flex;align-items:flex-end;justify-content:center}
+.pet:active{cursor:grabbing}
+.pet img{display:block;max-width:none}
+.pet.sleep{filter:grayscale(.2) brightness(.9) drop-shadow(0 8px 16px rgba(0,0,0,.4))}
+.pet.flip{transform:scaleX(-1)}
+.bubble{position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#fff;color:#222;padding:6px 10px;border-radius:12px;font:600 12px/1.2 ui-sans-serif,system-ui;box-shadow:0 4px 10px rgba(0,0,0,.25);opacity:0;white-space:nowrap;pointer-events:none}
+.bubble.show{opacity:1;transition:opacity .2s}
+.ctx{position:fixed;background:#161821;color:#e6e6e6;border:1px solid #2a2d3a;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.5);padding:6px 0;min-width:160px;z-index:99999}
+.ctx button{display:block;width:100%;text-align:left;background:transparent;border:0;padding:8px 12px;color:inherit;font:500 13px ui-sans-serif,system-ui}
+.ctx button:hover{background:#232633}
+.hidden{display:none}
