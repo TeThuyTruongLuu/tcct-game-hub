@@ -11,6 +11,10 @@
 	<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 	<title>Phong - TCCT Game Hub</title>
 	<link href="css/index.css" rel="stylesheet"/>
+	<link rel="stylesheet" href="pet/style.css">
+	<style>
+		html,body{height:auto;overflow:auto;overflow-x:hidden;background:#ffe9e6}
+	</style>
 </head>
 
 <body>
@@ -95,9 +99,9 @@
 		</div>
 
 		<div id="proj-score-embed" class="board-embed" style="display:none">
-		  <div class="frame">
+			<div class="frame">
 			<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSNjq_x4gKdk_Ezru6lE9GGYzSrHQCeXxJeUmUrsz8B1y_Udu_hg1iO-XaM9pzD6yYBmjSV4oa_eZOV/pubhtml?widget=true&headers=false"></iframe>
-		  </div>
+			</div>
 		</div>
 
 		<div id="svContent"></div>
@@ -130,29 +134,53 @@
 	<img alt="Cài đặt" id="settings-icon-game" src="onet/icon/setting (2).png"/>
 	</button>
 	<div class="modal" id="settings-modal">
-	<button id="close-settings">✖</button>
-	
-	<h2>Cài đặt</h2>
-	<br/>
-	<label for="character-select">Chọn nhân vật:</label>
-	<select id="character-select" onchange="setSelectedCharacter();">
-		<option value="Vương">Vương</option>
-		<option value="Dụ">Dụ</option>
-		<option value="Khưu">Khưu</option>
-		<option value="Lạc">Song Hoa</option>
-		<option value="Hàn">Hàn</option>
-		<option value="Khác">Khác</option>
-	</select>
-	<button class="green" onclick="downloadCharacterData()">Tải về</button>
-	<div id="custom-quote-section" style="display: none;">
-	<p id="quote-message" style="align: center;">
-					Thoại đã nhập trước đó:
-				</p>
-	<div id="custom-quote-container">
+		<button id="close-settings">✖</button>
+		<h2>Cài đặt</h2>
+
+		<div class="set-head">
+			<div class="set-tab active" data-tab="speech">Bóng thoại</div>
+			<div class="set-tab" data-tab="pet">Pet</div>
+		</div>
+
+		<div class="set-body">
+			<div class="tab-pane" id="tab-speech">
+				<label for="character-select">Chọn nhân vật:</label>
+				<select id="character-select" onchange="setSelectedCharacter();">
+					<option value="Vương">Vương</option>
+					<option value="Dụ">Dụ</option>
+					<option value="Khưu">Khưu</option>
+					<option value="Lạc">Song Hoa</option>
+					<option value="Hàn">Hàn</option>
+					<option value="Khác">Khác</option>
+				</select>
+				<button class="green" onclick="downloadCharacterData()">Tải về</button>
+
+				<div id="custom-quote-section" style="display:none;">
+					<p id="quote-message">Thoại đã nhập trước đó:</p>
+					<div id="custom-quote-container"></div>
+					<button class="green" onclick="submitCustomQuotes()">Thêm thoại</button>
+				</div>
+			</div>
+
+			<div class="tab-pane" id="tab-pet" style="display:none;">
+				<div class="pet-row">
+					<span>Vương Kiệt Hi</span>
+					<label class="switch">
+						<input id="toggle-vuong" type="checkbox">
+						<span class="slider"></span>
+					</label>
+				</div>
+				<div class="pet-row">
+					<span>Gà đi bộ</span>
+					<label class="switch">
+						<input id="toggle-ga" type="checkbox">
+						<span class="slider"></span>
+					</label>
+				</div>
+			</div>
+		</div>
 	</div>
-	<button class="green" onclick="submitCustomQuotes()">Thêm thoại</button>
-	</div>
-	</div>
+
 
 	<div class="page-title" id="pageTitle">NÔ LỆ TƯ BẢN</div>
 	
@@ -266,5 +294,41 @@
 			}
 		}
 	</script>
+	<div id="stage"></div>
+
+	<div id="settings-modal-2tabs" class="set-modal" style="display:none">
+	  <div class="set-panel">
+		<div class="set-head">
+		  <div class="set-tab active" data-tab="speech">Bóng thoại</div>
+		  <div class="set-tab" data-tab="pet">Pet</div>
+		  <button class="set-close" id="setClose">✕</button>
+		</div>
+
+		<div class="set-body">
+		  <div class="tab-pane" id="tab-speech">
+			<div id="speech-proxy"></div>
+		  </div>
+
+		  <div class="tab-pane" id="tab-pet" style="display:none">
+			<div class="pet-row">
+			  <span>Vương Kiệt Hi</span>
+			  <label class="switch">
+				<input id="toggle-vuong" type="checkbox">
+				<span class="slider"></span>
+			  </label>
+			</div>
+			<div class="pet-row">
+			  <span>Gà đi bộ</span>
+			  <label class="switch">
+				<input id="toggle-ga" type="checkbox">
+				<span class="slider"></span>
+			  </label>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+
+	<script src="pet/pet.js"></script>
 </body>
 </html>
