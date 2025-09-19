@@ -100,11 +100,11 @@ html,body{height:auto;margin:0;background:transparent;overflow:visible}
 }
 .ctx input{
 	display:block;
-	width:calc(100% - 24px);
+	width:95%;
 	box-sizing:border-box;
-	margin:8px 12px 6px 12px;
-	padding:10px 12px;
-	border-radius:10px;
+	margin:3px;
+	padding:3px;
+	border-radius:5px;
 	border:1px solid #3a4157;
 	background:#0a0d18;
 	color:#e9edf7;
