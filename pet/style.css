@@ -169,7 +169,7 @@ html,body{height:auto;margin:0;background:transparent;overflow:visible}
 	}
 	.ctx{
 		max-width:90vw;
-		min-width:70vw;
+		min-width:60vw;
 		border-radius:12px;
 		padding:10px;
 	}
