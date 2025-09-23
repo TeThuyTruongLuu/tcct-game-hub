@@ -11,7 +11,8 @@ const ALL_IMAGES = [
 	"Du_1.jpg","Du_2.jpg","Du_3.jpg","Du_4.jpg","Du_5.jpg","Du_6.jpg","Du_7.jpg","Du_8.jpg",
 	"Khuu_1.jpg","Khuu_2.jpg","Khuu_3.jpg","Khuu_4.jpg","Khuu_5.jpg","Khuu_6.jpg","Khuu_7.jpg","Khuu_8.jpg",
 	"Lac_1.jpg","Lac_2.jpg","Lac_3.jpg","Lac_4.jpg","Lac_5.jpg","Lac_6.jpg","Lac_7.jpg","Lac_8.jpg",
-	"Vuong_1.jpg","Vuong_2.jpg","Vuong_3.jpg","Vuong_4.jpg","Vuong_5.jpg","Vuong_6.jpg","Vuong_7.jpg","Vuong_8.jpg"
+	"Vuong_1.jpg","Vuong_2.jpg","Vuong_3.jpg","Vuong_4.jpg","Vuong_5.jpg","Vuong_6.jpg","Vuong_7.jpg","Vuong_8.jpg",
+	"Han_1.jpg","Han_2.jpg","Han_3.jpg","Han_4.jpg","Han_5.jpg","Han_6.jpg","Han_7.jpg","Han_8.jpg"
 ];
 
 const LEVELS = {
