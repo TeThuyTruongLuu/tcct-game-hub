@@ -19,17 +19,40 @@
 
 <body>
 	<h1>Kho game hê hê<br/>Phong tạo</h1>
-	
 	<div class="head-banner">
-		<div class="head-marquee" id="headMarquee">
-			<span>Muahahahahahahahahahaha!</span>
-			<span>Trời lạnh rồi, cho nole đi cày thôi ヾ(⌐■_■)ノ♪</span>
-			<span>Project Noletuban diễn ra từ ngày 16/9 - 20/10 📅</span>
-			<span>Muahahahahahahahahahaha!</span>
-			<span>Trời lạnh rồi, cho nole đi cày thôi ヾ(⌐■_■)ノ♪</span>
-			<span>Project Noletuban diễn ra từ ngày 16/9 - 20/10 📅</span>
+		<div class="marquee-bar marquee-green">
+			<div class="marquee-label">
+				Bún lên sàn
+				<select id="daySelect">
+					<option value="2025-09-25">25/9</option>
+					<option value="2025-09-24">24/9</option>
+					<option value="2025-09-23" selected>hôm nay</option>
+					<option value="2025-09-22">22/9</option>
+					<option value="2025-09-21">21/9</option>
+					<option value="2025-09-20">20/9</option>
+					<option value="2025-09-19">19/9</option>
+					<option value="2025-09-18">18/9</option>
+					<option value="2025-09-17">17/9</option>
+					<option value="2025-09-16">16/9</option>
+				</select>
+			</div>
+			<div class="head-marquee" id="headMarquee2"></div>
 		</div>
 	</div>
+
+	<div class="head-banner">
+		<div class="marquee-bar marquee-yellow">
+			<div class="head-marquee" id="headMarquee">
+			  <span>Muahahahahahahahahahaha!</span>
+			  <span>Trời lạnh rồi, cho nole đi cày thôi ヾ(⌐■_■)ノ♪</span>
+			  <span>Project Noletuban diễn ra từ ngày 16/9 - 20/10 📅</span>
+			  <span>Muahahahahahahahahahaha!</span>
+			  <span>Trời lạnh rồi, cho nole đi cày thôi ヾ(⌐■_■)ノ♪</span>
+			  <span>Project Noletuban diễn ra từ ngày 16/9 - 20/10 📅</span>
+			</div>
+		</div>
+	</div>
+
 
 	<div id="login-modal">
 	<h2>Đăng nhập để lưu điểm</h2>
@@ -293,6 +316,231 @@
 				alert("❌ Tương lai quay lại nha!");
 			}
 		}
+		const ficByDate = {
+			"2025-09-16": [
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9516/" style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (0+1)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/8619/post-61590" style="color:rgb(65,168,95);">[Song Hoa] Quốc chi lợi nhận (3b)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9517/post-61595" style="color:rgb(65,168,95);">[Vương Dụ] Mỹ thực, cương thi, yêu? (1)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9518/" style="color:rgb(251,160,38);">[Song Hoa] Căn bệnh bắt nguồn từ hoa</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9520/" style="color:rgb(65,168,95);">[Tán Tu] Tô Mộc Thu sinh nhật vui vẻ</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9519/" style="color:rgb(65,168,95);">[Dụ Vương] Ma thuật tình yêu xoay vòng</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9521/" style="color:rgb(65,168,95);">[Song Diệp] Gặp lại</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9522/" style="color:rgb(65,168,95);">[Bao La] Vương mùi nắng (1)</a>`
+			],
+			"2025-09-17": [
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9516/latest" style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (2)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/8619/post-61605" style="color:rgb(65,168,95);">[Song Hoa] Quốc chi lợi nhận (4a)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9517/latest" style="color:rgb(65,168,95);">[Vương Dụ] Mỹ thực, cương thi, yêu? (2)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9524/" style="color:rgb(251,160,38);">[Song Diệp] Hôm nay có rồng đến nhà ta</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9523/unread" style="color:rgb(65,168,95);">[Kiều Cao] Tiếng chuông</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9525/" style="color:rgb(65,168,95);">[Vương Dụ] Tôi xứng đáng có cả quán quân và em</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9526/" style="color:rgb(65,168,95);">[Chu Tường, Song Hoa] Cẩm nang chinh phục Thanh Thanh</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9527/" style="color:rgb(65,168,95);">[Lưu Lư] Tình đầu, chuyện nhỏ như con thỏ</a>`
+			],
+			"2025-09-18": [
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9516/#post-61620" style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (3)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/8619/#post-61619" style="color:rgb(65,168,95);">[Song Hoa] Quốc chi lợi nhận (4b)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9517/#post-61629" style="color:rgb(65,168,95);">[Vương Dụ] Mỹ thực, cương thi, yêu? (3)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9531/" style="color:rgb(251,160,38);">[Song Hoa] Lỗ tai</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9528/unread" style="color:rgb(65,168,95);">[Tôn Tiêu] Ba mươi mẩu chuyện</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9533/unread" style="color:rgb(65,168,95);">[Song Diệp] Hẹn hò</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9532/" style="color:rgb(65,168,95);">[Song Quỷ] Ngô Vũ Sách lại thất tình</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9534/" style="color:rgb(65,168,95);">[Bao La] Thói quen yêu đương của cún con (1)</a>`
+			],
+			"2025-09-19": [
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9516/post-61665" style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (4)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9535/unread" style="color:rgb(226,80,65);font-weight:bold;">[Tán Tu] Có chút ngọt</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9517/post-61666" style="color:rgb(65,168,95);">[Vương Dụ] Mỹ thực, cương thi, yêu? (4)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9538/unread" style="color:rgb(65,168,95);">[Tán Tu] Mọi cô em gái đều là bảo vật trong lòng anh trai</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9536/unread" style="color:rgb(251,160,38);">[Cao Kiều] Khiến ta diệt vong</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/2287/#post-61692" style="color:rgb(65,168,95);">[Hàn Diệp] Thẻ tài khoản tranh đoạt chiến (4)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9539/unread" style="color:rgb(65,168,95);">[Song Hoa] Ai hôn người yêu trước khách sạn vậy</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9142/#post-61694" style="color:rgb(65,168,95);">[Song Hoa no-CP] TIME 1</a>`
+			],
+			"2025-09-20": [
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9516/post-61702" style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (5)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9540/" style="color:rgb(226,80,65);font-weight:bold;">[Tán Tu] Go-around</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9517/post-61707" style="color:rgb(65,168,95);">[Vương Dụ] Mỹ thực, cương thi, yêu? (5)</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9541/unread" style="color:rgb(251,160,38);">[Phương Vương] Khi đi viếng mộ, xin đừng phân tâm</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9543/unread" style="color:rgb(65,168,95);">[Tán Tu] Trồng Thu</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9544/unread" style="color:rgb(65,168,95);">[Vương Dụ] Mộng đẹp như ngọc</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/9547/" style="color:rgb(65,168,95);">[Vương Dụ] Dụ 3 chủi và Vương 4 chủi</a>`,
+				`<a href="https://www.toanchuccaothu.com/index.php?threads/2287/post-61710" style="color:rgb(65,168,95);">[Hàn Diệp] Thẻ tài khoản tranh đoạt chiến (5)</a>`
+			],
+			"2025-09-21": [
+				`<a href="https://toanchuccaothu.com/index.php?threads/9516/post-61716" style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (6)</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9549/" style="color:rgb(65,168,95);">[Vương Dụ] Hướng dẫn nấu cá tươi</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9551/unread" style="color:rgb(65,168,95);">[Song Quỷ] Rất muốn được làm chó của quý ngài mèo</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9552/" style="color:rgb(65,168,95);">[Song Diệp] Em trai là tác giả đồng nhân phải tính sao</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9550/unread" style="color:rgb(251,160,38);">[Phương Vương] Một đòn trúng đích</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/5567/post-61728" style="color:rgb(65,168,95);">[Lam Hứa, Toàn viên] Con đường tìm chủ của thẻ tài khoản</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9553/post-61725" style="color:rgb(65,168,95);">[Toàn viên] Fragments (part Hoàng)</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9522/post-61722" style="color:rgb(65,168,95);">[Bao La] Vương mùi nắng (2)</a>`
+			],
+			"2025-09-22": [
+				`<a href="https://toanchuccaothu.com/index.php?threads/9516/post-61730" style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (7)</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/8619/post-61729" style="color:rgb(65,168,95);">[Song Hoa] Quốc chi lợi nhận (5a)</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9555/unread" style="color:rgb(251,160,38);">[Cao – Kiều] Bầu trời sao</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9557/unread" style="color:rgb(65,168,95);">[Vương Dụ Vương] Pháo hoa</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9556/" style="color:rgb(65,168,95);">[Song Trương, Non-CP] Quan hệ huyết thống chấn động của trai nhà họ Trương</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9559/" style="color:rgb(65,168,95);">[Tán Tu] Vô độc hữu ngẫu</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9558/unread" style="color:rgb(65,168,95);">[Song Hoa, Hàn Diệp] Nuôi mèo toàn thời gian</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/9534/post-61741" style="color:rgb(65,168,95);">[Bao La] Thói quen yêu đương của chó con (2)</a>`
+			],
+			"2025-09-23": [
+				`<a href="https://toanchuccaothu.com/index.php?threads/9516/post-61743" style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (8)</a>`,
+				`<a href="https://toanchuccaothu.com/index.php?threads/8619/post-61742" style="color:rgb(65,168,95);">[Song Hoa] Quốc chi lợi nhận (5b)</a>`,
+				`<span style="color:rgb(65,168,95);">[NonCP, Song Trương] Đêm thức trắng</span>`,
+				`<span style="color:rgb(251,160,38);">[Tán Tu] Chòm sao</span>`,
+				`<span style="color:rgb(65,168,95);">[Toàn viên] Fragments (Lâm Phương)</span>`,
+				`<span style="color:rgb(65,168,95);">[Hàn Diệp] Thẻ tài khoản tranh đoạt chiến (6)</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Vương mùi nắng (3)</span> <small><i>(tự sản)</i></small>`,
+				`<span style="color:rgb(65,168,95);">[Toàn viên] AU công sở</span> <small><i>(doujinshi)</i></small>`
+			],
+			"2025-09-24": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (9)</span>`,
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Tán Tu] Khúc kết thúc (1)</span>`,
+				`<span style="color:rgb(65,168,95);">[Song Hoa] Mảnh ghép</span>`,
+				`<span style="color:rgb(65,168,95);">[Song Diệp] Diệp tổng có chuyển phát nhanh</span>`,
+				`<span style="color:rgb(251,160,38);">[Gia Thế] Quần ma</span>`,
+				`<span style="color:rgb(65,168,95);">[Vương Dụ Vương] Phục</span>`,
+				`<span style="color:rgb(65,168,95);">[Hàn Diệp] Thẻ tài khoản tranh đoạt chiến (7)</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Vương mùi nắng (4)</span>`
+			],
+			"2025-09-25": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (10)</span>`,
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Tán Tu] Khúc kết thúc (2)</span>`,
+				`<span style="color:rgb(65,168,95);">[Song Hoa, Phương Vương] Đám mùa hai không có nổi một tên đáng tin</span>`,
+				`<span style="color:rgb(251,160,38);">[Tán Tu] Đã từng có</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Nhật ký yêu đương (1)</span>`,
+				`<span style="color:rgb(65,168,95);">[Hàn Diệp] Thẻ tài khoản tranh đoạt chiến (8)</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Giấc mơ kỳ diệu</span>`
+			],
+			"2025-09-26": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (11)</span>`,
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Tán Tu] Khúc kết thúc (3)</span>`,
+				`<span style="color:rgb(251,160,38);">[Gia Thế] Cánh cửa hôm qua</span>`,
+				`<span style="color:rgb(65,168,95);">[Tán Tu] Có ma</span>`,
+				`<span style="color:rgb(65,168,95);">[Vương Dụ] Duyên</span>`,
+				`<span style="color:rgb(65,168,95);">[Mạc Tranh] Nhật ký của Mạc Phàm</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Vương mùi nắng (5)</span>`
+			],
+			"2025-09-27": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (12)</span>`,
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Tán Tu] Khúc kết thúc (4)</span>`,
+				`<span style="color:rgb(65,168,95);">[Tu Tán] Không yêu mà tán nhau là khốn nạn</span>`,
+				`<span style="color:rgb(251,160,38);">[Vương Dụ] Sáu lần quay lưng, hai lần ngoảnh lại</span>`,
+				`<span style="color:rgb(65,168,95);">[Song Hoa, Vương Dụ] Chuyện nhỏ ở Bắc Kinh</span>`,
+				`<span style="color:rgb(65,168,95);">[Hàn Diệp] Thẻ tài khoản tranh đoạt chiến (9)</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Thói quen yêu đương của chó con (3)</span>`
+			],
+			"2025-09-28": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (13)</span>`,
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Tán Tu] Minh họa Khúc kết thúc</span>`,
+				`<span style="color:rgb(251,160,38);">[Thế hệ mới] Đứa nào cũng diễn sâu</span>`,
+				`<span style="color:rgb(65,168,95);">[Tán Tu] Một tán ô một giấc nồng</span>`,
+				`<span style="color:rgb(65,168,95);">[Vu Viễn] Hạnh phúc đến nhanh như thế đó</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Vương mùi nắng (6)</span>`
+			],
+			"2025-09-29": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (14)</span>`,
+				`<span style="color:rgb(65,168,95);">[Đội quốc gia] Tôn Tường rất muốn được Trương Giai Lạc khen ngợi</span>`,
+				`<span style="color:rgb(251,160,38);">[Tán Tu Tranh] Mỹ nhân Tây thành (1,2)</span>`,
+				`<span style="color:rgb(65,168,95);">[Tán Tu] Xem phát chán rồi</span>`,
+				`<span style="color:rgb(65,168,95);">[Nhiều CP] Thời hữu tụng thi (Dụ Hoàng)</span>`,
+				`<span style="color:rgb(65,168,95);">[Hàn Diệp] Thẻ tài khoản tranh đoạt chiến (NT1)</span>`
+			],
+			"2025-09-30": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (15)</span>`,
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Song Quỷ] Không thể nói</span>`,
+				`<span style="color:rgb(65,168,95);">[Tán Tu] Cửu biệt trùng phùng</span>`,
+				`<span style="color:rgb(251,160,38);">[Tống Tần] Vô đề (1)</span>`,
+				`<span style="color:rgb(65,168,95);">[Nhiều CP] Sau khi buông dao phẫu thuật (1)</span>`,
+				`<span style="color:rgb(65,168,95);">[Vương Dụ] Tôi cảm thấy mèo của bạn trai rất có ý kiến với tôi</span>`,
+				`<span style="color:rgb(65,168,95);">[Nhiều CP] Thời hữu tụng thi</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Vương mùi nắng (7)</span>`
+			],
+			"2025-10-01": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (16)</span>`,
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Cao Kiều] Xuân thu</span>`,
+				`<span style="color:rgb(251,160,38);">[Tán Tu Tranh] Mỹ nhân Tây thành (3,4)</span>`,
+				`<span style="color:rgb(65,168,95);">[Tán x Thu Mộc Tô x Tán] Sơ ngộ</span>`,
+				`<span style="color:rgb(65,168,95);">[Nhiều CP] Sau khi buông dao phẫu thuật (2)</span>`,
+				`<span style="color:rgb(65,168,95);">[Hàn Diệp] Lẽ thường tình</span>`,
+				`<span style="color:rgb(65,168,95);">[Nhiều CP] Thời hữu tụng thi</span>`,
+				`<span style="color:rgb(65,168,95);">[Hàn Diệp] Thẻ tài khoản tranh đoạt chiến (NT2)</span>`
+			],
+			"2025-10-02": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (17)</span>`,
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Phương Vương] Cờ mây phấp phới giữa bụi tường vi</span>`,
+				`<span style="color:rgb(65,168,95);">[Diệp Lam] 30 điều ấm áp (1)</span>`,
+				`<span style="color:rgb(251,160,38);">[Tống Tần] Vô đề (1)</span>`,
+				`<span style="color:rgb(65,168,95);">[Tán Tu] Vị sữa</span>`,
+				`<span style="color:rgb(65,168,95);">[Diệp Lam] 30 điều ấm áp (2)</span>`,
+				`<span style="color:rgb(65,168,95);">[Nhiều CP] Thời hữu tụng thi</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Vương mùi nắng (8)</span>`
+			],
+			"2025-10-03": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (18)</span>`,
+				`<span style="color:rgb(65,168,95);">[Song Hoa] Quốc chi lợi nhận (6a)</span>`,
+				`<span style="color:rgb(65,168,95);">[Diệp Lam] 30 điều ấm áp (3)</span>`,
+				`<span style="color:rgb(65,168,95);">[Nhiều CP] Sau khi buông dao phẫu thuật (3)</span>`,
+				`<span style="color:rgb(251,160,38);">[Tán Tu Tranh] Mỹ nhân Tây thành (5,6)</span>`,
+				`<span style="color:rgb(65,168,95);">[Diệp Lam] 30 điều ấm áp (4)</span>`,
+				`<span style="color:rgb(65,168,95);">[Nhiều CP] Thời hữu tụng thi</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Thói quen yêu đương của chó con (4)</span>`
+			],
+			"2025-10-04": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (19)</span>`,
+				`<span style="color:rgb(65,168,95);">[Song Hoa] Quốc chi lợi nhận (6b)</span>`,
+				`<span style="color:rgb(65,168,95);">[Nhiều CP] Sau khi buông dao phẫu thuật (4)</span>`,
+				`<span style="color:rgb(251,160,38);">[Tán Tu Tranh] Mỹ nhân Tây thành (6-8)</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Nhật ký yêu đương (2)</span>`,
+				`<span style="color:rgb(65,168,95);">[Nhiều CP] Thời hữu tụng thi</span>`,
+				`<span style="color:rgb(65,168,95);">[Bao La] Thói quen yêu đương của chó con (5)</span>`
+			],
+			"2025-10-05": [
+				`<span style="color:rgb(226,80,65);font-weight:bold;">[Vương Dụ] Hai mươi mốt lá thư (20)</span>`,
+				`<span style="color:rgb(65,168,95);">[HànOC] Mèo đúng là lũ vô ơn mà!</span>`,
+				`<span style="color:rgb(251,160,38);">[Tán Tu Tranh] Mỹ nhân Tây thành (7,8)</span>`,
+				`<span style="color:rgb(65,168,95);">[Vương Dụ] Mỹ thực, cương thi, yêu? (9 – Hết)</span>`,
+				`<span style="color:rgb(65,168,95);">[Non CP, hint Song Diệp] Diệp Thu Diệp Tu (9+10)</span>`,
+				`<span style="color:rgb(65,168,95);">[Nhiều CP] Thời hữu tụng thi</span>`,
+				`<span style="color:rgb(65,168,95);">[Non CP, hint Song Diệp] Diệp Thu Diệp Tu (11+12)</span>`
+			]
+		};
+		function updateMarqueeByDate(date){
+			const wrap = document.getElementById('headMarquee2');
+			const items = ficByDate[date] || [];
+			wrap.innerHTML = items.length ? items.join('') : '<span>Hông có fic nào hôm nay 😭</span>';
+			setupMarquee('headMarquee2');
+		}
+		function setupMarquee(id){
+			const wrap = document.getElementById(id);
+			const original = wrap.innerHTML.trim();
+			if (!original) return;
+			const track = document.createElement('div');
+			track.className = 'marquee-track';
+			let buff = original;
+			track.innerHTML = buff;
+			wrap.innerHTML = '';
+			wrap.appendChild(track);
+			const limit = wrap.clientWidth * 2;
+			while (track.scrollWidth < limit) { buff += original; track.innerHTML = buff; }
+			track.innerHTML = buff + original;
+		}
+		document.addEventListener('DOMContentLoaded', () => {
+			const daySelect = document.getElementById('daySelect');
+			daySelect.addEventListener('change',()=>{
+				const selectedDate = daySelect.value;
+				updateMarqueeByDate(selectedDate);
+			});
+			document.addEventListener('DOMContentLoaded',()=>{
+				updateMarqueeByDate(daySelect.value);
+			});
+			setupMarquee('headMarquee');
+			updateMarqueeByDate(daySelect.value);
+		});
 	</script>
 	<div id="stage"></div>
 
