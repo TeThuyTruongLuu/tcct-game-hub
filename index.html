@@ -23,28 +23,7 @@
 		<div class="marquee-bar marquee-green">
 			<div class="marquee-label">
 				Bún lên sàn
-				<select id="daySelect">
-					<option value="2025-10-05">5/10</option>
-					<option value="2025-10-04">4/10</option>
-					<option value="2025-10-03">3/10</option>
-					<option value="2025-10-02">2/10</option>
-					<option value="2025-10-01">1/10</option>
-					<option value="2025-09-30">30/9</option>
-					<option value="2025-09-29">29/9</option>
-					<option value="2025-09-28">28/9</option>
-					<option value="2025-09-27">27/9</option>
-					<option value="2025-09-26">26/9</option>
-					<option value="2025-09-25">25/9</option>
-					<option value="2025-09-24">24/9</option>
-					<option value="2025-09-23" selected>hôm nay</option>
-					<option value="2025-09-22">22/9</option>
-					<option value="2025-09-21">21/9</option>
-					<option value="2025-09-20">20/9</option>
-					<option value="2025-09-19">19/9</option>
-					<option value="2025-09-18">18/9</option>
-					<option value="2025-09-17">17/9</option>
-					<option value="2025-09-16">16/9</option>
-				</select>
+				<input id="dayPicker" type="date" min="2025-09-16" max="2025-10-05" value="2025-09-23">
 			</div>
 			<div class="head-marquee" id="headMarquee2"></div>
 		</div>
@@ -525,6 +504,7 @@
 			wrap.innerHTML = items.length ? items.join('') : '<span>Hông có fic nào hôm nay 😭</span>';
 			setupMarquee('headMarquee2');
 		}
+
 		function setupMarquee(id){
 			const wrap = document.getElementById(id);
 			const original = wrap.innerHTML.trim();
@@ -539,18 +519,24 @@
 			while (track.scrollWidth < limit) { buff += original; track.innerHTML = buff; }
 			track.innerHTML = buff + original;
 		}
+
 		document.addEventListener('DOMContentLoaded', () => {
-			const daySelect = document.getElementById('daySelect');
-			daySelect.addEventListener('change',()=>{
-				const selectedDate = daySelect.value;
-				updateMarqueeByDate(selectedDate);
+			const dayPicker = document.getElementById('dayPicker');
+			const today = new Date();
+			const yyyy = today.getFullYear();
+			const mm = String(today.getMonth() + 1).padStart(2, '0');
+			const dd = String(today.getDate()).padStart(2, '0');
+			const todayStr = `${yyyy}-${mm}-${dd}`;
+			if (dayPicker.min <= todayStr && todayStr <= dayPicker.max) {
+				dayPicker.value = todayStr;
+			}
+			dayPicker.addEventListener('change', () => {
+				updateMarqueeByDate(dayPicker.value);
 			});
-			document.addEventListener('DOMContentLoaded',()=>{
-				updateMarqueeByDate(daySelect.value);
-			});
+			updateMarqueeByDate(dayPicker.value);
 			setupMarquee('headMarquee');
-			updateMarqueeByDate(daySelect.value);
 		});
+
 	</script>
 	<div id="stage"></div>
 
