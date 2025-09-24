@@ -35,6 +35,8 @@ const G = {
 
 const wait = ms => new Promise(r => setTimeout(r, ms))
 
+let revealFired = false
+
 function r() {
 	const a = Array.from(arguments)
 	return ref(db, a.join('/'))
@@ -482,6 +484,8 @@ function computeSupportPoints(stateForRole) {
 function currentScoresView() {
 	if (!G.game?.mainRevealed) return { p1m: 0, p1s: 0, p2m: 0, p2s: 0 }
 	const reveal = G.game?.reveal || {}
+	const bothRevealed = !!(reveal.p1BottomRevealedToP2 && reveal.p2BottomRevealedToP1)
+	const bottomEnabled = !!G.game?.supportPhaseEnded || bothRevealed
 	function side(key) {
 		const node = key === 'player1'
 			? (G.role === 'player1' ? G.me : G.opp)
@@ -489,13 +493,12 @@ function currentScoresView() {
 		const mainId = node?.main || null
 		const bottomId = node?.bottom || null
 		const supps = Array.isArray(node?.supports) ? node.supports : []
-		const bottomOn = key === 'player1' ? !!reveal.p1BottomRevealedToP2 : !!reveal.p2BottomRevealedToP1
 		let main = (mainId ? (cardById(mainId)?.main || 0) : 0)
 		main += supps.reduce((s, id) => s + (cardById(id)?.main || 0), 0)
-		if (bottomOn) main += (cardById(bottomId)?.main || 0)
+		if (bottomEnabled) main += (cardById(bottomId)?.main || 0)
 		let supp = (mainId ? (cardById(mainId)?.support || 0) : 0)
 		supp += supps.reduce((s, id) => s + (cardById(id)?.support || 0), 0)
-		if (bottomOn) supp += (cardById(bottomId)?.support || 0)
+		if (bottomEnabled) supp += (cardById(bottomId)?.support || 0)
 		return { main, support: supp }
 	}
 	const a = side('player1')
@@ -773,10 +776,13 @@ function faceForMain() {
 }
 
 function faceForBottom(side) {
-	const r = G.game.reveal
-	if (side === 'me') return false
-	if (G.role === 'player1') return !!r.p1BottomRevealedToP2
-	return !!r.p2BottomRevealedToP1
+	const r = G.game.reveal || {}
+	if (side === 'me') return true
+	if (side === 'opp') {
+		if (G.role === 'player1') return !!r.p2BottomRevealedToP1
+		return !!r.p1BottomRevealedToP2
+	}
+	return false
 }
 
 function reconcileBoard(data) {
@@ -981,7 +987,8 @@ function evaluateRevealGate() {
 		const gs = data?.gameState || {}
 		const bothPlaced = !!p1.main && !!p1.bottom && !!p2.main && !!p2.bottom
 		const bothReady = !!p1.ready && !!p2.ready
-		if (bothPlaced && bothReady && !gs.mainRevealed) {
+		if (bothPlaced && bothReady && !gs.mainRevealed && !revealFired && G.role === 'player1') {
+			revealFired = true
 			lockAndRevealMain()
 		}
 	})
@@ -1002,8 +1009,8 @@ async function lockAndRevealMain() {
 
 	const p1Name = room?.player1?.name || 'Player 1'
 	const p2Name = room?.player2?.name || 'Player 2'
-	if (p1Card) await pushLog(`[${p1Name}] đặt [${p1Card.name}] làm chiến tướng: +${p1Card.main} điểm chiến tướng, +${p1Card.support} điểm hỗ trợ.`)
-	if (p2Card) await pushLog(`[${p2Name}] đặt [${p2Card.name}] làm chiến tướng: +${p2Card.main} điểm chiến tướng, +${p2Card.support} điểm hỗ trợ.`)
+	if (p1Card) await logStep(`[${p1Name}] đặt [${p1Card.name}] làm chiến tướng: +${p1Card.main} điểm chiến tướng, +${p1Card.support} điểm hỗ trợ.`)
+	if (p2Card) await logStep(`[${p2Name}] đặt [${p2Card.name}] làm chiến tướng: +${p2Card.main} điểm chiến tướng, +${p2Card.support} điểm hỗ trợ.`)
 
 	const ctx1 = buildCtx('player1'); ctx1.trigger = TRIGGER_MAIN
 	const ctx2 = buildCtx('player2'); ctx2.trigger = TRIGGER_MAIN
@@ -1118,8 +1125,7 @@ async function onDropSupport(e) {
 	const node = await dbGet(myPath) || {}
 	const hand = Array.isArray(node.hand) ? node.hand.slice() : []
 	if (!hand.includes(cardId)) return
-	const flags = (await dbGet(['rooms', G.roomId, 'gameState']))?.flags || {}
-	if (!canPlaySupportFromHand(G.role, cardById(cardId), flags)) return
+	if (!(await canPlaySupportFromHand(G.role, cardById(cardId)))) return
 	const supps = Array.isArray(node.supports) ? node.supports.slice(0, MAX_SUPPORT_SLOTS) : []
 	if (supps.length >= MAX_SUPPORT_SLOTS) return
 	const idx = hand.indexOf(cardId)
@@ -1127,6 +1133,11 @@ async function onDropSupport(e) {
 	supps.push(cardId)
 	await dbSet([...myPath, 'hand'], hand)
 	await dbSet([...myPath, 'supports'], supps)
+	const gs = (await dbGet(['rooms', G.roomId, 'gameState'])) || {}
+	const counts = gs.handSupportCount || { p1: 0, p2: 0 }
+	const key = G.role === 'player1' ? 'p1' : 'p2'
+	counts[key] = (counts[key] || 0) + 1
+	await dbSet(['rooms', G.roomId, 'gameState', 'handSupportCount'], counts)
 	const meName = G.name || node.name || (G.role === 'player1' ? 'Player 1' : 'Player 2')
 	const c = cardById(cardId)
 	await pushLog(`[${meName}] đặt ${c.name} làm support - +${c.support} điểm hỗ trợ`)
@@ -1138,46 +1149,31 @@ async function onDropSupport(e) {
 
 async function handleSupportTurnFlow(playerKey) {
 	const gsPath = ['rooms', G.roomId, 'gameState']
-	const gs = await dbGet(gsPath) || {}
-	const comp = gs?.computed || { p1: { main: 0 }, p2: { main: 0 } }
-	const p1m = comp?.p1?.main || 0
-	const p2m = comp?.p2?.main || 0
-
+	const room = await dbGet(['rooms', G.roomId]) || {}
+	const gs = room.gameState || {}
 	const cur = gs.turn || 'player1'
 	const other = cur === 'player1' ? 'player2' : 'player1'
-
-	if (!gs.flags) gs.flags = {}
-
-	if (!gs.flags.extraSupportFor) {
-		gs.turn = other
-		gs.flags.extraSupportFor = other
-		await dbSet(gsPath, gs)
-		await pushLog(`Kết thúc lượt, chuyển sang ${other === 'player1' ? (await dbGet(['rooms', G.roomId, 'player1','name'])) || 'Player 1' : (await dbGet(['rooms', G.roomId, 'player2','name'])) || 'Player 2'}.`)
+	const comp = gs.computed || { p1: { main: 0 }, p2: { main: 0 } }
+	const p1m = comp.p1?.main || 0
+	const p2m = comp.p2?.main || 0
+	const myMain = playerKey === 'player1' ? p1m : p2m
+	const oppMain = playerKey === 'player1' ? p2m : p1m
+	const meNode = room[playerKey] || {}
+	const meSupps = Array.isArray(meNode.supports) ? meNode.supports.length : 0
+	let flags = gs.flags || {}
+	if (myMain < oppMain && meSupps < MAX_SUPPORT_SLOTS) {
+		flags.extraSupportFor = playerKey
+		await dbSet(gsPath, { ...gs, flags, turn: playerKey })
+		setTurnStatus('Bạn đang thua, có thể đặt thêm 1 lá hỗ trợ', playerKey === G.role)
 		return
 	}
-
-	if (gs.flags.extraSupportFor === cur) {
-		delete gs.flags.extraSupportFor
-		gs.turn = other
-		await dbSet(gsPath, gs)
-		await pushLog(`Kết thúc lượt, chuyển sang ${other === 'player1' ? (await dbGet(['rooms', G.roomId, 'player1','name'])) || 'Player 1' : (await dbGet(['rooms', G.roomId, 'player2','name'])) || 'Player 2'}.`)
-		return
+	if (flags.extraSupportFor === playerKey) {
+		delete flags.extraSupportFor
 	}
-
-	if (gs.flags.extraSupportFor === other) {
-		const losing = other === 'player1' ? (p1m < p2m) : (p2m < p1m)
-		if (losing) {
-			await dbSet(gsPath, gs)
-			await pushLog(`Bạn đang thua điểm chiến tướng, có thể đặt thêm 1 lá support.`)
-			return
-		} else {
-			delete gs.flags.extraSupportFor
-			gs.turn = cur
-			await dbSet(gsPath, gs)
-			await pushLog(`Kết thúc lượt, chuyển sang ${cur === 'player1' ? (await dbGet(['rooms', G.roomId, 'player1','name'])) || 'Player 1' : (await dbGet(['rooms', G.roomId, 'player2','name'])) || 'Player 2'}.`)
-			return
-		}
-	}
+	await dbSet(gsPath, { ...gs, flags, turn: other })
+	const nameNext = await nameOf(other)
+	await logStep(`Kết thúc lượt, chuyển sang ${nameNext}.`)
+	setTurnStatus(other === G.role ? 'Lượt của bạn' : 'Lượt của đối thủ', other === G.role)
 }
 
 function ensurePassButton() {
@@ -1189,18 +1185,22 @@ function ensurePassButton() {
 	DOMC.play.appendChild(btn)
 }
 
-function canPlaySupportFromHand(player, card) {
-	const flags = G.game.flags || {}
+async function canPlaySupportFromHand(player, card) {
+	const snap = await dbGet(['rooms', G.roomId]) || {}
+	const gs = snap.gameState || {}
+	const flags = gs.flags || {}
 	if (typeof flags.supportBanThreshold === 'number') {
 		if ((card.support || 0) >= flags.supportBanThreshold) return false
 	}
 	const limit = flags.supportLimit
 	if (typeof limit === 'number') {
+		const counts = gs.handSupportCount || { p1: 0, p2: 0 }
 		const key = player === 'player1' ? 'p1' : 'p2'
-		const counts = G.game.handSupportCount || { p1: 0, p2: 0 }
 		if ((counts[key] || 0) >= limit) return false
 	}
-	if ((G.me.supports || []).length >= MAX_SUPPORT_SLOTS) return false
+	const node = snap[player] || {}
+	const supps = Array.isArray(node.supports) ? node.supports : []
+	if (supps.length >= MAX_SUPPORT_SLOTS) return false
 	return true
 }
 
@@ -1256,16 +1256,14 @@ async function maybeAllowExtraSupport(player) {
 async function endSupportPhase(playerKey) {
 	const path = ['rooms', G.roomId, 'gameState']
 	const gs = await dbGet(path) || {}
-	gs.passed = gs.passed || { player1: false, player2: false }
-	gs.passed[playerKey] = true
-	await dbSet(path, gs)
 	const room = await dbGet(['rooms', G.roomId]) || {}
+	const passed = gs.passed || { player1: false, player2: false }
+	passed[playerKey] = true
 	const p1Supp = Array.isArray(room?.player1?.supports) ? room.player1.supports.length : 0
 	const p2Supp = Array.isArray(room?.player2?.supports) ? room.player2.supports.length : 0
-	const p1Full = p1Supp >= MAX_SUPPORT_SLOTS
-	const p2Full = p2Supp >= MAX_SUPPORT_SLOTS
-	const bothPass = !!gs.passed.player1 && !!gs.passed.player2
-	const bothFull = p1Full && p2Full
+	const bothPass = passed.player1 && passed.player2
+	const bothFull = p1Supp >= MAX_SUPPORT_SLOTS && p2Supp >= MAX_SUPPORT_SLOTS
+	await dbSet(path, { ...gs, passed })
 	if (bothPass || bothFull) {
 		await dbSet(path, { ...(await dbGet(path) || {}), supportPhaseEnded: true })
 		await revealBottom()
@@ -1274,6 +1272,7 @@ async function endSupportPhase(playerKey) {
 	const cur = gs.turn || 'player1'
 	const next = cur === 'player1' ? 'player2' : 'player1'
 	await dbSet(path, { ...(await dbGet(path) || {}), turn: next })
+	setTurnStatus(next === G.role ? 'Lượt của bạn' : 'Lượt của đối thủ', next === G.role)
 }
 
 function toggleTurnIfNeeded(playerJustActed) {
@@ -1306,11 +1305,13 @@ async function revealBottom() {
 	const c1 = cardById(p1Bottom)
 	const c2 = cardById(p2Bottom)
 	if (c1?.skill?.trigger === 'bottom') {
-		await applyCardSkill(c1, 'bottom', { owner: 'player1' })
+		const ctx1 = buildCtx('player1'); ctx1.trigger = TRIGGER_BOTTOM
+		await applyCardSkill(c1, 'bottom', ctx1)
 		await waitForPendingEffects()
 	}
 	if (c2?.skill?.trigger === 'bottom') {
-		await applyCardSkill(c2, 'bottom', { owner: 'player2' })
+		const ctx2 = buildCtx('player2'); ctx2.trigger = TRIGGER_BOTTOM
+		await applyCardSkill(c2, 'bottom', ctx2)
 		await waitForPendingEffects()
 	}
 	await scoreRound()
@@ -1319,17 +1320,19 @@ async function revealBottom() {
 
 async function scoreRound() {
 	const snap = await dbGet(['rooms', G.roomId]) || {}
+	const reveal = snap?.gameState?.reveal || {}
+	const bothRevealed = !!(reveal?.p1BottomRevealedToP2 && reveal?.p2BottomRevealedToP1)
+	const bottomEnabled = !!snap?.gameState?.supportPhaseEnded || bothRevealed
 	const p1IdMain = snap?.player1?.main || null
 	const p2IdMain = snap?.player2?.main || null
 	const p1SuppIds = Array.isArray(snap?.player1?.supports) ? snap.player1.supports : []
 	const p2SuppIds = Array.isArray(snap?.player2?.supports) ? snap.player2.supports : []
-	const reveal = snap?.gameState?.reveal || {}
 	const p1BottomId = snap?.player1?.bottom || null
 	const p2BottomId = snap?.player2?.bottom || null
-	const p1BottomMain = reveal?.p1BottomRevealedToP2 ? (cardById(p1BottomId)?.main || 0) : 0
-	const p2BottomMain = reveal?.p2BottomRevealedToP1 ? (cardById(p2BottomId)?.main || 0) : 0
-	const p1BottomSupp = reveal?.p1BottomRevealedToP2 ? (cardById(p1BottomId)?.support || 0) : 0
-	const p2BottomSupp = reveal?.p2BottomRevealedToP1 ? (cardById(p2BottomId)?.support || 0) : 0
+	const p1BottomMain = bottomEnabled ? (cardById(p1BottomId)?.main || 0) : 0
+	const p2BottomMain = bottomEnabled ? (cardById(p2BottomId)?.main || 0) : 0
+	const p1BottomSupp = bottomEnabled ? (cardById(p1BottomId)?.support || 0) : 0
+	const p2BottomSupp = bottomEnabled ? (cardById(p2BottomId)?.support || 0) : 0
 	const p1BaseMain = (p1IdMain ? (cardById(p1IdMain)?.main || 0) : 0)
 		+ p1SuppIds.reduce((s, id) => s + (cardById(id)?.main || 0), 0)
 		+ p1BottomMain
@@ -1376,18 +1379,18 @@ async function resolveRound() {
 		await dbSet(['rooms', G.roomId, 'player2', 'hand'], (p2.hand || []).concat([p2Bottom]))
 		await dbSet(['rooms', G.roomId, 'player1', 'discard'], (p1.discard || []).concat(p1Supps, [p1Bottom]))
 		await dbSet(['rooms', G.roomId, 'player2', 'discard'], (p2.discard || []).concat(p2Supps, [p2Main]))
-		await pushLog(`【Kết thúc ván】${p1.name || 'Player 1'} thắng với ${cardById(p1Main)?.name || p1Main}`)
-		if (p1Supps.length) await pushLog(`[${p1.name}] bỏ ${p1Supps.length} lá hỗ trợ`)
-		if (p2Supps.length) await pushLog(`[${p2.name}] bỏ ${p2Supps.length} lá hỗ trợ`)
+		await logStep(`[Kết thúc ván]${p1.name || 'Player 1'} thắng với ${cardById(p1Main)?.name || p1Main}`)
+		if (p1Supps.length) await logStep(`[${p1.name}] bỏ ${p1Supps.length} lá hỗ trợ`)
+		if (p2Supps.length) await logStep(`[${p2.name}] bỏ ${p2Supps.length} lá hỗ trợ`)
 	} else if (winner === 'player2') {
 		const wonPile = (p2.wonPile || []).concat([p2Main])
 		await dbSet(['rooms', G.roomId, 'player2', 'wonPile'], wonPile)
 		await dbSet(['rooms', G.roomId, 'player1', 'hand'], (p1.hand || []).concat([p1Bottom]))
 		await dbSet(['rooms', G.roomId, 'player2', 'discard'], (p2.discard || []).concat(p2Supps, [p2Bottom]))
 		await dbSet(['rooms', G.roomId, 'player1', 'discard'], (p1.discard || []).concat(p1Supps, [p1Main]))
-		await pushLog(`【Kết thúc ván】${p2.name || 'Player 2'} thắng với ${cardById(p2Main)?.name || p2Main}`)
-		if (p1Supps.length) await pushLog(`[${p1.name}] bỏ ${p1Supps.length} lá hỗ trợ`)
-		if (p2Supps.length) await pushLog(`[${p2.name}] bỏ ${p2Supps.length} lá hỗ trợ`)
+		await logStep(`[Kết thúc ván]${p2.name || 'Player 2'} thắng với ${cardById(p2Main)?.name || p2Main}`)
+		if (p1Supps.length) await logStep(`[${p1.name}] bỏ ${p1Supps.length} lá hỗ trợ`)
+		if (p2Supps.length) await logStep(`[${p2.name}] bỏ ${p2Supps.length} lá hỗ trợ`)
 	}
 
 	if (winner) {
@@ -1415,7 +1418,8 @@ async function resolveRound() {
 		mainRevealed: false,
 		mainSkillDone: { player1: false, player2: false },
 		supportPhaseEnded: false,
-		passed: { player1: false, player2: false }
+		passed: { player1: false, player2: false },
+		handSupportCount: { p1: 0, p2: 0 }
 	})
 
 	await drawUntil7Bootstrap()
@@ -1479,9 +1483,12 @@ async function triggerBothMainSkills() {
 	const p2Main = await dbGet(['rooms', G.roomId, 'player2', 'main'])
 	const c1 = cardById(p1Main)
 	const c2 = cardById(p2Main)
-	const ctx1 = { role: 'player1', opponentRole: 'player2', name: (await dbGet(['rooms', G.roomId, 'player1', 'name'])) || 'P1' }
-	const ctx2 = { role: 'player2', opponentRole: 'player1', name: (await dbGet(['rooms', G.roomId, 'player2', 'name'])) || 'P2' }
-	await Promise.all([applyCardSkill(c1, 'main', ctx1), applyCardSkill(c2, 'main', ctx2)])
+	const ctx1 = buildCtx('player1'); ctx1.trigger = TRIGGER_MAIN
+	const ctx2 = buildCtx('player2'); ctx2.trigger = TRIGGER_MAIN
+	await Promise.all([
+		applyCardSkill(c1, TRIGGER_MAIN, ctx1),
+		applyCardSkill(c2, TRIGGER_MAIN, ctx2)
+	])
 }
 
 function bootPlayBindings() {
@@ -1554,32 +1561,72 @@ async function applyCardSkill(card, trigger, ctx, opt = {}) {
 	if (card.skill.trigger !== trigger) return
 	const ok = await checkConditions(ctx, card.skill.condition)
 	if (!ok) return
-	const firstAction = (card.skill.actions || [])[0]?.action
 	const phase = opt.phase || 'all'
-	if (firstAction !== 'discard_from_opponent_hand_select') {
-		await logSkill(ctx, card, `kích hoạt skill thẻ`)
+	const actions = card.skill.actions || []
+
+	if (!ctx._logged) {
+		let effectNote = ''
+		if (phase === 'preCompare') {
+			for (const step of actions) {
+				const toOpp = step.target === 'opponent' || step.action === 'discard_from_opponent_hand_select'
+				if (toOpp) continue
+				if (step.action === 'add_main') {
+					const t = resolveTarget(ctx, step.target)
+					const n = await nameOf(t)
+					const amt = Number(step.amount || 0)
+					if (amt !== 0) effectNote = ` - ${amt >= 0 ? '+' : ''}${amt} điểm chiến tướng cho [${n}]`
+					break
+				}
+			}
+		}
+		const ownerName = await nameOf(ctx.owner)
+		const full = `[${ownerName}] kích hoạt skill [${card.skill.trigger}] - ${card.name}${effectNote}`
+		await logStep(full)
+		ctx._logged = true
 	}
-	for (const step of card.skill.actions || []) {
+
+	for (let i = 0; i < actions.length; i++) {
+		const step = actions[i]
 		const toOpp = step.target === 'opponent' || step.action === 'discard_from_opponent_hand_select'
-		if (phase === 'preCompare' && toOpp) continue
-		if (phase === 'postCompareOpponent' && !toOpp) continue
+		if (phase === 'preCompare') {
+			if (step.action !== 'add_main') continue
+		}
+		if (phase === 'postCompareOpponent') {
+			if (step.action === 'add_main') continue
+		}
+		if (phase !== 'all' && phase !== 'preCompare' && phase !== 'postCompareOpponent') continue
 		const a = step.action
-		if (a === 'draw_manual') await actDrawManual(ctx, step.target, step.amount || 1, card, { next: { type: 'discard_select', amount: 0 } })
-		else if (a === 'discard_select') await actQueueDiscard(ctx, step.target, step.amount || 1, card)
-		else if (a === 'add_bottom_card') await actAddBottomCard(ctx, step.target, step.amount || 1, card)
-		else if (a === 'add_support') await actAddSupport(ctx, step.target, step.amount || 0, card)
-		else if (a === 'limit_support_from_hand') await actLimitSupportFromHand(ctx, step.amount || 0, card)
-		else if (a === 'ban_support_with_support_gte') await actBanSupportGte(ctx, step.threshold, card)
-		else if (a === 'discard_from_hand_top') await actDiscardFromHandTop(ctx, step.target, step.amount || 1, card)
-		else if (a === 'support_from_deck_top') await actSupportFromDeckTop(ctx, step.target, step.amount || 1, card)
-		else if (a === 'reveal_bottom_cards') await actRevealBottomCards(ctx, step.target, card)
-		else if (a === 'add_main') await actAddMain(ctx, step.target, step.amount || 0, card)
-		else if (a === 'discard_from_bottom') await actDiscardFromBottom(ctx, step.target, step.amount || 1, card)
-		else if (a === 'discard_from_opponent_hand_select') await actDiscardFromOpponentHandSelect(ctx, step.amount || 1, card)
-		else if (a === 'peek_opponent_deck_top') await actPeekOpponentDeckTop(ctx, step.amount || 1, card)
-		else if (a === 'swap_with_won_card') await actSwapWithWonCard(ctx, step.target, step.card_id, card)
-		else if (a === 'ban_draw') await actBanDraw(ctx, card)
-		await wait(5000)
+		if (a === 'draw_manual') {
+			await actDrawManual(ctx, step.target, step.amount || 1, card, { next: actions[i+1] })
+		} else if (a === 'discard_select') {
+			await actQueueDiscard(ctx, step.target, step.amount || 1, card)
+		} else if (a === 'add_bottom_card') {
+			await actAddBottomCard(ctx, step.target, step.amount || 1, card)
+		} else if (a === 'add_support') {
+			await actAddSupport(ctx, step.target, step.amount || 0, card)
+		} else if (a === 'limit_support_from_hand') {
+			await actLimitSupportFromHand(ctx, step.amount || 0, card)
+		} else if (a === 'ban_support_with_support_gte') {
+			await actBanSupportGte(ctx, step.threshold, card)
+		} else if (a === 'discard_from_hand_top') {
+			await actDiscardFromHandTop(ctx, step.target, step.amount || 1, card)
+		} else if (a === 'support_from_deck_top') {
+			await actSupportFromDeckTop(ctx, step.target, step.amount || 1, card)
+		} else if (a === 'reveal_bottom_cards') {
+			await actRevealBottomCards(ctx, step.target, card)
+		} else if (a === 'add_main') {
+			await actAddMain(ctx, step.target, step.amount || 0, card, true)
+		} else if (a === 'discard_from_bottom') {
+			await actDiscardFromBottom(ctx, step.target, step.amount || 1, card)
+		} else if (a === 'discard_from_opponent_hand_select') {
+			await actDiscardFromOpponentHandSelect(ctx, step.amount || 1, card)
+		} else if (a === 'peek_opponent_deck_top') {
+			await actPeekOpponentDeckTop(ctx, step.amount || 1, card)
+		} else if (a === 'swap_with_won_card') {
+			await actSwapWithWonCard(ctx, step.target, step.card_id, card)
+		} else if (a === 'ban_draw') {
+			await actBanDraw(ctx, card)
+		}
 	}
 }
 
@@ -1615,56 +1662,42 @@ function bindOpponentHandSelectDiscard() {
 }
 
 async function actDrawManual(ctx, target, amount, sourceCard, opt = {}) {
-	const role = target === 'opponent' ? ctx.opponentRole : ctx.role
+	const role = resolveTarget(ctx, target)
 	const key = `manualDraw_${role}`
 	await dbSet(['rooms', G.roomId, 'gameState', key], { remain: amount, from: sourceCard?.id || null })
-	if (role === G.role) setTurnStatus(`Nhấp chồng bài để rút ${amount} thẻ`, true)
-	if (opt?.next?.type === 'discard_select' && opt?.next?.amount > 0) {
+	if (role === G.role) setTurnStatus(`Nhấp chồng bài để rút ${amount} lá`, true)
+	if (opt?.next?.action === 'discard_select' && opt?.next?.amount > 0) {
 		await dbSet(['rooms', G.roomId, 'gameState', `queuedDiscard_${role}`], { amount: opt.next.amount })
 	}
 }
 
-async function actQueueDiscard(ctx, target, amount, sourceCard) {
-	const role = target === 'opponent' ? ctx.opponentRole : ctx.role
-	const mk = `manualDraw_${role}`
-	const dq = await dbGet(['rooms', G.roomId, 'gameState', mk])
-	if (dq && dq.remain > 0) {
+async function actQueueDiscard(ctx, target, amount, card) {
+	const role = resolveTarget(ctx, target)
+	const gs = await dbGet(['rooms', G.roomId, 'gameState']) || {}
+	const key = `manualDraw_${role}`
+	const md = gs[key]
+	if (md && (md.remain || 0) > 0) {
 		await dbSet(['rooms', G.roomId, 'gameState', `queuedDiscard_${role}`], { amount })
 		return
 	}
 	await dbSet(['rooms', G.roomId, 'gameState', `pendingDiscard_${role}`], { amount })
-	if (role === G.role) setTurnStatus(`Đã rút xong • Chọn bỏ ${amount} thẻ`, true)
+	if (role === G.role) setTurnStatus(`Chọn bỏ ${amount} thẻ`, true)
 }
 
 function bindDeckClicks() {
-	const myDeck = G.role === 'player1' ? DOMC.my.deck : DOMC.my.deck
-	myDeck.onclick = async () => {
-		const mk = `manualDraw_${G.role}`
-		const st = await dbGet(['rooms', G.roomId, 'gameState', mk])
-		if (!st || st.remain <= 0) return
-		const deck = (await dbGet(['rooms', G.roomId, G.role, 'deck'])) || []
-		if (deck.length === 0) return
-		const top = deck[deck.length - 1]
-		deck.pop()
-		const hand = (await dbGet(['rooms', G.roomId, G.role, 'hand'])) || []
-		hand.push(top)
-		await dbSet(['rooms', G.roomId, G.role, 'deck'], deck)
-		await dbSet(['rooms', G.roomId, G.role, 'hand'], hand)
-		const remain = st.remain - 1
-		if (remain > 0) {
-			await dbSet(['rooms', G.roomId, 'gameState', mk], { remain, from: st.from || null })
-			setTurnStatus(`Nhấp rút tiếp • Còn ${remain}`, true)
-		} else {
-			await dbSet(['rooms', G.roomId, 'gameState', mk], null)
-			const qd = await dbGet(['rooms', G.roomId, 'gameState', `queuedDiscard_${G.role}`])
-			if (qd && qd.amount > 0) {
-				await dbSet(['rooms', G.roomId, 'gameState', `queuedDiscard_${G.role}`], null)
-				await dbSet(['rooms', G.roomId, 'gameState', `pendingDiscard_${G.role}`], { amount: qd.amount })
-				setTurnStatus(`Đã rút xong • Chọn bỏ ${qd.amount} thẻ`, true)
-			} else {
-				setTurnStatus(`Đã rút xong`, true)
-			}
-		}
+	DOMC.my.deck.onclick = async () => {
+		const snap = await dbGet(['rooms', G.roomId]) || {}
+		const gs = snap.gameState || {}
+		const turn = gs.turn || 'player1'
+		if (turn !== G.role) return
+		if (gs.flags?.banDraw) return
+		const key = `manualDraw_${G.role}`
+		const md = gs[key]
+		if (!md || (md.remain || 0) <= 0) return
+		await drawOneToHand(G.role)
+		const gs2 = (await dbGet(['rooms', G.roomId, 'gameState'])) || {}
+		const left = (gs2[key]?.remain) || 0
+		if (left > 0) setTurnStatus(`Nhấp rút tiếp (${left})`, true)
 	}
 }
 
@@ -1696,7 +1729,7 @@ function bindHandDiscard() {
 
 async function actDiscardSelect(ctx, target, amount, card) {
 	const t = resolveTarget(ctx, target)
-	await logSkill(ctx, card, `Chọn bỏ ${amount} lá trên tay`)
+	await logSkill(ctx, card, `Chọn bỏ ${amount} lá trên tay`, true)
 	const room = await ctx.getRoom()
 	const node = room[t] || {}
 	const hand = Array.isArray(node.hand) ? node.hand.slice() : []
@@ -1722,7 +1755,7 @@ function resolveTarget(ctx, target) {
 
 async function actAddBottomCard(ctx, target, amount, card) {
 	const t = resolveTarget(ctx, target)
-	await logSkill(ctx, card, `Đặt thêm ${amount} lá vào bài tẩy`)
+	await logSkill(ctx, card, `Đặt thêm ${amount} lá vào bài tẩy`, true)
 	const room = await ctx.getRoom()
 	if (t === 'both') {
 		await actAddBottomCard(ctx, 'self', amount, card)
@@ -1746,7 +1779,7 @@ async function actAddBottomCard(ctx, target, amount, card) {
 async function actAddSupport(ctx, target, amount, card) {
 	const t = resolveTarget(ctx, target)
 	const delta = Number(amount || 0)
-	await logSkill(ctx, card, `${delta >= 0 ? '+' : ''}${delta} điểm hỗ trợ`)
+	await logSkill(ctx, card, `${delta >= 0 ? '+' : ''}${delta} điểm hỗ trợ`, true)
 	const rm = (await ctx.getRoom()).roundModifiers || { player1: { main: 0, supports: [] }, player2: { main: 0, supports: [] } }
 	const key = t
 	const arr = Array.isArray(rm[key]?.supports) ? rm[key].supports.slice() : []
@@ -1756,7 +1789,7 @@ async function actAddSupport(ctx, target, amount, card) {
 }
 
 async function actLimitSupportFromHand(ctx, amount, card) {
-    await logSkill(ctx, card, `Giới hạn dùng hỗ trợ từ tay: ${amount}`);
+    await logSkill(ctx, card, `Giới hạn dùng hỗ trợ từ tay: ${amount}`, true);
     const room = await ctx.getRoom();
     const gs = room.gameState || {};
     const flags = { ...(gs.flags || {}), supportLimit: amount };
@@ -1764,7 +1797,7 @@ async function actLimitSupportFromHand(ctx, amount, card) {
 }
 
 async function actBanSupportGte(ctx, threshold, card) {
-	await logSkill(ctx, card, `Cấm dùng thẻ hỗ trợ có điểm ≥ ${threshold}`)
+	await logSkill(ctx, card, `Cấm dùng thẻ hỗ trợ có điểm ≥ ${threshold}`, true)
 	const room = await ctx.getRoom()
 	const gs = room.gameState || {}
 	const flags = { ...(gs.flags || {}), supportBanThreshold: threshold }
@@ -1772,7 +1805,7 @@ async function actBanSupportGte(ctx, threshold, card) {
 }
 
 async function actDiscardFromHandTop(ctx, target, amount, card) {
-	await logSkill(ctx, card, `Bỏ ${amount} lá trên tay`)
+	await logSkill(ctx, card, `Bỏ ${amount} lá trên tay`, true)
 	const t = resolveTarget(ctx, target)
 	const room = await ctx.getRoom()
 	const node = room[t] || {}
@@ -1783,22 +1816,31 @@ async function actDiscardFromHandTop(ctx, target, amount, card) {
 }
 
 async function actSupportFromDeckTop(ctx, target, amount, card) {
-	await logSkill(ctx, card, `Lấy ${amount} lá trên cùng bộ bài làm hỗ trợ`)
+	await logSkill(ctx, card, `Lấy ${amount} lá trên cùng bộ bài làm hỗ trợ`, true)
 	const t = resolveTarget(ctx, target)
-	const rm = (await ctx.getRoom()).roundModifiers || { player1: { main: 0, supports: [] }, player2: { main: 0, supports: [] } }
-	const key = t
-	const arr = Array.isArray(rm[key]?.supports) ? rm[key].supports.slice() : []
 	const room = await ctx.getRoom()
-	const node = room[key] || {}
+	const node = room[t] || {}
 	const deck = Array.isArray(node.deck) ? node.deck.slice() : []
-	for (let i = 0; i < (amount || 0) && deck.length > 0; i++) {
-		const cid = deck[i]
-		const c = cardById(cid)
-		const val = c ? (c.support || 0) : 0
-		arr.push({ slot: arr.length, delta: val, source: SOURCE_DECK_TOP })
+	const supports = Array.isArray(node.supports) ? node.supports.slice(0, MAX_SUPPORT_SLOTS) : []
+	let n = Math.min(amount || 0, MAX_SUPPORT_SLOTS - supports.length, deck.length)
+	const added = []
+	while (n > 0) {
+		const top = deck.shift()
+		supports.push(top)
+		added.push(top)
+		n--
 	}
-	const next = { ...rm, [key]: { main: rm[key]?.main || 0, supports: arr } }
-	await ctx.setMods(next)
+	await ctx.setPlayer(t, { ...node, deck, supports })
+	await scoreRound()
+	for (const cid of added) {
+		const cObj = cardById(cid)
+		if (!cObj) continue
+		const subCtx = buildCtx(t)
+		subCtx.trigger = TRIGGER_SUPPORT
+		subCtx.source = SOURCE_DECK_TOP
+		await applyCardSkill(cObj, TRIGGER_SUPPORT, subCtx)
+		await scoreRound()
+	}
 }
 
 async function actRevealBottomCards(ctx, target, card) {
@@ -1808,20 +1850,23 @@ async function actRevealBottomCards(ctx, target, card) {
 	if (ctx.owner === 'player1') reveal.p2BottomRevealedToP1 = true
 	else reveal.p1BottomRevealedToP2 = true
 	await dbSet(['rooms', G.roomId, 'gameState', 'reveal'], reveal)
-	await logSkill(ctx, card, 'Cho đối phương xem bài tẩy')
+	await logSkill(ctx, card, 'Lật bài tẩy của đối thủ', true)
 }
 
-async function actAddMain(ctx, target, amount, card) {
-	await logSkill(ctx, card, `+${amount} điểm chiến tướng cho ${resolveTarget(ctx, target)}`)
+async function actAddMain(ctx, target, amount, card, silent = false) {
 	const t = resolveTarget(ctx, target)
 	const rm = (await ctx.getRoom()).roundModifiers || { player1: { main: 0, supports: [] }, player2: { main: 0, supports: [] } }
 	const cur = rm[t]?.main || 0
 	const next = { ...rm, [t]: { main: cur + (amount || 0), supports: rm[t]?.supports || [] } }
 	await ctx.setMods(next)
+	if (!silent) {
+		const n = await nameOf(t)
+		await logStep(`[${await nameOf(ctx.owner)}] +${amount} điểm chiến tướng cho [${n}] - ${card.name}`)
+	}
 }
 
 async function actDiscardFromBottom(ctx, target, amount, card) {
-	await logSkill(ctx, card, `Bỏ ${amount} lá bài tẩy của mình`)
+	await logSkill(ctx, card, `Bỏ ${amount} lá bài tẩy của mình`, true)
 	const t = resolveTarget(ctx, target)
 	const room = await ctx.getRoom()
 	const node = room[t] || {}
@@ -1839,7 +1884,7 @@ async function actDiscardFromOpponentHandSelect(ctx, amount, card) {
 	const room = await ctx.getRoom()
 	const tHand = (room?.[target]?.hand || []).slice()
 	if (tHand.length === 0) return
-	await logSkill(ctx, card, `Chọn bỏ ${Math.min(amount, tHand.length)} lá trên tay đối thủ`)
+	await logSkill(ctx, card, `Chọn bỏ ${Math.min(amount, tHand.length)} lá trên tay đối thủ`, true)
 	const gs = room.gameState || {}
 	await ctx.setGame({
 		...gs,
@@ -1853,7 +1898,7 @@ async function actDiscardFromOpponentHandSelect(ctx, amount, card) {
 }
 
 async function actPeekOpponentDeckTop(ctx, amount, card) {
-	await logSkill(ctx, card, `Xem ${amount} lá trên cùng bộ bài đối thủ`)
+	await logSkill(ctx, card, `Xem ${amount} lá trên cùng bộ bài đối thủ`, true)
 	const room = await ctx.getRoom()
 	const opp = ctx.opponent
 	const node = room[opp] || {}
@@ -1865,7 +1910,7 @@ async function actPeekOpponentDeckTop(ctx, amount, card) {
 }
 
 async function actSwapWithWonCard(ctx, target, cardId, card) {
-	await logSkill(ctx, card, `Đổi vị trí với 1 lá đã thắng`)
+	await logSkill(ctx, card, `Đổi vị trí với 1 lá đã thắng`, true)
 	const t = resolveTarget(ctx, target)
 	const room = await ctx.getRoom()
 	const node = room[t] || {}
@@ -1878,7 +1923,7 @@ async function actSwapWithWonCard(ctx, target, cardId, card) {
 }
 
 async function actBanDraw(ctx, card) {
-	await logSkill(ctx, card, `Cấm rút bài trong lượt này`)
+	await logSkill(ctx, card, `Cấm rút bài trong lượt này`, true)
 	const room = await ctx.getRoom()
 	const gs = room.gameState || {}
 	const flags = { ...(gs.flags || {}), banDraw: true }
@@ -2038,11 +2083,11 @@ function triggerLabelOf(ctx) {
 	return 'main'
 }
 
-async function logSkill(ctx, card, text) {
-	const actor = await nameOf(ctx.owner)
-	const tlabel = triggerLabelOf(ctx)
-	const cname = card?.name || ''
-	logStep(`[${actor}] kích hoạt skill thẻ [${tlabel}] ${cname} - ${text}`)
+async function logSkill(ctx, card, msg, effect = true) {
+	const name = await nameOf(ctx.owner)
+	const prefix = effect ? '' : ''
+	const full = `[${name}] ${msg} [${card.skill.trigger}] ${card.name ? '- ' + card.name : ''}`
+	await logStep(full)
 }
 
 let LOG_EL = null
@@ -2074,15 +2119,6 @@ function createActionLog() {
 }
 
 async function logStep(msg, obj) {
-	console.log('[TCG]', msg, obj || '')
-	pushLog(msg)
-
-	if (!LOG_EL) return
-	const row = document.createElement('div')
-	row.textContent = `• ${msg}`
-	LOG_EL.appendChild(row)
-	LOG_EL.scrollTop = LOG_EL.scrollHeight
-
 	const key = Date.now()
 	await dbSet(['rooms', G.roomId, 'logs', key], msg)
 }
@@ -2104,11 +2140,10 @@ function checkWinAndAnnounce(gs, names) {
 }
 
 function pushLog(msg) {
-  const key = `tcg_logs_${G?.roomId || 'local'}`
-  const arr = JSON.parse(localStorage.getItem(key) || '[]')
-  arr.push({ t: Date.now(), msg })
-  localStorage.setItem(key, JSON.stringify(arr))
-  console.log(msg)
+	const key = `tcg_logs_${G?.roomId || 'local'}`
+	const arr = JSON.parse(localStorage.getItem(key) || '[]')
+	arr.push({ t: Date.now(), msg })
+	localStorage.setItem(key, JSON.stringify(arr))
 }
 
 function loadLogs() {
