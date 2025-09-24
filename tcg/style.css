@@ -1,319 +1,365 @@
 :root {
-  --card-width: 8vw;
-  --card-aspect: 6.3 / 8.9;
+	--card-width: 8vw;
+	--card-aspect: 6.3 / 8.9;
 }
 
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
 }
 
 body {
-  font-family: 'Quicksand', sans-serif;
-  background: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+	font-family: 'Quicksand', sans-serif;
+	background: white;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
 }
 
+/* Play area */
 .play-area {
-  position: relative;
-  width: 80vw;
-  height: 95vh;
-  border: 2px dashed black;
-  border-radius: 0.1rem;
+	position: relative;
+	width: 80vw;
+	height: 95vh;
+	border: 2px dashed black;
+	border-radius: 0.1rem;
 }
 
+/* Generic slots & containers */
 .card-slot {
-  position: absolute;
-  width: var(--card-width);
-  aspect-ratio: var(--card-aspect);
-  border-radius: 0.4rem;
-  background-color: white;
-}
-
-.card-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: 1rem;
-  max-width: 100vw;
-  justify-content: center;
+	position: absolute;
+	width: var(--card-width);
+	aspect-ratio: var(--card-aspect);
+	border-radius: 0.4rem;
+	background-color: white;
 }
 
 .card-slot.dashed {
-  border: 2px dashed black;
+	border: 2px dashed black;
 }
 
 .card-slot.solid {
-  border: 2px solid black;
+	border: 2px solid black;
+}
+
+.card-container {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	padding: 1rem;
+	max-width: 100vw;
+	justify-content: center;
 }
 
 .line-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2vh;
-  align-items: flex-start;
+	display: flex;
+	flex-direction: column;
+	gap: 0.2vh;
+	align-items: flex-start;
 }
 
 .line {
-  height: 0.1vh;
-  background-color: black;
+	height: 0.1vh;
+	background-color: black;
 }
 
-.z1p1 {
-  top: -1%;
-  left: 3%;
-  transform: rotate(90deg);
-}
-
-.z2p1 {
-  top: 23%;
-  left: 3%;
-}
-
-.z3p1 {
-  top: 25%;
-  left: 20%;
-}
-
-.z4p1 {
-  top: 25%;
-  left: 35%;
-}
-
-.z5p1 {
-  top: 15%;
-  right: 10%;
-}
-
-.z6p1 {
-  position: absolute;
-  top: 1%;
-  right: 30%;
-}
-
+/* Stacks (card-stack / card-vstack) */
 .card-stack {
-  position: absolute;
-  width: var(--card-width);
-  aspect-ratio: var(--card-aspect);
+	position: absolute;
+	width: var(--card-width);
+	aspect-ratio: var(--card-aspect);
 }
 
 .card-stack .card {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border: 2px solid black;
-  border-radius: 0.5rem;
-  background: white;
-  top: calc(var(--i) * -8%);
-  left: 0;
-  z-index:calc(4 - var(--i));
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	border: 2px solid black;
+	border-radius: 0.5rem;
+	background: white;
+	top: calc(var(--i) * -8%);
+	left: 0;
+	z-index: calc(4 - var(--i));
 }
 
 .card-vstack {
-  position: absolute;
-  width: var(--card-width);
-  aspect-ratio: var(--card-aspect);
+	position: absolute;
+	width: var(--card-width);
+	aspect-ratio: var(--card-aspect);
 }
 
 .card-vstack .card {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border: 2px solid black;
-  border-radius: 0.5rem;
-  background: white;
-  left: calc(var(--i) * 10%);
-  top: 0;
-  z-index: calc(var(--i) + 1);
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	border: 2px solid black;
+	border-radius: 0.5rem;
+	background: white;
+	left: calc(var(--i) * 10%);
+	top: 0;
+	z-index: calc(var(--i) + 1);
 }
 
+/* Zones: Player 1 (top) */
+.z1p1 {
+	top: -1%;
+	left: 3%;
+	transform: rotate(90deg);
+}
+
+.z2p1 {
+	top: 23%;
+	left: 3%;
+}
+
+.z3p1 {
+	top: 25%;
+	left: 20%;
+}
+
+.z4p1 {
+	top: 25%;
+	left: 35%;
+}
+
+.z5p1 {
+	top: 15%;
+	right: 10%;
+}
+
+.z6p1 {
+	position: absolute;
+	top: 1%;
+	right: 30%;
+}
+
+/* Zones: Player 2 (bottom) */
 .z1p2 {
-  bottom: -1%;
-  right: 3%;
-  transform: rotate(-90deg);
+	bottom: -1%;
+	right: 3%;
+	transform: rotate(-90deg);
 }
 
 .z2p2 {
-  bottom: 23%;
-  right: 3%;
+	bottom: 23%;
+	right: 3%;
 }
 
 .z3p2 {
-  bottom: 25%;
-  right: 20%;
+	bottom: 25%;
+	right: 20%;
 }
 
 .z4p2 {
-  bottom: 25%;
-  right: 35%;
+	bottom: 25%;
+	right: 35%;
 }
 
 .z4p2 .card {
-  top: calc(var(--i) * 8%);
-}
-
-.z5p2 .card {
-  left: calc(var(--i) * -10%);
+	top: calc(var(--i) * 8%);
 }
 
 .z5p2 {
-  bottom: 15%;
-  left: 10%;
+	bottom: 15%;
+	left: 10%;
+}
+
+.z5p2 .card {
+	left: calc(var(--i) * -10%);
 }
 
 .z6p2 {
-  position: absolute;
-  bottom: 1%;
-  left: 30%;
+	position: absolute;
+	bottom: 1%;
+	left: 30%;
 }
 
+/* Bottom cards (z3) */
+.z3p1 .bottom-card,
+.z3p2 .bottom-card {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	border-radius: 0.5rem;
+	border: 2px solid black;
+	background: white;
+}
+
+.z3p1 .bottom-card.base {
+	top: 0;
+	left: 0;
+	z-index: 4;
+}
+
+.z3p1 .bottom-card.extra {
+	top: calc(var(--i) * 8%);
+	left: 0;
+	z-index: calc(4 - var(--i));
+}
+
+.z3p2 .bottom-card.base {
+	top: 0;
+	left: 0;
+	z-index: 4;
+}
+
+.z3p2 .bottom-card.extra {
+	top: calc(var(--i) * -8%);
+	left: 0;
+	z-index: calc(4 - var(--i));
+}
+
+/* Hands */
 .card-hand {
-  display: flex;
-  gap: 0.5vw;
-  height: var(--card-width);
-  padding: 0.5vw;
-  background-color: transparent;
+	display: flex;
+	gap: 0.5vw;
+	height: var(--card-width);
+	padding: 0.5vw;
+	background-color: transparent;
 }
 
 .card-hand.p1 {
-  flex-direction: row-reverse;
-  justify-content: flex-end;
+	flex-direction: row-reverse;
+	justify-content: flex-end;
 }
 
 .card-hand.p2 {
-  flex-direction: row;
-  justify-content: flex-start;
+	flex-direction: row;
+	justify-content: flex-start;
 }
 
 .card-hand .card:hover {
-  transform: scale(2.2);
-  z-index: 20;
+	transform: scale(2.2);
+	z-index: 20;
 }
 
+/* Utility */
 .hidden {
-  display: none;
+	display: none;
 }
 
+/* Lobby */
 #lobby {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(255, 192, 203, 0.95);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgba(255, 192, 203, 0.95);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
 }
 
 #lobby input,
 #lobby button {
-  font-family: 'Quicksand', sans-serif;
-  margin: 0.5rem;
-  padding: 0.6rem 1rem;
-  font-size: 1rem;
-  border-radius: 0.4rem;
-  border: none;
+	font-family: 'Quicksand', sans-serif;
+	margin: 0.5rem;
+	padding: 0.6rem 1rem;
+	font-size: 1rem;
+	border-radius: 0.4rem;
+	border: none;
 }
 
 #lobby input {
-  width: 200px;
+	width: 200px;
 }
 
 #lobby button {
-  background-color: white;
-  cursor: pointer;
-  font-weight: bold;
+	background-color: white;
+	cursor: pointer;
+	font-weight: bold;
 }
 
 #lobby.hidden {
-  opacity: 0;
-  pointer-events: none;
-  display: none;
+	opacity: 0;
+	pointer-events: none;
+	display: none;
 }
 
+/* Player areas (background halves */
 .player-area {
-  z-index: -1;
-  position: absolute;
-  background: rgba(255, 0, 0, 0.1);
-  pointer-events: none;
-}
-
-.player2-area {
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 50%;
+	z-index: -1;
+	position: absolute;
+	background: rgba(255, 0, 0, 0.1);
+	pointer-events: none;
 }
 
 .player1-area {
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 50%;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 50%;
 }
 
-.score-p1 {
-  top: 10px;
-  right: 12px;
+.player2-area {
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 50%;
 }
 
-.score-p2 {
-  bottom: 10px;
-  left: 12px;
-}
-
+/* Score display */
 .score-display {
-  font-family: 'Quicksand', sans-serif;
-  position: absolute;
-  padding: 10px 14px;
-  background: rgba(51, 45, 48, 0.9);
-  color: white;
-  border-radius: 0.6rem;
-  line-height: 1.25;
-  z-index: 1000;
+	font-family: 'Quicksand', sans-serif;
+	position: absolute;
+	padding: 10px 14px;
+	background: rgba(51, 45, 48, 0.9);
+	color: white;
+	border-radius: 0.6rem;
+	line-height: 1.25;
+	z-index: 1000;
 }
 
 .score-display .name {
-  font-weight: 700;
-  font-size: 1.05rem;
-  margin-bottom: 4px;
+	font-weight: 700;
+	font-size: 1.05rem;
+	margin-bottom: 4px;
 }
 
 .score-display .row {
-  font-size: 0.95rem;
-  opacity: 0.95;
+	font-size: 0.95rem;
+	opacity: 0.95;
 }
 
+.score-p1 {
+	top: 10px;
+	right: 12px;
+}
 
+.score-p2 {
+	bottom: 10px;
+	left: 12px;
+}
+
+/* Card info tooltip */
 .card-info {
-  font-family: 'Quicksand', sans-serif;
-  position: absolute;
-  padding: 10px;
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  border-radius: 0.4rem;
-  z-index: 1200;
+	font-family: 'Quicksand', sans-serif;
+	position: absolute;
+	padding: 10px;
+	background: rgba(0, 0, 0, 0.9);
+	color: white;
+	border-radius: 0.4rem;
+	z-index: 1200;
 }
 
 .card-info.p1 {
-  bottom: calc(var(--card-width) + 10vw);
-  right: 30%;
+	bottom: calc(var(--card-width) + 10vw);
+	right: 30%;
 }
 
 .card-info.p2 {
-  top: calc(var(--card-width) + 10vw);
-  left: 30%;
+	top: calc(var(--card-width) + 10vw);
+	left: 30%;
 }
 
-.card-stack .card.support-active { 
-  z-index: 999; 
+/* Support highlight & discard mode */
+.card-stack .card.support-active {
+	z-index: 999;
 }
 
 .card-hand .card.to-discard img {
@@ -326,71 +372,95 @@ body {
 	cursor: pointer;
 }
 
-.turn-status {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 2px 8px;
-  border-radius: 0.6rem;
-  font-weight: 600;
-  font-size: 14px;
-  z-index: 10;
-  transition: all 0.3s ease;
-  color: white;
+.card-hand.discard-mode .card::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: rgba(239, 68, 68, .10);
+	border-radius: .5rem;
+	pointer-events: none;
 }
 
+.card-hand.discard-mode .card:hover::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background-image: repeating-linear-gradient(135deg, rgba(239, 68, 68, .6) 0 4px, transparent 4px 10px);
+	border-radius: .5rem;
+	mix-blend-mode: multiply;
+	pointer-events: none;
+}
+
+/* Turn status */
+.turn-status {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	padding: 2px 8px;
+	border-radius: 0.6rem;
+	font-weight: 600;
+	font-size: 14px;
+	z-index: 10;
+	transition: all 0.3s ease;
+	color: white;
+}
+
+/* Buttons */
 .tcg-btn {
-  font-family: 'Quicksand', sans-serif;
-  padding: 0.5rem 1.1rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  border-radius: 0.6rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+	font-family: 'Quicksand', sans-serif;
+	padding: 0.5rem 1.1rem;
+	font-size: 0.95rem;
+	font-weight: 600;
+	border-radius: 0.6rem;
+	border: none;
+	cursor: pointer;
+	transition: all 0.2s ease;
 }
 
 .tcg-btn.ready {
-  background: linear-gradient(135deg, #4caf50, #2e7d32);
-  color: white;
+	background: linear-gradient(135deg, #4caf50, #2e7d32);
+	color: white;
 }
+
 .tcg-btn.ready:hover {
-  background: linear-gradient(135deg, #66bb6a, #388e3c);
+	background: linear-gradient(135deg, #66bb6a, #388e3c);
 }
 
 .tcg-btn.pass {
-  background: linear-gradient(135deg, #f44336, #c62828);
-  color: white;
-}
-.tcg-btn.pass:hover {
-  background: linear-gradient(135deg, #ef5350, #d32f2f);
+	background: linear-gradient(135deg, #f44336, #c62828);
+	color: white;
 }
 
+.tcg-btn.pass:hover {
+	background: linear-gradient(135deg, #ef5350, #d32f2f);
+}
+
+/* Button positions */
 .btn-p1.ready {
-  position: absolute;
-  top: 42%;
-  right: 2%;
-  z-index: 1500;
+	position: absolute;
+	top: 42%;
+	right: 2%;
+	z-index: 1500;
 }
 
 .btn-p1.pass {
-  position: absolute;
-  top: 42%;
-  right: 15%;
-  z-index: 1500;
+	position: absolute;
+	top: 42%;
+	right: 15%;
+	z-index: 1500;
 }
 
 .btn-p2.ready {
-  position: absolute;
-  bottom: 42%;
-  left: 2%;
-  z-index: 1500;
+	position: absolute;
+	bottom: 42%;
+	left: 2%;
+	z-index: 1500;
 }
 
 .btn-p2.pass {
-  position: absolute;
-  bottom: 42%;
-  left: 15%;
-  z-index: 1500;
+	position: absolute;
+	bottom: 42%;
+	left: 15%;
+	z-index: 1500;
 }

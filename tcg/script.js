@@ -141,6 +141,7 @@ async function ensurePlayerNode(data) {
 		G.me.hand = (node.hand || []).slice()
 		G.me.main = node.main || null
 		G.me.bottom = node.bottom || null
+		G.me.bottomExtra = Array.isArray(node.bottomExtra) ? node.bottomExtra.slice() : []
 		G.me.supports = Array.isArray(node.supports) ? node.supports.slice(0, 2) : []
 		G.me.wonPile = node.wonPile || []
 		G.me.discard = node.discard || []
@@ -150,19 +151,21 @@ async function ensurePlayerNode(data) {
 		G.me.hand = []
 		G.me.main = null
 		G.me.bottom = null
+		G.me.bottomExtra = []
 		G.me.supports = []
 		G.me.wonPile = []
 		G.me.discard = []
 		await dbSet(['rooms', G.roomId, G.role], {
-		name: G.name,
-		deck: G.me.deck,
-		hand: [],
-		main: null,
-		bottom: null,
-		supports: [],
-		wonPile: [],
-		discard: [],
-		ready: false
+			name: G.name,
+			deck: G.me.deck,
+			hand: [],
+			main: null,
+			bottom: null,
+			bottomExtra: [],
+			supports: [],
+			wonPile: [],
+			discard: [],
+			ready: false
 		})
 	}
 	await dbSet(['rooms', G.roomId, G.role, 'name'], G.name)
@@ -601,6 +604,42 @@ function renderBoardSkeleton() {
 	renderScores()
 }
 
+function renderBottom(side) {
+	const zone = side === 'me' ? DOMC.my.bottom : DOMC.opp.bottom
+	while (zone.firstChild) zone.removeChild(zone.firstChild)
+
+	const face = side === 'me' ? true : faceForBottom('opp')
+	const baseId = side === 'me' ? G.me.bottom : G.opp.bottom
+	const extras = side === 'me'
+		? (Array.isArray(G.me.bottomExtra) ? G.me.bottomExtra : [])
+		: (Array.isArray(G.opp.bottomExtra) ? G.opp.bottomExtra : [])
+
+	const base = document.createElement('div')
+	base.className = 'card bottom-card base'
+	base.innerHTML = `<img src="${imgPathFor(baseId || 'card-back', !!baseId ? face : false)}" style="width:100%;height:100%;border-radius:.5rem;">`
+	if (baseId && face) {
+		const ci = cardById(baseId)
+		base.addEventListener('mouseenter', () => showCardTip(ci))
+		base.addEventListener('mouseleave', hideCardTip)
+	}
+	zone.appendChild(base)
+
+	if (extras.length > 0) {
+		extras.forEach((id, i) => {
+			const d = document.createElement('div')
+			d.className = 'card bottom-card extra'
+			d.style.setProperty('--i', String(i + 1))
+			d.innerHTML = `<img src="${imgPathFor(id, face)}" style="width:100%;height:100%;border-radius:.5rem;">`
+			if (face) {
+				const ci = cardById(id)
+				d.addEventListener('mouseenter', () => showCardTip(ci))
+				d.addEventListener('mouseleave', hideCardTip)
+			}
+			zone.appendChild(d)
+		})
+	}
+}
+
 // ===== PHẦN 4: SYNC LAYER =====
 let roomUnsub = null
 
@@ -634,25 +673,31 @@ function onRoomSnapshot(data) {
 		supportPass: gsRaw.supportPass || { player1: false, player2: false },
 		supportPhaseEnded: !!gsRaw.supportPhaseEnded,
 		computed: gsRaw.computed || { p1: { main: 0, support: 0 }, p2: { main: 0, support: 0 } },
-		mainRevealed: !!gsRaw.mainRevealed
+		mainRevealed: !!gsRaw.mainRevealed,
+		opponentSelectDiscard: gsRaw.opponentSelectDiscard || null
 	}
-	G.roundModifiers = { player1: rm.player1 || { main: 0, supports: [] }, player2: rm.player2 || { main: 0, supports: [] } }
+	G.roundModifiers = {
+		player1: rm.player1 || { main: 0, supports: [] },
+		player2: rm.player2 || { main: 0, supports: [] }
+	}
 
-	G.me.deck = (meNode.deck || []).slice()
-	G.me.hand = (meNode.hand || []).slice()
+	G.me.deck = Array.isArray(meNode.deck) ? meNode.deck.slice() : []
+	G.me.hand = Array.isArray(meNode.hand) ? meNode.hand.slice() : []
 	G.me.main = meNode.main || null
 	G.me.bottom = meNode.bottom || null
-	G.me.supports = Array.isArray(meNode.supports) ? meNode.supports.slice(0, 2) : []
-	G.me.wonPile = meNode.wonPile || []
-	G.me.discard = meNode.discard || []
+	G.me.bottomExtra = Array.isArray(meNode.bottomExtra) ? meNode.bottomExtra.slice() : []
+	G.me.supports = Array.isArray(meNode.supports) ? meNode.supports.slice() : []
+	G.me.wonPile = Array.isArray(meNode.wonPile) ? meNode.wonPile.slice() : []
+	G.me.discard = Array.isArray(meNode.discard) ? meNode.discard.slice() : []
 
-	G.opp.deck = (oppNode.deck || []).slice()
-	G.opp.hand = (oppNode.hand || []).slice()
+	G.opp.deck = Array.isArray(oppNode.deck) ? oppNode.deck.slice() : []
+	G.opp.hand = Array.isArray(oppNode.hand) ? oppNode.hand.slice() : []
 	G.opp.main = oppNode.main || null
 	G.opp.bottom = oppNode.bottom || null
-	G.opp.supports = Array.isArray(oppNode.supports) ? oppNode.supports.slice(0, 2) : []
-	G.opp.wonPile = oppNode.wonPile || []
-	G.opp.discard = oppNode.discard || []
+	G.opp.bottomExtra = Array.isArray(oppNode.bottomExtra) ? oppNode.bottomExtra.slice() : []
+	G.opp.supports = Array.isArray(oppNode.supports) ? oppNode.supports.slice() : []
+	G.opp.wonPile = Array.isArray(oppNode.wonPile) ? oppNode.wonPile.slice() : []
+	G.opp.discard = Array.isArray(oppNode.discard) ? oppNode.discard.slice() : []
 
 	if (data.logs) renderLogs(Object.values(data.logs))
 
@@ -664,9 +709,13 @@ function onRoomSnapshot(data) {
 
 	const md = G.game[`manualDraw_${G.role}`]
 	const ms = G.game[`manualDiscard_${G.role}`]
-	if ((md?.remain || 0) > 0) setTurnStatus(`Lượt 1: Rút ${md.remain} lá bài`, true)
-	else if ((ms?.remain || 0) > 0) setTurnStatus(`Chọn ${ms.remain} lá để bỏ`, true)
-	else updateSetupStatus()
+	if ((md?.remain || 0) > 0) {
+		setTurnStatus(`Nhấp chồng bài để rút ${md.remain} thẻ`, true)
+	} else if ((ms?.remain || 0) > 0) {
+		setTurnStatus(`Chọn ${ms.remain} thẻ để bỏ`, true)
+	} else {
+		updateSetupStatus()
+	}
 
 	const round = G.game.round || 1
 	const revealed = !!gsRaw.mainRevealed
@@ -677,6 +726,20 @@ function onRoomSnapshot(data) {
 	}
 
 	evaluateRevealGate()
+
+	const sel = gsRaw.opponentSelectDiscard
+	if (sel) {
+		if (sel.controller === G.role) setTurnStatus(`Chọn bỏ ${sel.remain} lá trên tay đối thủ`, true)
+		else setTurnStatus('Chờ đối thủ sử dụng skill', false)
+	} else if (revealed) {
+		const settled = !!gsRaw.initiativeSettled
+		if (!settled) {
+			setTurnStatus('Đang xác định quyền đi trước…', null)
+		} else {
+			const mineTurn = (G.game.turn || 'player1') === G.role
+			setTurnStatus(mineTurn ? 'Lượt của bạn' : 'Lượt của đối thủ', mineTurn)
+		}
+	}
 }
 
 function renderLogs(list) {
@@ -726,12 +789,12 @@ function reconcileBoard(data) {
 
 	const myMainFace = true
 	const oppMainFace = faceForMain('opp')
-	setStackTop(DOMC.my.main,  G.me.main,  myMainFace,  false, true)
+	setStackTop(DOMC.my.main, G.me.main, myMainFace, false, true)
 	setStackTop(DOMC.opp.main, G.opp.main, oppMainFace, false, oppMainFace)
 
 	const myBottomFace = true
 	const oppBottomFace = faceForBottom('opp')
-	setZoneSingleCard(DOMC.my.bottom,  G.me.bottom,  myBottomFace,  false, true)
+	setZoneSingleCard(DOMC.my.bottom, G.me.bottom, myBottomFace, false, true)
 	setZoneSingleCard(DOMC.opp.bottom, G.opp.bottom, oppBottomFace, false, oppBottomFace)
 
 	STACKZ.me = STACKZ_BASE
@@ -747,12 +810,18 @@ function reconcileBoard(data) {
 	renderWonPile('me', G.me.wonPile || [])
 	renderWonPile('opp', G.opp.wonPile || [])
 
+	renderDiscard('me', G.me.discard || [])
+	renderDiscard('opp', G.opp.discard || [])
+
 	updateScoreBoxesWithModifiers()
 
 	const round = G.game.round || 1
 	const revealed = !!data?.gameState?.mainRevealed
 	const meReady = !!data?.[mine]?.ready
 	const oppReady = !!data?.[opp]?.ready
+	const sel = data?.gameState?.opponentSelectDiscard
+
+	if (sel) return
 
 	if (round === 1 && !revealed) {
 		if (meReady && !oppReady) {
@@ -800,9 +869,6 @@ function setTurnStatus(msg, mine = null, persist = false) {
 	el.textContent = msg || ''
 	el.style.background = mine === true ? '#dc2626' : mine === false ? '#6b7280' : 'rgba(0,0,0,.7)'
 	clearTimeout(turnStatusTimer)
-	if (!msg) return
-	if (persist || msg === 'Lượt của đối thủ') return
-	turnStatusTimer = setTimeout(() => { el.textContent = '' }, 10000)
 }
 
 function isSetupPhase(gs) {
@@ -934,19 +1000,42 @@ async function lockAndRevealMain() {
 	const p1Card = p1MainId ? cardById(p1MainId) : null
 	const p2Card = p2MainId ? cardById(p2MainId) : null
 
-	await triggerMainOnce('player1', p1Card)
-	await triggerMainOnce('player2', p2Card)
+	const p1Name = room?.player1?.name || 'Player 1'
+	const p2Name = room?.player2?.name || 'Player 2'
+	if (p1Card) await pushLog(`[${p1Name}] đặt [${p1Card.name}] làm chiến tướng: +${p1Card.main} điểm chiến tướng, +${p1Card.support} điểm hỗ trợ.`)
+	if (p2Card) await pushLog(`[${p2Name}] đặt [${p2Card.name}] làm chiến tướng: +${p2Card.main} điểm chiến tướng, +${p2Card.support} điểm hỗ trợ.`)
+
+	const ctx1 = buildCtx('player1'); ctx1.trigger = TRIGGER_MAIN
+	const ctx2 = buildCtx('player2'); ctx2.trigger = TRIGGER_MAIN
+
+	await applyCardSkill(p1Card, 'main', ctx1, { phase: 'preCompare' })
+	await applyCardSkill(p2Card, 'main', ctx2, { phase: 'preCompare' })
 
 	await waitForPendingEffects()
 	await scoreRound()
 	const after = await dbGet(['rooms', G.roomId])
 	const firstTurn = decideTurnFromMain(after)
-	await dbSet(['rooms', G.roomId, 'gameState', 'turn'], firstTurn)
+	await dbSet(['rooms', G.roomId, 'gameState'], {
+		...(after.gameState || {}),
+		turn: firstTurn,
+		initiativeSettled: true
+	})
 
-	const p1Name = after?.player1?.name || 'Player 1'
-	const p2Name = after?.player2?.name || 'Player 2'
-	const firstName = firstTurn === 'player1' ? p1Name : p2Name
+	const firstName = firstTurn === 'player1' ? (after?.player1?.name || 'Player 1') : (after?.player2?.name || 'Player 2')
 	await showStatusStep(`Quyền đi trước: ${firstName}`, null, 10000)
+
+	if (firstTurn === 'player1') {
+		await applyCardSkill(p1Card, 'main', ctx1, { phase: 'postCompareOpponent' })
+		await waitForPendingEffects()
+		await applyCardSkill(p2Card, 'main', ctx2, { phase: 'postCompareOpponent' })
+	} else {
+		await applyCardSkill(p2Card, 'main', ctx2, { phase: 'postCompareOpponent' })
+		await waitForPendingEffects()
+		await applyCardSkill(p1Card, 'main', ctx1, { phase: 'postCompareOpponent' })
+	}
+
+	await waitForPendingEffects()
+	await scoreRound()
 
 	setTurnStatus(firstTurn === G.role ? 'Lượt của bạn' : 'Lượt của đối thủ', firstTurn === G.role)
 }
@@ -1265,77 +1354,77 @@ async function scoreRound() {
 }
 
 async function resolveRound() {
-  const snap = await dbGet(['rooms', G.roomId])
-  const comp = snap?.gameState?.computed || { p1: { main: 0 }, p2: { main: 0 } }
-  const p1m = comp?.p1?.main || 0
-  const p2m = comp?.p2?.main || 0
-  const winner = p1m > p2m ? 'player1' : (p2m > p1m ? 'player2' : null)
+	const snap = await dbGet(['rooms', G.roomId])
+	const comp = snap?.gameState?.computed || { p1: { main: 0 }, p2: { main: 0 } }
+	const p1m = comp?.p1?.main || 0
+	const p2m = comp?.p2?.main || 0
+	const winner = p1m > p2m ? 'player1' : (p2m > p1m ? 'player2' : null)
 
-  const p1 = snap.player1 || {}
-  const p2 = snap.player2 || {}
+	const p1 = snap.player1 || {}
+	const p2 = snap.player2 || {}
 
-  const p1Main = p1.main || null
-  const p2Main = p2.main || null
-  const p1Bottom = p1.bottom || null
-  const p2Bottom = p2.bottom || null
-  const p1Supps = Array.isArray(p1.supports) ? p1.supports : []
-  const p2Supps = Array.isArray(p2.supports) ? p2.supports : []
+	const p1Main = p1.main || null
+	const p2Main = p2.main || null
+	const p1Bottom = p1.bottom || null
+	const p2Bottom = p2.bottom || null
+	const p1Supps = Array.isArray(p1.supports) ? p1.supports : []
+	const p2Supps = Array.isArray(p2.supports) ? p2.supports : []
 
-  if (winner === 'player1') {
-    const wonPile = (p1.wonPile || []).concat([p1Main])
-    await dbSet(['rooms', G.roomId, 'player1', 'wonPile'], wonPile)
-    await dbSet(['rooms', G.roomId, 'player2', 'hand'], (p2.hand || []).concat([p2Bottom]))
-    await dbSet(['rooms', G.roomId, 'player1', 'discard'], (p1.discard || []).concat(p1Supps, [p1Bottom]))
-    await dbSet(['rooms', G.roomId, 'player2', 'discard'], (p2.discard || []).concat(p2Supps, [p2Main]))
-    await pushLog(`【Kết thúc ván】${p1.name || 'Player 1'} thắng với ${cardById(p1Main)?.name || p1Main}`)
-    if (p1Supps.length) await pushLog(`[${p1.name}] bỏ ${p1Supps.length} lá hỗ trợ`)
-    if (p2Supps.length) await pushLog(`[${p2.name}] bỏ ${p2Supps.length} lá hỗ trợ`)
-  } else if (winner === 'player2') {
-    const wonPile = (p2.wonPile || []).concat([p2Main])
-    await dbSet(['rooms', G.roomId, 'player2', 'wonPile'], wonPile)
-    await dbSet(['rooms', G.roomId, 'player1', 'hand'], (p1.hand || []).concat([p1Bottom]))
-    await dbSet(['rooms', G.roomId, 'player2', 'discard'], (p2.discard || []).concat(p2Supps, [p2Bottom]))
-    await dbSet(['rooms', G.roomId, 'player1', 'discard'], (p1.discard || []).concat(p1Supps, [p1Main]))
-    await pushLog(`【Kết thúc ván】${p2.name || 'Player 2'} thắng với ${cardById(p2Main)?.name || p2Main}`)
-    if (p1Supps.length) await pushLog(`[${p1.name}] bỏ ${p1Supps.length} lá hỗ trợ`)
-    if (p2Supps.length) await pushLog(`[${p2.name}] bỏ ${p2Supps.length} lá hỗ trợ`)
-  }
+	if (winner === 'player1') {
+		const wonPile = (p1.wonPile || []).concat([p1Main])
+		await dbSet(['rooms', G.roomId, 'player1', 'wonPile'], wonPile)
+		await dbSet(['rooms', G.roomId, 'player2', 'hand'], (p2.hand || []).concat([p2Bottom]))
+		await dbSet(['rooms', G.roomId, 'player1', 'discard'], (p1.discard || []).concat(p1Supps, [p1Bottom]))
+		await dbSet(['rooms', G.roomId, 'player2', 'discard'], (p2.discard || []).concat(p2Supps, [p2Main]))
+		await pushLog(`【Kết thúc ván】${p1.name || 'Player 1'} thắng với ${cardById(p1Main)?.name || p1Main}`)
+		if (p1Supps.length) await pushLog(`[${p1.name}] bỏ ${p1Supps.length} lá hỗ trợ`)
+		if (p2Supps.length) await pushLog(`[${p2.name}] bỏ ${p2Supps.length} lá hỗ trợ`)
+	} else if (winner === 'player2') {
+		const wonPile = (p2.wonPile || []).concat([p2Main])
+		await dbSet(['rooms', G.roomId, 'player2', 'wonPile'], wonPile)
+		await dbSet(['rooms', G.roomId, 'player1', 'hand'], (p1.hand || []).concat([p1Bottom]))
+		await dbSet(['rooms', G.roomId, 'player2', 'discard'], (p2.discard || []).concat(p2Supps, [p2Bottom]))
+		await dbSet(['rooms', G.roomId, 'player1', 'discard'], (p1.discard || []).concat(p1Supps, [p1Main]))
+		await pushLog(`【Kết thúc ván】${p2.name || 'Player 2'} thắng với ${cardById(p2Main)?.name || p2Main}`)
+		if (p1Supps.length) await pushLog(`[${p1.name}] bỏ ${p1Supps.length} lá hỗ trợ`)
+		if (p2Supps.length) await pushLog(`[${p2.name}] bỏ ${p2Supps.length} lá hỗ trợ`)
+	}
 
-  if (winner) {
-    const w = snap?.gameState?.wins || { player1: 0, player2: 0 }
-    w[winner] = (w[winner] || 0) + 1
-    await dbSet(['rooms', G.roomId, 'gameState', 'wins'], w)
-  }
+	if (winner) {
+		const w = snap?.gameState?.wins || { player1: 0, player2: 0 }
+		w[winner] = (w[winner] || 0) + 1
+		await dbSet(['rooms', G.roomId, 'gameState', 'wins'], w)
+	}
 
-  await dbSet(['rooms', G.roomId, 'player1', 'main'], null)
-  await dbSet(['rooms', G.roomId, 'player2', 'main'], null)
-  await dbSet(['rooms', G.roomId, 'player1', 'bottom'], null)
-  await dbSet(['rooms', G.roomId, 'player2', 'bottom'], null)
-  await dbSet(['rooms', G.roomId, 'player1', 'supports'], [])
-  await dbSet(['rooms', G.roomId, 'player2', 'supports'], [])
-  await dbSet(['rooms', G.roomId, 'player1', 'ready'], false)
-  await dbSet(['rooms', G.roomId, 'player2', 'ready'], false)
+	await dbSet(['rooms', G.roomId, 'player1', 'main'], null)
+	await dbSet(['rooms', G.roomId, 'player2', 'main'], null)
+	await dbSet(['rooms', G.roomId, 'player1', 'bottom'], null)
+	await dbSet(['rooms', G.roomId, 'player2', 'bottom'], null)
+	await dbSet(['rooms', G.roomId, 'player1', 'supports'], [])
+	await dbSet(['rooms', G.roomId, 'player2', 'supports'], [])
+	await dbSet(['rooms', G.roomId, 'player1', 'ready'], false)
+	await dbSet(['rooms', G.roomId, 'player2', 'ready'], false)
 
-  const nextRound = (snap?.gameState?.round || 1) + 1
-  await dbSet(['rooms', G.roomId, 'gameState'], {
-    turn: 'player1',
-    round: nextRound,
-    wins: snap?.gameState?.wins || { player1: 0, player2: 0 },
-    flags: { supportLimit: null, supportBanThreshold: null, banDraw: false },
-    reveal: { p1BottomRevealedToP2: false, p2BottomRevealedToP1: false },
-    mainRevealed: false,
-    mainSkillDone: { player1: false, player2: false },
-    supportPhaseEnded: false,
-    passed: { player1: false, player2: false }
-  })
+	const nextRound = (snap?.gameState?.round || 1) + 1
+	await dbSet(['rooms', G.roomId, 'gameState'], {
+		turn: 'player1',
+		round: nextRound,
+		wins: snap?.gameState?.wins || { player1: 0, player2: 0 },
+		flags: { supportLimit: null, supportBanThreshold: null, banDraw: false },
+		reveal: { p1BottomRevealedToP2: false, p2BottomRevealedToP1: false },
+		mainRevealed: false,
+		mainSkillDone: { player1: false, player2: false },
+		supportPhaseEnded: false,
+		passed: { player1: false, player2: false }
+	})
 
-  await drawUntil7Bootstrap()
-  const oppRole = G.role === 'player1' ? 'player2' : 'player1'
-  const oppHand = (await dbGet(['rooms', G.roomId, oppRole, 'hand'])) || []
-  const needOpp = Math.max(0, MAX_HAND - oppHand.length)
-  if (needOpp > 0) {
-    await dbSet(['rooms', G.roomId, 'gameState', `manualDraw_${oppRole}`], { remain: needOpp })
-  }
+	await drawUntil7Bootstrap()
+	const oppRole = G.role === 'player1' ? 'player2' : 'player1'
+	const oppHand = (await dbGet(['rooms', G.roomId, oppRole, 'hand'])) || []
+	const needOpp = Math.max(0, MAX_HAND - oppHand.length)
+	if (needOpp > 0) {
+		await dbSet(['rooms', G.roomId, 'gameState', `manualDraw_${oppRole}`], { remain: needOpp })
+	}
 }
 
 async function refillHands() {
@@ -1361,16 +1450,12 @@ async function checkMatchEnd() {
 	await dbSet(['rooms', G.roomId, 'gameState'], gs)
 }
 
-function renderDiscard(side, ids) {
-  const zone = side === 'me' ? DOMC.my.discard : DOMC.opp.discard
-  zone.innerHTML = ''
-  if (!Array.isArray(ids) || ids.length === 0) return
-  ids.forEach(() => {
-    const d = document.createElement('div')
-    d.className = 'card'
-    d.innerHTML = `<img src="img/card-back.jpg" style="width:100%;height:100%;border-radius:0.5rem;">`
-    zone.appendChild(d)
-  })
+function renderDiscard(side, list) {
+	const zone = side === 'me' ? DOMC.my.discard : DOMC.opp.discard
+	while (zone.firstChild) zone.removeChild(zone.firstChild)
+	const has = Array.isArray(list) && list.length > 0
+	if (!has) return
+	setStackTop(zone, 'card-back', false, false)
 }
 
 // ===== PHẦN 8: SKILL CONDITIONS =====
@@ -1464,13 +1549,20 @@ function sourceIs(ctx, expect) {
 }
 
 // ===== PHẦN 9: SKILL ACTIONS =====
-async function applyCardSkill(card, trigger, ctx) {
+async function applyCardSkill(card, trigger, ctx, opt = {}) {
 	if (!card || !card.skill) return
 	if (card.skill.trigger !== trigger) return
 	const ok = await checkConditions(ctx, card.skill.condition)
 	if (!ok) return
-	await logSkill(ctx, card, `kích hoạt skill thẻ`)
+	const firstAction = (card.skill.actions || [])[0]?.action
+	const phase = opt.phase || 'all'
+	if (firstAction !== 'discard_from_opponent_hand_select') {
+		await logSkill(ctx, card, `kích hoạt skill thẻ`)
+	}
 	for (const step of card.skill.actions || []) {
+		const toOpp = step.target === 'opponent' || step.action === 'discard_from_opponent_hand_select'
+		if (phase === 'preCompare' && toOpp) continue
+		if (phase === 'postCompareOpponent' && !toOpp) continue
 		const a = step.action
 		if (a === 'draw_manual') await actDrawManual(ctx, step.target, step.amount || 1, card, { next: { type: 'discard_select', amount: 0 } })
 		else if (a === 'discard_select') await actQueueDiscard(ctx, step.target, step.amount || 1, card)
@@ -1517,7 +1609,7 @@ function bindOpponentHandSelectDiscard() {
 			setTurnStatus(`Chọn bỏ tiếp • Còn ${left}`, true)
 		} else {
 			await dbSet(['rooms', G.roomId, 'gameState', 'opponentSelectDiscard'], null)
-			setTurnStatus('Đã bỏ xong', true)
+			setTurnStatus('Đặt thẻ hỗ trợ', true)
 		}
 	})
 }
@@ -1633,19 +1725,22 @@ async function actAddBottomCard(ctx, target, amount, card) {
 	await logSkill(ctx, card, `Đặt thêm ${amount} lá vào bài tẩy`)
 	const room = await ctx.getRoom()
 	if (t === 'both') {
-		await actAddBottomCard(ctx, 'self', amount)
-		await actAddBottomCard(ctx, 'opponent', amount)
+		await actAddBottomCard(ctx, 'self', amount, card)
+		await actAddBottomCard(ctx, 'opponent', amount, card)
 		return
 	}
 	const node = room[t] || {}
 	const deck = Array.isArray(node.deck) ? node.deck.slice() : []
-	const bottom = node.bottom || null
-	if (!amount || deck.length === 0) return
-	const take = []
-	for (let i = 0; i < amount && deck.length > 0; i++) take.push(deck.shift())
-	const newBottom = bottom || take.shift() || null
-	const hand = node.hand || []
-	await ctx.setPlayer(t, { ...node, deck, bottom: newBottom, hand })
+	let bottom = node.bottom || null
+	const bottomExtra = Array.isArray(node.bottomExtra) ? node.bottomExtra.slice() : []
+	let left = amount || 0
+	while (left > 0 && deck.length > 0) {
+		const top = deck.shift()
+		if (!bottom) bottom = top
+		else bottomExtra.push(top)
+		left--
+	}
+	await ctx.setPlayer(t, { ...node, deck, bottom, bottomExtra })
 }
 
 async function actAddSupport(ctx, target, amount, card) {
@@ -1873,6 +1968,7 @@ function bootstrapAfterJoin() {
 	startSync()
 	createActionLog()
 	loadLogs()
+	bindOpponentHandSelectDiscard()
 }
 
 function applyPlayerAreaTint() {
