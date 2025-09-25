@@ -45,7 +45,7 @@
 		"Kỹ năng Vinh Quang mà bạn muốn trải nghiệm nhất",
 		"Đặt tên cho nhân vật Vinh Quang của chính bạn",
 		"Bạn hy vọng có trình độ thao tác của tuyển thủ nào nhất",
-		"Chia sẻ một phụ bản mà bạn thấy thú vị nhất",
+		"Chia sẻ một phó bản mà bạn thấy thú vị nhất",
 		"Chi tiết/ấn tượng bạn phát hiện khi đọc lại nguyên tác",
 		"Chia sẻ một câu thoại khiến bạn ấn tượng sâu sắc nhất",
 		"Cảm nhận khi thấy Hưng Hãn giành chiến thắng ở trận khiêu chiến",
