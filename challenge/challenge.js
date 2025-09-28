@@ -48,7 +48,7 @@
 		"Chia sẻ một phó bản mà bạn thấy thú vị nhất",
 		"Chi tiết/ấn tượng bạn phát hiện khi đọc lại nguyên tác",
 		"Chia sẻ một câu thoại khiến bạn ấn tượng sâu sắc nhất",
-		"Cảm nhận khi thấy Hưng Hãn giành chiến thắng ở trận khiêu chiến",
+		"Cảm nhận khi thấy Hưng Hân giành chiến thắng ở trận khiêu chiến",
 		"Chia sẻ một trận đấu bạn thấy máu lửa nhất",
 		"Bạn muốn sở hữu đặc điểm nào của nhân vật nào nhất",
 		"Khoảnh khắc bạn muốn “xuyên vào truyện” để được chứng kiến trực tiếp nhất",
