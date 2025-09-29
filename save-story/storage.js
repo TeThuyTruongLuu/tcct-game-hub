@@ -228,7 +228,7 @@ export async function fetchStory() {
             alert("Đã lưu truyện.");
         } catch (error) {
             console.error("Lỗi khi fetch truyện:", error);
-            alert("Không thể lấy dữ liệu từ link này!");
+            throw error;
         }
     } else {
         manualForm.style.display = "block";
