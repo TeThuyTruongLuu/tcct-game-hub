@@ -582,7 +582,7 @@ export async function exportStoriesToCSV(){
 		rows.push([
 			s.status || "",
 			s.defaultTag || "",
-			`=HYPERLINK("${s.url}","${(s.title||"").replace(/"/g,'""')}")`
+			`=HYPERLINK("${s.url}";"${(s.title||"").replace(/"/g,'""')}")`
 		]);
 	});
 	let csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
