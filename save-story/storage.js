@@ -285,14 +285,14 @@ export async function fetchStory() {
     }
 }
 
-export async function batchFetchStories() {
+export async function batchFetchStories(){
 	let raw=document.getElementById("multiLinks").value.trim();
 	if(!raw){
 		alert("Nhập danh sách link, mỗi dòng một link.");
 		return;
 	}
 	let links=raw.split(/\r?\n|,|\s/).map(s=>s.trim()).filter(Boolean);
-	let items=links.map(u=>({ url:u, key:normalizeUrl(u) }));
+	let items=links.map(u=>({url:u,key:normalizeUrl(u)}));
 	let seen=new Set();
 	let unique=[];
 	for(let it of items){
@@ -300,28 +300,49 @@ export async function batchFetchStories() {
 		seen.add(it.key);
 		unique.push(it);
 	}
+
 	let saved=[];
 	let duplicates=[];
 	let nonForum=[];
 	let failed=[];
+	const total=unique.length;
+	let done=0;
+
+	const box=document.getElementById("batchProgress");
+	const txt=document.getElementById("batchProgressText");
+	const pct=document.getElementById("batchPercent");
+	const bar=box.querySelector(".progress-bar");
+	box.style.display="block";
+	txt.textContent=`Bắt đầu xử lý 0/${total} link...`;
+	pct.textContent="0%";
+	bar.style.width="0%";
+
 	for(let it of unique){
 		try{
 			if(await urlExists(it.url)){
 				duplicates.push(it.url);
-				continue;
-			}
-			if(!it.url.includes("toanchuccaothu")){
+			}else if(!it.url.includes("toanchuccaothu")){
 				nonForum.push(it.url);
-				continue;
+			}else{
+				document.getElementById("storyLink").value=it.url;
+				await fetchStory();
+				saved.push(it.url);
 			}
-			document.getElementById("storyLink").value=it.url;
-			await fetchStory();
-			saved.push(it.url);
 		}catch(e){
 			failed.push(it.url);
 		}
+		done++;
+		const per=Math.round(done*100/total);
+		txt.textContent=`Đã xử lý ${done}/${total} link...`;
+		pct.textContent=per+"%";
+		bar.style.width=per+"%";
 	}
-	renderBatchReport({ saved, duplicates, nonForum, failed });
+
+	renderBatchReport({saved,duplicates,nonForum,failed});
+	txt.textContent=`Hoàn tất: lưu ${saved.length}/${total} link`;
+	pct.textContent="100%";
+	bar.style.width="100%";
+
 	let ok=saved.length;
 	let skipped=duplicates.length;
 	let nf=nonForum.length;

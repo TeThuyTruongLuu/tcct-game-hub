@@ -319,6 +319,19 @@ th {
   color: #fff;
 }
 
+.progress{
+	height:8px;
+	background:#e5e7eb;
+	border-radius:999px;
+	overflow:hidden;
+}
+.progress-bar{
+	height:100%;
+	width:0%;
+	background:#6c5ce7;
+	transition:width .2s ease;
+}
+
 .sort-box {
   display: flex;
   align-items: center;
