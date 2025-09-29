@@ -74,6 +74,7 @@
                 </label>
                 <button id="batchFetch">Fetch nhiều</button>
             </div>
+			<div id="batchReport" style="margin-top:10px;"></div>
 			
 			<div style="margin-top:-10px; margin-bottom:-10px;">
 				<p><b>Nếu gặp lỗi khi lưu truyện / thấy dữ liệu truyện sẵn có bị lỗi mà không thể sửa, xin hãy báo với Phong.</b></p>
@@ -148,7 +149,10 @@
         <div id="saved-stories" class="table-section">
 
 		<div class="header-row">
-		  <h3>Danh sách truyện đã lưu</h3>
+		  <div class="header-left">
+			<h3>Danh sách truyện đã lưu</h3>
+			<button onclick="exportStoriesToCSV()">Xuất CSV</button>
+		  </div>
 		  <div class="sort-box">
 			<label for="sortSelect">Sắp xếp:</label>
 			<select id="sortSelect">
@@ -157,6 +161,7 @@
 			</select>
 		  </div>
 		</div>
+
             <div class="table-container">
                 <table>
                     <thead>

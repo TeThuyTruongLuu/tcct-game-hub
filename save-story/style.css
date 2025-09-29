@@ -285,11 +285,38 @@ th {
 }
 
 .header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 15px;
-  margin-left: 1vw;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: 15px;
+	margin-left: 1vw;
+}
+
+.header-left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.header-left h3 {
+	margin: 0;
+}
+
+.header-left button {
+  padding: 6px 12px;
+  font-size: 14px;
+  background: #fff;
+  color: #6c5ce7;
+  border: 1px solid #6c5ce7;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.header-left button:hover {
+  background: #6c5ce7;
+  color: #fff;
 }
 
 .sort-box {

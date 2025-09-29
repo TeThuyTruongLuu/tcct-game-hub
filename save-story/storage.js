@@ -43,9 +43,26 @@ export async function waitForIndexedDB() {
     });
 }
 
-async function urlExists(url) {
-    let snap = await getDocs(query(collection(db, "stories"), where("url", "==", url)));
-    return !snap.empty;
+export function normalizeUrl(u){
+	try{
+		const x=new URL(u);
+		let host=x.hostname.replace(/^www\./,'').toLowerCase();
+		let path=x.pathname.replace(/\/+/g,'/').replace(/\/$/,'').replace(/\/page-\d+$/,'');
+		let qs=new URLSearchParams(x.search);
+		['fbclid','gclid','utm_source','utm_medium','utm_campaign','utm_term','utm_content','spm','ref','lang','page'].forEach(k=>qs.delete(k));
+		let q=qs.toString();
+		return host+path+(q?('?'+q):'');
+	}catch(e){
+		return String(u).trim().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/[#?].*$/,'').replace(/\/+$/,'').toLowerCase();
+	}
+}
+
+async function urlExists(url){
+	const key=normalizeUrl(url);
+	let snap1=await getDocs(query(collection(db,"stories"),where("urlKey","==",key)));
+	if(!snap1.empty) return true;
+	let snap2=await getDocs(query(collection(db,"stories"),where("url","==",url)));
+	return !snap2.empty;
 }
 
 export async function fetchStory() {
@@ -202,7 +219,8 @@ export async function fetchStory() {
                 author,
                 editor: editors,
                 status,
-                url
+                url,
+				urlKey: normalizeUrl(url)
             };
 
             displayStoryDetails(story);
@@ -246,7 +264,8 @@ export async function fetchStory() {
                 author: manualAuthor.value.trim(),
                 editor: editors,
                 status: manualStatus.value,
-                url
+                url,
+				urlKey: normalizeUrl(url)
             };
 
             displayStoryDetails(story);
@@ -267,30 +286,78 @@ export async function fetchStory() {
 }
 
 export async function batchFetchStories() {
-    let raw = document.getElementById("multiLinks").value.trim();
-    if (!raw) {
-        alert("Nhập danh sách link, mỗi dòng một link.");
-        return;
-    }
-    let cnTitle = document.getElementById("cnTitle").value.trim();
-    let originalLink = document.getElementById("originalLink").value.trim();
-    let links = raw.split(/\r?\n|,|\s/).map(s => s.trim()).filter(Boolean);
-    links = Array.from(new Set(links));
-    let ok = 0, skipped = 0, nonForum = 0;
-    for (let url of links) {
-        if (await urlExists(url)) {
-            skipped++;
-            continue;
-        }
-        if (!url.includes("toanchuccaothu")) {
-            nonForum++;
-            continue;
-        }
-        document.getElementById("storyLink").value = url;
-        await fetchStory();
-        ok++;
-    }
-    alert(`Xong: lưu ${ok}, trùng ${skipped}, bỏ qua không phải forum ${nonForum}.`);
+	let raw=document.getElementById("multiLinks").value.trim();
+	if(!raw){
+		alert("Nhập danh sách link, mỗi dòng một link.");
+		return;
+	}
+	let links=raw.split(/\r?\n|,|\s/).map(s=>s.trim()).filter(Boolean);
+	let items=links.map(u=>({ url:u, key:normalizeUrl(u) }));
+	let seen=new Set();
+	let unique=[];
+	for(let it of items){
+		if(seen.has(it.key)) continue;
+		seen.add(it.key);
+		unique.push(it);
+	}
+	let saved=[];
+	let duplicates=[];
+	let nonForum=[];
+	let failed=[];
+	for(let it of unique){
+		try{
+			if(await urlExists(it.url)){
+				duplicates.push(it.url);
+				continue;
+			}
+			if(!it.url.includes("toanchuccaothu")){
+				nonForum.push(it.url);
+				continue;
+			}
+			document.getElementById("storyLink").value=it.url;
+			await fetchStory();
+			saved.push(it.url);
+		}catch(e){
+			failed.push(it.url);
+		}
+	}
+	renderBatchReport({ saved, duplicates, nonForum, failed });
+	let ok=saved.length;
+	let skipped=duplicates.length;
+	let nf=nonForum.length;
+	let fail=failed.length;
+	alert(`Xong: lưu ${ok}, trùng ${skipped}, bỏ qua không phải forum ${nf}, lỗi ${fail}. Chi tiết ở dưới.`);
+}
+
+function renderBatchReport(groups) {
+	let el=document.getElementById("batchReport");
+	if(!el){
+		el=document.createElement("div");
+		el.id="batchReport";
+		document.getElementById("multiLinks").parentElement.appendChild(el);
+	}
+	const openKey=groups.failed?.length?"failed":(groups.duplicates?.length?"duplicates":(groups.nonForum?.length?"nonForum":"saved"));
+	const section=(key,title,arr,highlight)=>{
+		if(!arr||!arr.length) return "";
+		const openAttr=openKey===key?" open":"";
+		const style=highlight?' style="color:#b00020"':"";
+		return `
+<details${openAttr}>
+	<summary${style}><b>${title}</b> (${arr.length})</summary>
+	<ul style="margin:8px 0 12px 20px; padding:0;">
+		${arr.map(u=>`<li><a href="${u}" target="_blank">${u}</a></li>`).join("")}
+	</ul>
+</details>`;
+	};
+	el.innerHTML=`
+<div style="background:#f8f9ff;border:1px solid #dcdcff;border-radius:8px;padding:12px 14px;">
+	<div style="font-weight:700;margin-bottom:6px;">Kết quả batch</div>
+	${section("failed","Lỗi khi lấy",groups.failed,true)}
+	${section("duplicates","Trùng",groups.duplicates,false)}
+	${section("nonForum","Không phải forum",groups.nonForum,false)}
+	${section("saved","Đã lưu",groups.saved,false)}
+</div>`;
+	el.scrollIntoView({behavior:"smooth",block:"center"});
 }
 
 export function removeVietnameseTones(str) {
@@ -298,58 +365,57 @@ export function removeVietnameseTones(str) {
         .replace(/đ/g, "d").replace(/Đ/g, "D");
 }
 
-export async function saveStoryToFirestore(story) {
-    try {
-        let storyId = removeVietnameseTones(story.title || "")
-            .replace(/[^\w\s]/gi, "")
-            .replace(/\s+/g, "_")
-            .trim();
-        if (!storyId) storyId = btoa(story.url).slice(0, 16);
-        let storyRef = doc(storiesCollection, storyId);
-        let existingDoc = await getDoc(storyRef);
-        let existingData = existingDoc.exists() ? existingDoc.data() : {};
-        let updatedStory = {
-            ...existingData,
-            ...story,
-            userTags: {
-                ...(existingData.userTags || {}),
-                ...(story.userTags || {})
-            },
+export async function saveStoryToFirestore(story){
+	try{
+		let storyId=removeVietnameseTones(story.title||"").replace(/[^\w\s]/gi,"").replace(/\s+/g,"_").trim();
+		if(!storyId) storyId=btoa(story.url).slice(0,16);
+		let storyRef=doc(storiesCollection,storyId);
+		let existingDoc=await getDoc(storyRef);
+		let existingData=existingDoc.exists()?existingDoc.data():{};
+		let updatedStory={
+			...existingData,
+			...story,
+			urlKey: normalizeUrl(story.url||existingData.url||""),
+			userTags:{
+				...(existingData.userTags||{}),
+				...(story.userTags||{})
+			},
 			updatedAt: serverTimestamp()
-        };
-        await setDoc(storyRef, updatedStory, { merge: true });
-    } catch (error) {
-        console.error("Lỗi khi lưu vào Firestore:", error);
-    }
+		};
+		await setDoc(storyRef,updatedStory,{ merge:true });
+	}catch(error){
+		console.error("Lỗi khi lưu vào Firestore:",error);
+	}
 }
 
-export async function saveStoryToIndexedDB(story, storeName = "stories") {
-    if (!idb) {
-        console.warn("IndexedDB chưa sẵn sàng.");
-        return;
-    }
-    if (!story.url) {
-        console.error("Lỗi: Không thể lưu truyện vào IndexedDB vì thiếu 'url'!");
-        return;
-    }
-    let transaction = idb.transaction([storeName], "readwrite");
-    let store = transaction.objectStore(storeName);
-    let getRequest = store.get(story.url);
-    getRequest.onsuccess = function (event) {
-        let existingStory = event.target.result || {};
-        let updatedStory = {
-            ...existingStory,
-            ...story,
-            userTags: {
-                ...(existingStory.userTags || {}),
-                ...(story.userTags || {})
-            }
-        };
-        store.put(updatedStory);
-    };
-    getRequest.onerror = function (event) {
-        console.error("Lỗi khi truy vấn IndexedDB:", event.target.error);
-    };
+export async function saveStoryToIndexedDB(story,storeName="stories"){
+	if(!idb){
+		console.warn("IndexedDB chưa sẵn sàng.");
+		return;
+	}
+	if(!story.url){
+		console.error("Lỗi: Không thể lưu truyện vào IndexedDB vì thiếu 'url'!");
+		return;
+	}
+	let transaction=idb.transaction([storeName],"readwrite");
+	let store=transaction.objectStore(storeName);
+	let getRequest=store.get(story.url);
+	getRequest.onsuccess=function(event){
+		let existingStory=event.target.result||{};
+		let updatedStory={
+			...existingStory,
+			...story,
+			urlKey: normalizeUrl(story.url||existingStory.url||""),
+			userTags:{
+				...(existingStory.userTags||{}),
+				...(story.userTags||{})
+			}
+		};
+		store.put(updatedStory);
+	};
+	getRequest.onerror=function(event){
+		console.error("Lỗi khi truy vấn IndexedDB:",event.target.error);
+	};
 }
 
 export async function saveStory(story) {
@@ -363,12 +429,13 @@ export async function saveStory(story) {
     }
 }
 
-export async function fetchStoryFromFirestore(url) {
-    let querySnapshot = await getDocs(query(collection(db, "stories"), where("url", "==", url)));
-    if (!querySnapshot.empty) {
-        return querySnapshot.docs[0].data() || {};
-    }
-    return {};
+export async function fetchStoryFromFirestore(url){
+	const key=normalizeUrl(url);
+	let snap1=await getDocs(query(collection(db,"stories"),where("urlKey","==",key)));
+	if(!snap1.empty) return snap1.docs[0].data()||{};
+	let snap2=await getDocs(query(collection(db,"stories"),where("url","==",url)));
+	if(!snap2.empty) return snap2.docs[0].data()||{};
+	return {};
 }
 
 export async function loadStories() {
@@ -485,6 +552,28 @@ export async function loadAllTags() {
     });
     window.allTags = Array.from(allTagsSet);
 }
+
+export async function exportStoriesToCSV(){
+	let querySnapshot=await getDocs(collection(db,"stories"));
+	let rows=[["Tiền tố","Tag CP","Tên fic"]];
+	querySnapshot.forEach(docSnap=>{
+		let s=docSnap.data();
+		rows.push([
+			s.status || "",
+			s.defaultTag || "",
+			`=HYPERLINK("${s.url}","${(s.title||"").replace(/"/g,'""')}")`
+		]);
+	});
+	let csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+	let blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+	let url=URL.createObjectURL(blob);
+	let a=document.createElement("a");
+	a.href=url;
+	a.download="stories_export.csv";
+	a.click();
+	URL.revokeObjectURL(url);
+}
+window.exportStoriesToCSV = exportStoriesToCSV;
 
 window.fetchStory = fetchStory;
 window.deleteStory = deleteStory;
