@@ -25,7 +25,7 @@
 
 		.coin-container {
 			width: 220px;
-			height: 220px;
+			aspect-ratio: 1/1;
 			position: relative;
 			perspective: 1200px;
 			margin-bottom: 30px;
@@ -36,63 +36,116 @@
 			height: 100%;
 			position: absolute;
 			transform-style: preserve-3d;
-			transition: transform 1.8s cubic-bezier(0.25, 1, 0.5, 1); /* Mượt hơn */
+			transition: transform 1.8s cubic-bezier(0.25, 1, 0.5, 1);
 		}
-
 		.coin img {
-			width: 100%;
-			height: 100%;
+			width: 110%;
+			height: 110%;
+			left: -5%;
+			top: -5%;
 			border-radius: 50%;
-			border: 1px solid gold;
 			position: absolute;
 			backface-visibility: hidden;
 			object-fit: cover;
-			box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-			background: linear-gradient(145deg, #e6c200, #ffdf4f, #c79a00);
+			border: none;
+			box-shadow: 
+				inset 0 0 8px rgba(255,255,255,0.6),
+				inset 0 0 12px rgba(0,0,0,0.3),
+				0 6px 12px rgba(0,0,0,0.4);
+			background: radial-gradient(circle at 30% 30%, #fff9d6, #e6c200 70%, #a87400 100%);
+		}
+		.heads { transform: rotateX(0deg); }
+		.tails { transform: rotateX(180deg); }
+
+		.flip-button {
+			padding: 12px 28px;
+			background-color: #d48806;
+			color: white;
+			border: none;
+			border-radius: 25px;
+			cursor: pointer;
+			font-size: 18px;
+			font-weight: bold;
+			transition: all 0.2s ease-in-out;
+		}
+		.flip-button:hover { background-color: #b36b00; }
+
+		.controls {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 16px;
+			margin-bottom: 20px;
 		}
 
-		.heads {
-			transform: rotateX(0deg);
+		select#coinSet {
+			padding: 10px 14px;
+			border: 2px solid #d47b00;
+			border-radius: 25px;
+			background: #fff8f0;
+			font-size: 16px;
+			color: #333;
+			cursor: pointer;
 		}
 
-		.tails {
-			transform: rotateX(180deg);
+		.upload-container {
+			margin-top: 25px;
+			padding: 20px;
+			background: white;
+			border-radius: 12px;
+			box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+			max-width: 600px;
+			width: 90%;
+			text-align: center;
 		}
 
-        .flip-button {
-            margin-top: 15px;
-            padding: 14px 30px;
-            background-color: #d48806;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 20px;
-            font-weight: bold;
-            transition: all 0.2s ease-in-out;
-        }
-        .flip-button:hover {
-            background-color: #b36b00;
-        }
-        .upload-container {
-            margin-top: 40px;
-            padding: 15px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 300px;
-        }
-        label {
-            font-weight: bold;
-            color: #b36b00;
-            display: block;
-            margin-top: 0.5vw;
-        }
-        input[type="file"] {
-            margin-top: 5px;
-        }
-		.credit {margin-bottom: -2px;}
+		.upload-row {
+			display: flex;
+			justify-content: center;
+			gap: 40px;
+		}
+
+		.upload-box {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+		label {
+			font-weight: bold;
+			color: #b36b00;
+			margin-bottom: 8px;
+		}
+
+		input[type="file"] {
+		margin-top: 5px;
+			display: block;
+			padding: 6px;
+			border: 2px solid #d47b00;
+			border-radius: 12px;
+			background: #fff8f0;
+			font-size: 14px;
+			color: #333;
+			cursor: pointer;
+			width: fit-content;
+		}
+
+		input[type="file"]::-webkit-file-upload-button {
+			background: #d47b00;
+			color: #fff;
+			border: none;
+			border-radius: 10px;
+			padding: 6px 12px;
+			cursor: pointer;
+			font-size: 14px;
+			transition: background 0.2s;
+		}
+		input[type="file"]::-webkit-file-upload-button:hover {
+			background: #a55c00;
+		}
+
+		.credit { margin-bottom: -2px; }
     </style>
 </head>
 <body>
@@ -103,18 +156,32 @@
             <img src="img/tail.jpg" class="tails" id="tails">
         </div>
     </div>
-    <button class="flip-button" onclick="flipCoin()">Flip</button>
-	<p class="credit" style="text-align:center">Cre ảnh mặc định:<br>Phong's commission by <a href="https://www.facebook.com/ngoc.khanh.948118">Ngoc Khanh</a></p>
+	<div class="controls">
+		<button class="flip-button" onclick="flipCoin()">Flip</button>
+		<select id="coinSet">
+			<option value="default">Mặc định</option>
+			<option value="zjl">Trương Giai Lạc</option>
+			<option value="yx">Diệp Tu</option>
+			<option value="ywz">Dụ Văn Châu</option>
+		</select>
+	</div>
+	<p class="credit" style="text-align:center">Cre ảnh mặc định: Phong's commission by <a href="https://www.facebook.com/ngoc.khanh.948118">Ngoc Khanh</a></p>
+	<p class="credit" style="text-align:center">Cre ảnh khác: All rights reserved Yuewen©️</p>
 
     <p></p>
-    <div>
-        <label for="uploadHeads">Tải lên mặt trước:</label>
-        <input type="file" id="uploadHeads" accept="image/*" onchange="updateImage('heads', event)">
-        <br>
-        <label for="uploadTails">Tải lên mặt sau:</label>
-        <input type="file" id="uploadTails" accept="image/*" onchange="updateImage('tails', event)">
-    </div>
-    
+	<div class="upload-container">
+		<div class="upload-row">
+			<div class="upload-box">
+				<label for="uploadHeads">Tải lên mặt trước:</label>
+				<input type="file" id="uploadHeads" accept="image/*" onchange="updateImage('heads', event)">
+			</div>
+			<div class="upload-box">
+				<label for="uploadTails">Tải lên mặt sau:</label>
+				<input type="file" id="uploadTails" accept="image/*" onchange="updateImage('tails', event)">
+			</div>
+		</div>
+	</div>
+	
     <script>
 		function flipCoin() {
 			let coin = document.getElementById("coin");
@@ -131,8 +198,20 @@
 			coin.style.transition = "transform 1.8s cubic-bezier(0.25, 1, 0.5, 1)";
 			coin.style.transform = `rotateX(${totalRotation}deg)`;
 		}
-
-
+		
+		const coinSets={
+			"default":{head:"img/head.jpg",tail:"img/tail.jpg"},
+			"zjl":{head:"img/zjl_head.jpeg",tail:"img/zjl_tail.jpg"},
+			"yx":{head:"img/yx_head.jpg",tail:"img/yx_tail.jpg"},
+			"ywz":{head:"img/ywz_head.jpg",tail:"img/ywz_tail.jpeg"}
+		};
+		function applySet(key){
+			const set=coinSets[key];
+			document.getElementById("heads").src=set.head;
+			document.getElementById("tails").src=set.tail;
+		}
+		document.getElementById("coinSet").addEventListener("change",e=>applySet(e.target.value));
+		applySet("default");
 
         function updateImage(side, event) {
             let file = event.target.files[0];
