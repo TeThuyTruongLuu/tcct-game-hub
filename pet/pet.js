@@ -402,7 +402,6 @@ class Pet{
 		}
 	}
 
-
 	_openMusicMenu(x,y){
 		this._closeMenu()
 		this._menuOpenedAt = performance.now()
@@ -994,6 +993,5 @@ class Pet{
 		}
 		this._yt.querySelector("iframe").src=embed
 	}
-
 
 }
