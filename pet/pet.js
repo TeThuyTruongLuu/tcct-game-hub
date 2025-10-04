@@ -855,7 +855,7 @@ class Pet{
 			}
 		}
 	}
-				
+					
 	_createMiniPlayer(){
 		if(this._mini) return
 		const el=document.createElement("div")
@@ -865,8 +865,15 @@ class Pet{
 		document.body.appendChild(el)
 		this._mini=el
 		this._miniEls={seek:el.querySelector("#mp-seek"),play:el.querySelector("#mp-play"),loop:el.querySelector("#mp-loop"),left:el.querySelector(".mp-left"),right:el.querySelector(".mp-right"),title:el.querySelector(".mp-title b"),artist:el.querySelector(".mp-title .mp-artist"),close:el.querySelector("#mp-close")}
-		this._miniEls.seek.addEventListener("input",()=>{this._seeking=parseFloat(this._miniEls.seek.value);this._updateMiniTimes(this._seeking)})
-		this._miniEls.seek.addEventListener("change",()=>{if(this.audio)this.audio.currentTime=parseFloat(this._miniEls.seek.value);this._seeking=null})
+		this._mini.style.setProperty("--pct","0%")
+		this._miniEls.seek.addEventListener("input",()=>{
+			this._seeking=parseFloat(this._miniEls.seek.value)
+			this._updateMiniTimes(this._seeking)
+			const d=this.audio?this.audio.duration||0:0
+			const p=d?Math.min(100,Math.max(0,this._seeking/d*100)):0
+			this._mini.style.setProperty("--pct",p+"%")
+		})
+		this._miniEls.seek.addEventListener("change",()=>{if(this.audio) this.audio.currentTime=parseFloat(this._miniEls.seek.value);this._seeking=null})
 		this._miniEls.play.addEventListener("click",()=>{if(!this.audio)return; if(this.audio.paused)this.audio.play().catch(()=>{});else this.audio.pause()})
 		this._miniEls.loop.addEventListener("click",()=>{if(!this.audio)return; this.audio.loop=!this.audio.loop; this._miniEls.loop.classList.toggle("on",this.audio.loop)})
 		this._miniEls.close.addEventListener("click",()=>this._destroyMiniPlayer())
@@ -874,7 +881,7 @@ class Pet{
 		this._updateMiniSeek()
 		this._ensureMiniMeta()
 	}
-
+	
 	_ensureMiniMeta(){
 		if(!this._miniEls)return
 		const ti=(this._lyricsMeta&&this._lyricsMeta.ti)||"Unknown"
@@ -911,10 +918,12 @@ class Pet{
 		const right=this._miniEls.right
 		const dur=this.audio.duration||0
 		const cur=(this._seeking!=null)?this._seeking:(this.audio.currentTime||0)
-		seek.max = dur || 0
-		seek.value = cur
-		left.textContent = this._formatTime(cur)
-		right.textContent = this._formatTime(dur)
+		seek.max=dur||0
+		seek.value=cur
+		left.textContent=this._formatTime(cur)
+		right.textContent=this._formatTime(dur)
+		const p=dur?Math.min(100,Math.max(0,cur/dur*100)):0
+		this._mini.style.setProperty("--pct",p+"%")
 	}
 
 	_updateMiniTimes(sec){
@@ -932,18 +941,26 @@ class Pet{
 	}
 
 	_destroyMiniPlayer(){
+		if(this.audio){
+			try{ this.audio.pause() }catch(e){}
+		}
 		if(this._mini){
 			this._mini.remove()
 			this._mini=null
 		}
-		if(this._miniHandlers && this.audio){
-			this.audio.removeEventListener("timeupdate", this._miniHandlers.timeupdate)
-			this.audio.removeEventListener("durationchange", this._miniHandlers.durationchange)
-			this.audio.removeEventListener("play", this._miniHandlers.play)
-			this.audio.removeEventListener("pause", this._miniHandlers.pause)
+		if(this._miniHandlers&&this.audio){
+			this.audio.removeEventListener("timeupdate",this._miniHandlers.timeupdate)
+			this.audio.removeEventListener("durationchange",this._miniHandlers.durationchange)
+			this.audio.removeEventListener("play",this._miniHandlers.play)
+			this.audio.removeEventListener("pause",this._miniHandlers.pause)
 		}
 		this._miniHandlers=null
 		this._miniEls=null
+		clearInterval(this._lyTimer)
+		this._lyTimer=null
+		this._lyrics=null
+		this._lastLyric=-1
+		if(this.bubble) this.bubble.classList.remove("show")
 	}
 
 	_playYouTube(raw){
