@@ -33,60 +33,51 @@ class Pet{
 			Pet._nextInteractAt=now+Pet.config.interactCooldownMs
 		}
 	}
-	constructor(opts) {
-		this._bornAt = performance.now()
-		this.name = opts.name || "Pet"
-		this.basePath = opts.basePath || ""
-		this.idle = opts.idle || "idle.png"
-		this.actions = opts.actions || {}
-		this.speed = opts.speed || 80
-		this.spawn = opts.spawn || { x: 40, y: 40 }
-		this.state = "idle"
-		this.frame = 0
-		this.frameTime = 0
-		this.frameDur = 0.25
-		this.vx = 0
-		this.vy = 0
-		this.gravity = 900
-		this.dragging = false
-		this.offX = 0
-		this.offY = 0
-		this.dir = 1
-		this.node = this._makeNode()
-		this.img = this.node.querySelector("img")
-		this.bubble = this.node.querySelector(".bubble")
+	constructor(opts){
+		this._bornAt=performance.now()
+		this.name=opts.name||"Pet"
+		this.basePath=opts.basePath||""
+		this.idle=opts.idle||"idle.png"
+		this.actions=opts.actions||{}
+		this.speed=opts.speed||80
+		this.spawn=opts.spawn||{x:40,y:40}
+		this.state="idle"
+		this.frame=0
+		this.frameTime=0
+		this.frameDur=0.25
+		this.vx=0
+		this.vy=0
+		this.gravity=900
+		this.dragging=false
+		this.offX=0
+		this.offY=0
+		this.dir=1
+		this.node=this._makeNode()
+		this.img=this.node.querySelector("img")
+		this.bubble=this.node.querySelector(".bubble")
 		this._loadImage(this.idle)
-		this._place(this.spawn.x, this.spawn.y)
+		this._place(this.spawn.x,this.spawn.y)
 		this._bind()
-		this._raf = 0
-		this._prev = 0
-		this.t = 0
-		this.stateLockUntil = 0
-		this.nextStateAt = 0
+		this._raf=0
+		this._prev=0
+		this.t=0
+		this.stateLockUntil=0
+		this.nextStateAt=0
 		this._tick(performance.now())
-
-		requestAnimationFrame(() => {
-			const r = this.node.getBoundingClientRect()
-			const jitterX = Math.random() * 80 - 40
-			const jitterY = Math.random() * 150
-			const w = r.width || 64
-			this._place(
-				this._clamp(this.spawn.x + jitterX, 0, innerWidth - w),
-				-r.height - jitterY
-			)
-			this.vx = 0
-			this.vy = 0
-			this.state = "spawnDrop"
+		requestAnimationFrame(()=>{
+			const r=this.node.getBoundingClientRect()
+			this._place(this.spawn.x, -r.height)
+			this.vx=0
+			this.vy=0
+			this.state="spawnDrop"
 		})
-
-		this._rndTimer = setInterval(() => this._autoRandom(), 1000)
+		this._rndTimer=setInterval(()=>this._autoRandom(),1000)
 		this._initSpeechTimer()
 		Pet.all.push(this)
-		if (!Pet._interactTimer) {
-			Pet._interactTimer = setInterval(() => Pet._handleInteractions(), 200)
+		if(!Pet._interactTimer){
+			Pet._interactTimer=setInterval(()=>Pet._handleInteractions(),200)
 		}
 	}
-
 
 	_lock(ms){
 		this.stateLockUntil=performance.now()+ms
@@ -271,6 +262,7 @@ class Pet{
 			add("Đổi hướng đi",()=>{if(this.state==="walk"||this.state==="fly"){this.vx*=-1;this.dir*=-1}})
 			add("Random",()=>{this._stopAll();this._startRandom()})
 			add("Nghe nhạc",()=>{this._openMusicMenu(x,y)})
+			
 			const vuong=Pet.getByName("Vuong")
 			const du=Pet.getByName("Du")
 			if(Pet._bothActive(vuong,du)){
