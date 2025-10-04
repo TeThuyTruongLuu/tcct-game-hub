@@ -449,7 +449,7 @@ class Pet{
 		}else if(this.name==="Du"){
 			add("Sơ tâm Vinh Quang",()=>{this._playYouTube("https://youtu.be/Wv8vx6x3ZTQ"); this._closeMenu()})
 			add("Dụ Văn Châu - Danh vọng đang ở ngay trước mắt",()=>{this._playYouTube("https://www.bilibili.com/video/BV1TZN2eEEvr"); this._closeMenu()})
-			add("Dụ • Lofi khác",()=>{this._playYouTube("https://youtu.be/5qap5aO4i9A"); this._closeMenu()})
+			add("Lofi",()=>{this._playYouTube("https://youtu.be/3zeHBreluF8"); this._closeMenu()})
 			add("Playlist Toàn chức",()=>{this._playYouTube("https://www.youtube.com/playlist?list=PLqdkd6nEzsKIoUpPyfrRfMOZqmSiW4zFj"); this._closeMenu()})
 		}else{
 			add("Lofi",()=>{this._playYouTube("https://youtu.be/ihrMnTN0VxU"); this._closeMenu()})
