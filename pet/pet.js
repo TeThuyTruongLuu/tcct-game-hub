@@ -1,5 +1,40 @@
 class Pet{
+	static all=[]
+	static _interactTimer=0
+	static _nextInteractAt=0
+	static config={kissProb:0.25,broomProb:0.45,interactCooldownMs:3000,spawnGraceMs:2000}
+	static getByName(n){return Pet.all.find(p=>p.name===n)}
+	static _bothActive(a,b){
+		return a && b && a.node && b.node && a.node.style.display!=="none" && b.node.style.display!=="none"
+	}
+	static _overlap(a,b){
+		const ra=a.node.getBoundingClientRect()
+		const rb=b.node.getBoundingClientRect()
+		return !(ra.right<rb.left||ra.left>rb.right||ra.bottom<rb.top||ra.top>rb.bottom)
+	}
+	static _handleInteractions(){
+		const vuong=Pet.getByName("Vuong")
+		const du=Pet.getByName("Du")
+		if(!Pet._bothActive(vuong,du))return
+		if(vuong._busy||du._busy)return
+		const now=performance.now()
+		if(now<Pet._nextInteractAt)return
+		if(now-(vuong._bornAt||0)<Pet.config.spawnGraceMs)return
+		if(now-(du._bornAt||0)<Pet.config.spawnGraceMs)return
+		if(!Pet._overlap(vuong,du))return
+		const r=Math.random()
+		if(r<Pet.config.kissProb){
+			vuong.startKissWith(du)
+			Pet._nextInteractAt=now+Pet.config.interactCooldownMs
+		}else if(r<Pet.config.kissProb+Pet.config.broomProb){
+			vuong.startBroomRideWith(du)
+			Pet._nextInteractAt=now+Pet.config.interactCooldownMs
+		}else{
+			Pet._nextInteractAt=now+Pet.config.interactCooldownMs
+		}
+	}
 	constructor(opts){
+		this._bornAt=performance.now()
 		this.name=opts.name||"Pet"
 		this.basePath=opts.basePath||""
 		this.idle=opts.idle||"idle.png"
@@ -30,14 +65,18 @@ class Pet{
 		this.nextStateAt=0
 		this._tick(performance.now())
 		requestAnimationFrame(()=>{
-		  const r=this.node.getBoundingClientRect()
-		  this._place(this.spawn.x, -r.height)
-		  this.vx=0
-		  this.vy=0
-		  this.state="spawnDrop"
+			const r=this.node.getBoundingClientRect()
+			this._place(this.spawn.x, -r.height)
+			this.vx=0
+			this.vy=0
+			this.state="spawnDrop"
 		})
 		this._rndTimer=setInterval(()=>this._autoRandom(),1000)
 		this._initSpeechTimer()
+		Pet.all.push(this)
+		if(!Pet._interactTimer){
+			Pet._interactTimer=setInterval(()=>Pet._handleInteractions(),200)
+		}
 	}
 
 	_lock(ms){
@@ -193,7 +232,7 @@ class Pet{
 		this._closeMenu()
 		this._menuOpenedAt = performance.now()
 		const m=document.createElement("div")
-		m.className="ctx " + (this.name==="Vuong" ? "vuong" : "ga")
+		m.className="ctx " + this.name.toLowerCase()
 		m.addEventListener("mousedown",e=>e.stopPropagation())
 		m.addEventListener("touchstart",e=>{e.stopPropagation();e.preventDefault()},{passive:false})
 		const add=(label,fn)=>{
@@ -205,19 +244,37 @@ class Pet{
 			m.appendChild(b)
 		}
 		if(this.name==="Vuong"){
-		add("Đi bộ",()=>{this._stopAll();this._startWalk()})
-		add("Đổi hướng đi",()=>{if(this.state==="walk"||this.state==="fly"){this.vx*=-1;this.dir*=-1}})
-		add("Bay",()=>{this._stopAll();this._startFly()})
-		add("Bay lững lờ",()=>{this._stopAll();this._startFlyIdle()})
-		add("Random",()=>{this._stopAll();this._startRandom()})
-		add("Nghe nhạc",()=>{this._openMusicMenu(x,y)})
-		add("Ẩn",()=>{this._hide()})
+			add("Đi bộ",()=>{this._stopAll();this._startWalk()})
+			add("Đổi hướng đi",()=>{if(this.state==="walk"||this.state==="fly"){this.vx*=-1;this.dir*=-1}})
+			add("Bay",()=>{this._stopAll();this._startFly()})
+			add("Bay lững lờ",()=>{this._stopAll();this._startFlyIdle()})
+			add("Random",()=>{this._stopAll();this._startRandom()})
+			add("Nghe nhạc",()=>{this._openMusicMenu(x,y)})
+			add("Ẩn",()=>{this._hide()})
+			const vuong=Pet.getByName("Vuong")
+			const du=Pet.getByName("Du")
+			if(Pet._bothActive(vuong,du)){
+				add("Hôn",()=>{vuong.startKissWith(du)})
+				add("Mời Dụ cưỡi chổi",()=>{vuong.startBroomRideWith(du)})
+			}
+		}else if(this.name==="Du"){
+			add("Đi bộ",()=>{this._stopAll();this._startWalk()})
+			add("Đổi hướng đi",()=>{if(this.state==="walk"||this.state==="fly"){this.vx*=-1;this.dir*=-1}})
+			add("Random",()=>{this._stopAll();this._startRandom()})
+			add("Nghe nhạc",()=>{this._openMusicMenu(x,y)})
+			add("Ẩn",()=>{this._hide()})
+			const vuong=Pet.getByName("Vuong")
+			const du=Pet.getByName("Du")
+			if(Pet._bothActive(vuong,du)){
+				add("Hôn",()=>{vuong.startKissWith(du)})
+				add("Bay cùng Vương",()=>{vuong.startBroomRideWith(du)})
+			}
 		}else if(this.name==="Ga"){
-		add("Đi bộ",()=>{this._stopAll();this._startWalk()})
-		add("Nhún",()=>{this._stopAll();this._startHopInPlace()})
-		add("Bounce",()=>{this._stopAll();this._startBounce()})
-		add("Random",()=>{this._stopAll();this._startRandom()})
-		add("Ẩn",()=>{this._hide()})
+			add("Đi bộ",()=>{this._stopAll();this._startWalk()})
+			add("Nhún",()=>{this._stopAll();this._startHopInPlace()})
+			add("Bounce",()=>{this._stopAll();this._startBounce()})
+			add("Random",()=>{this._stopAll();this._startRandom()})
+			add("Ẩn",()=>{this._hide()})
 		}
 		document.body.appendChild(m)
 		this._menu=m
@@ -284,12 +341,72 @@ class Pet{
 		this._lock(10000+Math.random()*4000)
 	}
 
+	startKissWith(other){
+		if(this._busy||other._busy)return
+		this._busy=true
+		other._busy=true
+		this.state="kiss"
+		other.state="kiss"
+		this._lock(2000)
+		other._lock(2000)
+		this._loadImage("kiss.png")
+		other._loadImage("kiss.png")
+		const ra=this.node.getBoundingClientRect()
+		const rb=other.node.getBoundingClientRect()
+		const x=(ra.left+rb.left)/2
+		const y=Math.min(ra.top,rb.top)
+		this._place(x,y)
+		setTimeout(()=>{
+			this._busy=false
+			other._busy=false
+			this._loadImage(this.idle)
+			other._loadImage(other.idle)
+		},2000)
+	}
+
+	startBroomRideWith(du){
+		if(this.name!=="Vuong")return
+		if(this._busy||du._busy)return
+		this._busy=true
+		du._busy=true
+		this.state="broom"
+		du.state="ridePassenger"
+		this.vx=this.speed*(Math.random()<0.5?-1:1)
+		this.dir=this.vx<0?-1:1
+		this._lock(8000)
+		du._lock(8000)
+		this._broomPartner=du
+		this._broomUntil=performance.now()+8000
+	}
+
+	_endBroom(){
+		if(this._broomPartner){
+			this._broomPartner._busy=false
+			this._broomPartner.state="idle"
+			this._broomPartner._loadImage(this._broomPartner.idle)
+			this._broomPartner=null
+		}
+		this._busy=false
+		this.state="idle"
+		this._broomUntil=0
+		this._loadImage(this.idle)
+	}
+
+	_setBroomFrame(){
+		if(this.dir<0){
+			this.img.src=this.basePath+"wjx_jwz_fly_left.png"
+		}else{
+			this.img.src=this.basePath+"wjx_jwz_fly_right.png"
+		}
+	}
+
+
 	_openMusicMenu(x,y){
 		this._closeMenu()
 		this._menuOpenedAt = performance.now()
 		this._say("Bạn cần đề cử nhạc không?")
 		const m=document.createElement("div")
-		m.className="ctx " + (this.name==="Vuong" ? "vuong" : "ga")
+		m.className="ctx " + this.name.toLowerCase()
 		m.addEventListener("mousedown",e=>e.stopPropagation())
 		m.addEventListener("touchstart",e=>{e.stopPropagation();e.preventDefault()},{passive:false})
 		const add=(label,fn)=>{
@@ -311,7 +428,7 @@ class Pet{
 		this._closeMenu()
 		this._menuOpenedAt = performance.now()
 		const m=document.createElement("div")
-		m.className="ctx " + (this.name==="Vuong" ? "vuong" : "ga")
+		m.className="ctx " + this.name.toLowerCase()
 		m.addEventListener("mousedown",e=>e.stopPropagation())
 		m.addEventListener("touchstart",e=>{e.stopPropagation();e.preventDefault()},{passive:false})
 		const add=(label,fn)=>{
@@ -322,10 +439,19 @@ class Pet{
 			b.addEventListener("click", run, {passive:false})
 			m.appendChild(b)
 		}
-		add("Vinh Quang bất diệt",()=>{this._playYouTube("https://youtu.be/-e4fWUfYM6I"); this._closeMenu()})
-		add("Vương Kiệt Hi - Cha ơi",()=>{this._playYouTube("https://youtu.be/QMx1oi13yJo"); this._closeMenu()})
-		add("Lofi",()=>{this._playYouTube("https://youtu.be/ihrMnTN0VxU"); this._closeMenu()})
-		add("Playlist Toàn chức",()=>{this._playYouTube("https://www.youtube.com/playlist?list=PLqdkd6nEzsKIoUpPyfrRfMOZqmSiW4zFj"); this._closeMenu()})
+		if(this.name==="Vuong"){
+			add("Vinh Quang bất diệt",()=>{this._playYouTube("https://youtu.be/-e4fWUfYM6I"); this._closeMenu()})
+			add("Vương Kiệt Hi - Cha ơi",()=>{this._playYouTube("https://youtu.be/QMx1oi13yJo"); this._closeMenu()})
+			add("Lofi",()=>{this._playYouTube("https://youtu.be/ihrMnTN0VxU"); this._closeMenu()})
+			add("Playlist Toàn chức",()=>{this._playYouTube("https://www.youtube.com/playlist?list=PLqdkd6nEzsKIoUpPyfrRfMOZqmSiW4zFj"); this._closeMenu()})
+		}else if(this.name==="Du"){
+			add("Playlist Dụ • Calm",()=>{this._playYouTube("https://www.youtube.com/playlist?list=PLDuCalm123456789"); this._closeMenu()})
+			add("Dụ • Piano",()=>{this._playYouTube("https://youtu.be/dQw4w9WgXcQ"); this._closeMenu()})
+			add("Dụ • Lofi khác",()=>{this._playYouTube("https://youtu.be/5qap5aO4i9A"); this._closeMenu()})
+			add("Dụ • OST",()=>{this._playYouTube("https://youtu.be/2Vv-BfVoq4g"); this._closeMenu()})
+		}else{
+			add("Lofi",()=>{this._playYouTube("https://youtu.be/ihrMnTN0VxU"); this._closeMenu()})
+		}
 		document.body.appendChild(m)
 		this._menu=m
 		this._placeMenu(m,x,y)
@@ -335,7 +461,7 @@ class Pet{
 		this._closeMenu()
 		this._menuOpenedAt = performance.now()
 		const m=document.createElement("div")
-		m.className="ctx " + (this.name==="Vuong" ? "vuong" : "ga")
+		m.className="ctx " + this.name.toLowerCase()
 		m.addEventListener("mousedown",e=>e.stopPropagation())
 		m.addEventListener("touchstart",e=>{e.stopPropagation();e.preventDefault()},{passive:false})
 		const input=document.createElement("input")
@@ -397,6 +523,10 @@ class Pet{
 			else if(p<0.55)this._startHopInPlace()
 			else if(p<0.75)this._startBounce()
 			else this._stopAll()
+		}else if(this.name==="Du"){
+			const p=Math.random()
+			if(p<0.6)this._startWalk()
+			else this._stopAll()
 		}
 	}
 
@@ -419,12 +549,12 @@ class Pet{
 				if(Math.random()<0.002)this._loadImage(this.idle)
 			}
 			else if(this.state==="spawnDrop"){
-			  const r=this.node.getBoundingClientRect()
-			  const floor=innerHeight - r.height
-			  this.vy += this.gravity*dt
-			  let y=r.top + this.vy*dt
-			  if(y>=floor){ y=floor; this.vy=0; this.state="idle"; this._loadImage(this.idle) }
-			  this._place(r.left, y)
+				const r=this.node.getBoundingClientRect()
+				const floor=innerHeight - r.height
+				this.vy += this.gravity*dt
+				let y=r.top + this.vy*dt
+				if(y>=floor){ y=floor; this.vy=0; this.state="idle"; this._loadImage(this.idle) }
+				this._place(r.left, y)
 			}
 			else if(this.state==="fly"){
 				if(this.circleUntil && performance.now()>this.circleUntil){
@@ -506,6 +636,32 @@ class Pet{
 				if(y<=0)y=0
 				if(y+r2.height>=innerHeight)y=innerHeight-r2.height
 				this._place(x,y)
+			}else if(this.state==="broom"){
+				this.frameTime+=dt
+				if(this.frameTime>=8){
+					this.frameTime=0
+					this._setBroomFrame()
+				}
+				const r2=this.node.getBoundingClientRect()
+				let x=r2.left+this.vx*dt
+				let y=r2.top
+				if(x<=0){x=0;this.vx=Math.abs(this.vx);this.dir=1}
+				if(x+r2.width>=innerWidth){x=innerWidth-r2.width;this.vx=-Math.abs(this.vx);this.dir=-1}
+				if(y<=0)y=0
+				if(y+r2.height>=innerHeight)y=innerHeight-r2.height
+				this._place(x,y)
+				if(this._broomPartner){
+					const pr=this.node.getBoundingClientRect()
+					const ox=this.dir<0?-10:pr.width-20
+					const oy=pr.height*0.2
+					this._broomPartner._place(pr.left+ox, pr.top+oy)
+				}
+				if(this._broomUntil && performance.now()>this._broomUntil){
+					this._endBroom()
+				}
+			}else if(this.state==="ridePassenger"){
+				const me=this.node.getBoundingClientRect()
+				this._place(me.left, me.top)
 			}else if(this.state==="hopInPlace"){
 				this.frameTime+=dt
 				if(this.frameTime>=this.frameDur){

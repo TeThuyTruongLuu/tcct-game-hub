@@ -23,6 +23,19 @@
 			speed: 90
 		})
 
+		const du = new Pet({
+			name: "Du",
+			basePath: "img/du/",
+			idle: "idle.png",
+			actions: {
+				walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
+				bounce: [],
+				fly: []
+			},
+			spawn: { x: 160, y: 180 },
+			speed: 80
+		})
+
 		const ga = new Pet({
 			name: "Ga",
 			basePath: "img/walking-chick/",

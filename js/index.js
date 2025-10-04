@@ -554,21 +554,36 @@ document.addEventListener("DOMContentLoaded", function () {
 		spawn: { x: 250, y: 100 },
 		speed: 70
 	});
+	const du = new Pet({
+		name: "Du",
+		basePath: "pet/img/du/",
+		idle: "idle.png",
+		actions: {
+			walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
+			bounce: [],
+			fly: []
+		},
+		spawn: { x: 160, y: 180 },
+		speed: 80
+	})
 	window._pets = { vuong, ga };
 	vuong.node.style.display = "none";
+	du.node.style.display = "none";
 	ga.node.style.display = "none";
 
 	const elV = document.getElementById("toggle-vuong");
+	const elY = document.getElementById("toggle-du");
 	const elG = document.getElementById("toggle-ga");
 
 	function apply(state) {
 		vuong.node.style.display = state.vuong ? "flex" : "none";
+		du.node.style.display = state.du ? "flex" : "none";
 		ga.node.style.display = state.ga ? "flex" : "none";
 	}
 
 	async function load() {
 		const username = localStorage.getItem("username");
-		let state = { vuong: false, ga: false };
+		let state = { vuong: false, du: false, ga: false };
 		if (username) {
 			const snap = await db.collection("users").doc(username).get();
 			if (snap.exists && snap.data().petToggles) state = snap.data().petToggles;
@@ -577,6 +592,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			if (raw) state = JSON.parse(raw);
 		}
 		if (elV) elV.checked = !!state.vuong;
+		if (elY) elY.checked = !!state.du;
 		if (elG) elG.checked = !!state.ga;
 		apply(state);
 	}
@@ -584,6 +600,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	async function save() {
 		const state = {
 			vuong: elV ? elV.checked : false,
+			du: elY ? elY.checked : false,
 			ga: elG ? elG.checked : false
 		};
 		const username = localStorage.getItem("username");
@@ -596,6 +613,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	}
 
 	if (elV) elV.addEventListener("change", save);
+	if (elY) elY.addEventListener("change", save);
 	if (elG) elG.addEventListener("change", save);
 	load();
 });

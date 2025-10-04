@@ -45,7 +45,7 @@ html,body{height:auto;margin:0;background:transparent;overflow:visible}
 	font:600 14px/1.4 ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial;
 	opacity:0;
 	white-space:normal;
-	max-width:420px;
+	max-width:320px;
 	min-width:220px;
 	text-align:center;
 	pointer-events:none;
@@ -64,6 +64,12 @@ html,body{height:auto;margin:0;background:transparent;overflow:visible}
 	background:#f2f2f2;
 	color:#1f1f1f;
 	border-color:#c9c9c9;
+}
+
+.pet.du .bubble{
+	background:#eaf2ff;
+	color:#0d2e5c;
+	border-color:#a7c1ea;
 }
 
 .ctx{
@@ -125,6 +131,13 @@ html,body{height:auto;margin:0;background:transparent;overflow:visible}
 	border-color:#2a2f3a;
 }
 .ctx.ga button:hover{background:#1a1d25}
+
+.ctx.du{
+	background:#18427a;
+	color:#e9f1ff;
+	border-color:#0f2b52;
+}
+.ctx.du button:hover{background:#183a6b}
 
 #yt-player{
 	position:fixed;
