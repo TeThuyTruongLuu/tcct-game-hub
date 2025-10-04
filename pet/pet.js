@@ -447,10 +447,10 @@ class Pet{
 			add("Lofi",()=>{this._playYouTube("https://youtu.be/ihrMnTN0VxU"); this._closeMenu()})
 			add("Playlist Toàn chức",()=>{this._playYouTube("https://www.youtube.com/playlist?list=PLqdkd6nEzsKIoUpPyfrRfMOZqmSiW4zFj"); this._closeMenu()})
 		}else if(this.name==="Du"){
-			add("Playlist Dụ • Calm",()=>{this._playYouTube("https://www.youtube.com/playlist?list=PLDuCalm123456789"); this._closeMenu()})
-			add("Dụ • Piano",()=>{this._playYouTube("https://youtu.be/dQw4w9WgXcQ"); this._closeMenu()})
+			add("Sơ tâm Vinh Quang",()=>{this._playYouTube("https://youtu.be/Wv8vx6x3ZTQ"); this._closeMenu()})
+			add("Dụ Văn Châu - Danh vọng đang ở ngay trước mắt",()=>{this._playYouTube("https://www.bilibili.com/video/BV1TZN2eEEvr"); this._closeMenu()})
 			add("Dụ • Lofi khác",()=>{this._playYouTube("https://youtu.be/5qap5aO4i9A"); this._closeMenu()})
-			add("Dụ • OST",()=>{this._playYouTube("https://youtu.be/2Vv-BfVoq4g"); this._closeMenu()})
+			add("Playlist Toàn chức",()=>{this._playYouTube("https://www.youtube.com/playlist?list=PLqdkd6nEzsKIoUpPyfrRfMOZqmSiW4zFj"); this._closeMenu()})
 		}else{
 			add("Lofi",()=>{this._playYouTube("https://youtu.be/ihrMnTN0VxU"); this._closeMenu()})
 		}
@@ -968,6 +968,7 @@ class Pet{
 		if(!raw)return
 		const u=new URL(raw)
 		let embed=""
+
 		if(u.hostname.includes("youtu.be")){
 			const id=u.pathname.slice(1)
 			embed=`https://www.youtube.com/embed/${id}?autoplay=1`
@@ -977,6 +978,12 @@ class Pet{
 			if(list && !id) embed=`https://www.youtube.com/embed/videoseries?list=${list}&autoplay=1`
 			else if(id) embed=`https://www.youtube.com/embed/${id}?autoplay=1${list?`&list=${list}`:""}`
 		}
+
+		else if(u.hostname.includes("bilibili.com")){
+			const match = u.pathname.match(/\/video\/(BV[\w]+)/)
+			if(match) embed = `https://player.bilibili.com/player.html?bvid=${match[1]}&autoplay=1`
+		}
+
 		if(!embed)return
 		if(!this._yt){
 			this._yt=document.createElement("div")
@@ -987,5 +994,6 @@ class Pet{
 		}
 		this._yt.querySelector("iframe").src=embed
 	}
+
 
 }
