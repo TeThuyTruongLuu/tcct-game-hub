@@ -464,14 +464,16 @@ th {
 }
 
 
-#character-callout {
-    position: absolute;
-    margin-top: 20px;
-    right: 10vw;
-    display: flex;
-    align-items: flex-end;
-    gap: 10px;
-	padding-bottom: 5vw;
+#character-callout{
+	position: fixed;
+	right: 3vw;
+	bottom: 4vh;
+	display: flex;
+	align-items: flex-end;
+	gap: 10px;
+	z-index: 2147483647;
+	margin: 0;
+	padding: 0;
 }
 
 #callout-bubble {
