@@ -250,25 +250,25 @@ class Pet{
 			add("Bay lững lờ",()=>{this._stopAll();this._startFlyIdle()})
 			add("Random",()=>{this._stopAll();this._startRandom()})
 			add("Nghe nhạc",()=>{this._openMusicMenu(x,y)})
-			add("Ẩn",()=>{this._hide()})
 			const vuong=Pet.getByName("Vuong")
 			const du=Pet.getByName("Du")
 			if(Pet._bothActive(vuong,du)){
 				add("Hôn",()=>{vuong.startKissWith(du)})
 				add("Mời Dụ cưỡi chổi",()=>{vuong.startBroomRideWith(du)})
 			}
+			add("Ẩn",()=>{this._hide()})
 		}else if(this.name==="Du"){
 			add("Đi bộ",()=>{this._stopAll();this._startWalk()})
 			add("Đổi hướng đi",()=>{if(this.state==="walk"||this.state==="fly"){this.vx*=-1;this.dir*=-1}})
 			add("Random",()=>{this._stopAll();this._startRandom()})
 			add("Nghe nhạc",()=>{this._openMusicMenu(x,y)})
-			add("Ẩn",()=>{this._hide()})
 			const vuong=Pet.getByName("Vuong")
 			const du=Pet.getByName("Du")
 			if(Pet._bothActive(vuong,du)){
 				add("Hôn",()=>{vuong.startKissWith(du)})
 				add("Bay cùng Vương",()=>{vuong.startBroomRideWith(du)})
 			}
+			add("Ẩn",()=>{this._hide()})
 		}else if(this.name==="Ga"){
 			add("Đi bộ",()=>{this._stopAll();this._startWalk()})
 			add("Nhún",()=>{this._stopAll();this._startHopInPlace()})
