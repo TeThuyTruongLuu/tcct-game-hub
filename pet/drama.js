@@ -390,7 +390,7 @@ class RadioDrama {
                 color:"#e9edf7",
                 padding:"10px 12px",
                 borderRadius:"14px",
-                zIndex:2147483647,
+                zIndex:1,
                 font:"600 13px/1.45 ui-sans-serif,system-ui",
                 boxShadow:"0 10px 26px rgba(2,6,23,.45)",
 				backdropFilter:"blur(6px)"
@@ -404,7 +404,11 @@ class RadioDrama {
 		const L=el.querySelector("#dp-cur")
 		const R=el.querySelector("#dp-dur")
 		const title=el.querySelector("#dp-title")
-		const epLbl=el.querySelector("#dp-ep")
+		const epLbl = el.querySelector("#dp-ep");
+		epLbl.style.display = "flex";
+		epLbl.style.alignItems = "center";
+		epLbl.style.minHeight = "32px";
+		epLbl.style.justifyContent="center";
 		const sCtl=el.querySelector("#dp-s-ctl")
 		const sBd=el.querySelector("#dp-s-bd")
 		const prev=el.querySelector("#dp-prev")
