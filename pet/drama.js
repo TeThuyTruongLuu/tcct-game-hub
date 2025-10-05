@@ -494,7 +494,7 @@ function startRadioDramaDemo(){
 		script:"pet/musics/ktt/ep1_ctl.ass",
 		actors,
 		styleToActor,
-		autostartButton: true
+		autostartButton: false
 	});
 	window._radioDrama = drama;
 }

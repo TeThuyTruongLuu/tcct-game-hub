@@ -251,11 +251,8 @@ class Pet{
 			add("Random",()=>{this._stopAll();this._startRandom()})
 			add("Nghe nhạc",()=>{this._openMusicMenu(x,y)})
 			add("Phát kịch truyền thanh", () => {
-				if (window._radioDrama) {
-					window._radioDrama.start();
-				} else {
-					startRadioDramaDemo();
-				}
+				if (!window._radioDrama) startRadioDramaDemo();
+				window._radioDrama && window._radioDrama.start();
 			});
 			const vuong=Pet.getByName("Vuong")
 			const du=Pet.getByName("Du")
