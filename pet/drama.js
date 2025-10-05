@@ -16,9 +16,10 @@ class RadioDrama {
 		}
 		this._styleIndex={}
 		const styleToActor=opts.styleToActor||{"VKH":"Vuong","DVC":"Du"}
-		for(const [sty,who] of Object.entries(styleToActor)){
-			if(this.actors[who]) this._styleIndex[this._normName(sty)]=this.actors[who]
+		for(const [sty,who]of Object.entries(styleToActor)){
+			if(this.actors[who])this._styleIndex[this._normName(sty)]=this.actors[who]
 		}
+		this.bgAlpha=(opts&&typeof opts.bgAlpha==="number")?opts.bgAlpha:0.95
 		this.audio=new Audio()
 		this.audio.preload="auto"
 		this._sayFallback=(t,sty)=>this._showBackgroundLine(t,2500,sty)
@@ -32,9 +33,7 @@ class RadioDrama {
 		if(btn)btn.remove()
 		await this._loadASS(this.scriptUrl)
 		this.audio.src=this.audioUrl
-		this._enableDebug()
 		this._createMini()
-
 		this.audio.addEventListener("loadedmetadata",()=>{
 			const m=this._mini
 			if(m){
@@ -43,7 +42,6 @@ class RadioDrama {
 				m.s.disabled=false
 			}
 		})
-
 		this.audio.play().catch(()=>{})
 		this._timer=setInterval(()=>this._tick(),this.tickMs)
 	}
@@ -108,16 +106,6 @@ class RadioDrama {
 		return lines
 	}
 
-	_parseTimeASS(t){
-		const m=t.match(/(\d+):(\d{1,2}):(\d{1,2})(?:[.,](\d{1,3}))?/)
-		if(!m)return NaN
-		const h=parseInt(m[1],10)
-		const mn=parseInt(m[2],10)
-		const s=parseInt(m[3],10)
-		const frac=m[4]?parseInt(m[4].padEnd(2,"0").slice(0,2),10):0
-		return h*3600+mn*60+s+frac/100
-	}
-
 	_tick(){
 		if(!this.audio)return
 		const t=this.audio.currentTime||0
@@ -135,19 +123,18 @@ class RadioDrama {
 		}
 		const sayList=[]
 		for(let L of actives){
-			let actor=this._findActorByStyle&&this._findActorByStyle(L.style)
-			if(!actor&&this._findActor)actor=this._findActor(L.name)
-			const got=this._extractActions?this._extractActions(L.text):{plain:L.text,actions:[]}
+			let actor=this._findActorByStyle(L.style)
+			const got=this._extractActions(L.text)
 			let plain=got.plain
 			let actions=got.actions||[]
-			if(!actor&&this._findActorFromTextPrefix){
+			if(actor){
+				plain=this._stripSpeakerPrefix(plain)
+			}else{
 				const tryA=this._findActorFromTextPrefix(plain)
 				if(tryA){
 					actor=tryA
-					plain=this._stripSpeakerPrefix?this._stripSpeakerPrefix(plain):plain
+					plain=this._stripSpeakerPrefix(plain)
 				}
-			}else if(actor){
-				plain=this._stripSpeakerPrefix?this._stripSpeakerPrefix(plain):plain
 			}
 			if(!plain)continue
 			sayList.push({actor,plain,actions,style:L.style})
@@ -167,15 +154,30 @@ class RadioDrama {
 			}
 		}
 		for(const[,v]of mergedByKey){
-			if(v.actor&&v.actor._say)v.actor._say(v.text,v.actions)
-			else if(this._sayFallback)this._sayFallback(v.text,v.style)
+			if(v.actor)this._deliverToActor(v.actor,v.text,v.actions,v.style)
+			else this._sayFallback(v.text,v.style)
 		}
+	}
+
+	_deliverToActor(actor,text,actions,style){
+		const fns=["_say","say","speak","talk","bubbleSay","showSpeech"]
+		let ok=false
+		for(let i=0;i<fns.length;i++){
+			const fn=fns[i]
+			if(actor&&typeof actor[fn]==="function"){
+				actor[fn](text)
+				ok=true
+				break
+			}
+		}
+		if(actions&&actions.length)this._runActions(actor,actions)
+		if(!ok)this._sayFallback(text,style)
 	}
 
 	_showBackgroundLine(text,durationMs=2500,styleName=""){
 		if(!text)return
 		const col=this._getStyleOutline(styleName)||""
-		const bg=col?this._hexToRgba(col,0.5):"rgba(15,18,32,0.92)"
+		const bg=col?this._hexToRgba(col,this.bgAlpha):"rgba(15,18,32,"+this.bgAlpha+")"
 		let el=document.getElementById("bg-dialogue")
 		if(!el){
 			el=document.createElement("div")
@@ -262,17 +264,6 @@ class RadioDrama {
 		return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim()
 	}
 
-	_beautifyText(t){
-		if(!t)return t
-		const open=' \t\n"“”«»()[]-—'
-		let i=0
-		while(i<t.length&&open.includes(t[i]))i++
-		if(i>=t.length)return t
-		const head=t.slice(0,i)
-		const ch=t[i].toLocaleUpperCase('vi')
-		return head+ch+t.slice(i+1)
-	}
-
 	_parseStyles(text){
 		const styles={}
 		let section=""
@@ -305,21 +296,12 @@ class RadioDrama {
 		return"#"+rr+gg+bb
 	}
 
-	_guessByName(raw){
-		const k=this._normName(raw)
-		if(!window.Pet||!Pet.getByName)return null
-		if(k==="vuong")return Pet.getByName("Vuong")
-		if(k==="du")return Pet.getByName("Du")
-		if(k==="ga")return Pet.getByName("Ga")
-		return null
-	}
-
 	_hexToRgba(hex,alpha){
 		const m=String(hex||"").match(/^#([0-9a-f]{6})$/i)
 		if(!m)return""
 		const n=parseInt(m[1],16)
 		const r=(n>>16)&255,g=(n>>8)&255,b=n&255
-		return"rgba("+r+","+g+","+b+","+(alpha==null?0.9:alpha)+")"
+		return"rgba("+r+","+g+","+b+","+(alpha==null?0.95:alpha)+")"
 	}
 
 	_getStyleOutline(sty){
@@ -362,13 +344,10 @@ class RadioDrama {
 		const s=el.querySelector("#dp-seek")
 		const L=el.querySelector("#dp-cur")
 		const R=el.querySelector("#dp-dur")
-
 		back.disabled=true
 		fwd.disabled=true
 		s.disabled=true
-
 		if(el.dataset.bound!=="1"){
-			const clamp=(v,min,max)=>Math.max(min,Math.min(max,v))
 			const setT=(t)=>{
 				const a=this.audio
 				const dur=a.duration||0
@@ -418,7 +397,6 @@ class RadioDrama {
 			bindHold(fwd,1)
 			el.dataset.bound="1"
 		}
-
 		const onMeta=()=>{
 			const ready=Number.isFinite(this.audio.duration)&&this.audio.duration>0
 			back.disabled=!ready
@@ -428,22 +406,11 @@ class RadioDrama {
 		}
 		this.audio.addEventListener("loadedmetadata",onMeta)
 		this.audio.addEventListener("durationchange",onMeta)
-
 		this._mini={el,s,p,L,R,back,fwd}
 		this._attachMini()
 		this._updateMini()
 	}
-	_ranges(r){
-		if(!r||!r.length)return"[]"
-		let a=[]
-		for(let i=0;i<r.length;i++)a.push([r.start(i).toFixed(3),r.end(i).toFixed(3)])
-		return JSON.stringify(a)
-	}
-	_enableDebug(){
-		const a=this.audio
-		const log=(tag)=>()=>console.log(`[AUDIO:${tag}]`,{t:+(a.currentTime||0).toFixed(3),dur:+(a.duration||0).toFixed(3),rs:a.readyState,ns:a.networkState,seek:this._ranges(a.seekable),buf:this._ranges(a.buffered)})
-		;["loadedmetadata","canplay","seeking","seeked","timeupdate","waiting","stalled","play","pause"].forEach(ev=>a.addEventListener(ev,log(ev)))
-	}
+
 	_attachMini(){
 		if(!this.audio||!this._mini)return
 		const h={
@@ -480,9 +447,24 @@ class RadioDrama {
 		const ss=s%60
 		return m+":"+(ss<10?"0"+ss:ss)
 	}
+
+	_injectPlayButton(){
+		if(document.getElementById("rd-play-btn"))return
+		const b=document.createElement("button")
+		b.id="rd-play-btn"
+		b.textContent="▶ Radio Drama"
+		Object.assign(b.style,{
+			position:"fixed",
+			right:"16px",
+			bottom:"16px",
+			zIndex:2147483647
+		})
+		b.addEventListener("click",()=>this.start())
+		document.body.appendChild(b)
+	}
 }
 
-function startRadioDramaDemo(){
+function startRadioDrama(){
 	if(window._radioDrama)return
 	const actors={
 		Vuong:(window.vuong||(window.Pet&&Pet.getByName&&Pet.getByName("Vuong"))),
@@ -498,8 +480,9 @@ function startRadioDramaDemo(){
 		script:"pet/musics/ktt/ep1_ctl.ass",
 		actors,
 		styleToActor,
+		bgAlpha:0.95,
 		autostartButton:false
 	})
 	window._radioDrama=drama
 }
-document.addEventListener("DOMContentLoaded",startRadioDramaDemo)
+document.addEventListener("DOMContentLoaded",startRadioDrama)
