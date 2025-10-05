@@ -577,8 +577,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	function apply(state) {
 		vuong.node.style.display = state.vuong ? "flex" : "none";
-		du.node.style.display = state.du ? "flex" : "none";
-		ga.node.style.display = state.ga ? "flex" : "none";
+		du.node.style.display    = state.du    ? "flex" : "none";
+		ga.node.style.display    = state.ga    ? "flex" : "none";
+
+		if (state.vuong && vuong.state==="idle") vuong._startRandom();
+		if (state.du    && du.state==="idle")    du._startRandom();
+		if (state.ga    && ga.state==="idle")    ga._startRandom();
 	}
 
 	async function load() {

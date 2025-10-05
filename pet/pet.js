@@ -351,26 +351,28 @@ class Pet{
 	}
 
 	startKissWith(other){
-		if(this._busy||other._busy)return
-		this._busy=true
-		other._busy=true
-		this.state="kiss"
-		other.state="kiss"
-		this._lock(2000)
-		other._lock(2000)
-		this._loadImage("kiss.png")
-		other._loadImage("kiss.png")
-		const ra=this.node.getBoundingClientRect()
-		const rb=other.node.getBoundingClientRect()
-		const x=(ra.left+rb.left)/2
-		const y=Math.min(ra.top,rb.top)
-		this._place(x,y)
+		if(this._busy||other._busy) return;
+		this._busy = other._busy = true;
+		this.state = other.state = "kiss";
+		this._lock(2000); other._lock(2000);
+		this._loadImage("kiss.png"); other._loadImage("kiss.png");
+
+		const ra = this.node.getBoundingClientRect();
+		const rb = other.node.getBoundingClientRect();
+		const gap = -6;                                     // nếu muốn sát nhau thì 0
+		const duW = rb.width || 40;
+		const xLeft = Math.max(0, Math.min(ra.left, rb.left));
+		const yTop = Math.min(ra.top, rb.top);
+
+		other._place(xLeft, yTop);
+		this._place(xLeft + duW + gap, yTop);
+
 		setTimeout(()=>{
-			this._busy=false
-			other._busy=false
-			this._loadImage(this.idle)
-			other._loadImage(other.idle)
-		},2000)
+			other._place(xLeft - 12, yTop);
+			this._place(xLeft + duW + gap + 12, yTop);
+			this._busy=false; other._busy=false;
+			this._loadImage(this.idle); other._loadImage(other.idle);
+		}, 2000);
 	}
 
 	startBroomRideWith(du){
@@ -390,15 +392,24 @@ class Pet{
 
 	_endBroom(){
 		if(this._broomPartner){
-			this._broomPartner._busy=false
-			this._broomPartner.state="idle"
-			this._broomPartner._loadImage(this._broomPartner.idle)
-			this._broomPartner=null
+			const pr = this.node.getBoundingClientRect();
+			const du = this._broomPartner;
+
+			du._busy=false;
+			du.state="idle";
+			du._loadImage(du.idle);
+
+			const push = (this.dir<0 ? -du.node.offsetWidth-14 : pr.width+14);
+			du._place(pr.left + push, pr.top);
+			du._startRandom();
+
+			this._broomPartner=null;
 		}
-		this._busy=false
-		this.state="idle"
-		this._broomUntil=0
-		this._loadImage(this.idle)
+		this._busy=false;
+		this.state="idle";
+		this._broomUntil=0;
+		this._loadImage(this.idle);
+		this._startRandom();
 	}
 
 	_setBroomFrame(){
