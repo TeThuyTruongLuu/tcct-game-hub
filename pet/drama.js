@@ -4,26 +4,38 @@ class RadioDrama {
 		this.scriptUrl=opts.script
 		this.tickMs=200
 		this._timer=0
-		this._lines=[]
-		this._activeIdxByActor=new Map()
 		this._started=false
 		this.actors={}
 		this._actorIndex={}
-		const srcActors=opts.actors||{}
-		for(const k of Object.keys(srcActors)){
-			this.actors[k]=srcActors[k]
-			this._actorIndex[this._normName(k)]=srcActors[k]
-		}
 		this._styleIndex={}
-		const styleToActor=opts.styleToActor||{"VKH":"Vuong","DVC":"Du"}
-		for(const [sty,who]of Object.entries(styleToActor)){
-			if(this.actors[who])this._styleIndex[this._normName(sty)]=this.actors[who]
-		}
 		this.bgAlpha=(opts&&typeof opts.bgAlpha==="number")?opts.bgAlpha:0.95
 		this.audio=new Audio()
 		this.audio.preload="auto"
 		this._sayFallback=(t,sty)=>this._showBackgroundLine(t,2500,sty)
+		this._initActors(opts.actors||{},opts.styleToActor)
 		if(opts.autostartButton!==false)this._injectPlayButton()
+	}
+
+	_initActors(srcActors,styleToActor){
+		for(const k of Object.keys(srcActors)){
+			this.actors[k]=srcActors[k]
+			this._actorIndex[this._normName(k)]=srcActors[k]
+		}
+		const map=styleToActor||{"VKH":"Vuong","Vương":"Vuong","Vương Kiệt Hi":"Vuong","DVC":"Du","Dụ":"Du","Dụ Văn Châu":"Du"}
+		for(const [sty,who] of Object.entries(map)){
+			const a=this._resolvePetByName(who)
+			if(a){ this._styleIndex[this._normName(sty)]=a; this.actors[who]=a; this._actorIndex[this._normName(who)]=a }
+		}
+	}
+
+	_resolvePetByName(name){
+		if(!name)return null
+		if(this.actors[name])return this.actors[name]
+		if(window.Pet&&typeof Pet.getByName==="function"){
+			const a=Pet.getByName(name)
+			if(a){ this.actors[name]=a; this._actorIndex[this._normName(name)]=a; return a }
+		}
+		return null
 	}
 
 	async start(){
@@ -34,14 +46,6 @@ class RadioDrama {
 		await this._loadASS(this.scriptUrl)
 		this.audio.src=this.audioUrl
 		this._createMini()
-		this.audio.addEventListener("loadedmetadata",()=>{
-			const m=this._mini
-			if(m){
-				m.back.disabled=false
-				m.fwd.disabled=false
-				m.s.disabled=false
-			}
-		})
 		this.audio.play().catch(()=>{})
 		this._timer=setInterval(()=>this._tick(),this.tickMs)
 	}
@@ -107,6 +111,7 @@ class RadioDrama {
 	}
 
 	_tick(){
+		this._refreshActorHandles()
 		if(!this.audio)return
 		const t=this.audio.currentTime||0
 		while(this._ix>0&&this.lines[this._ix-1]&&this.lines[this._ix-1].end>t-0.001&&this.lines[this._ix-1].start>t)this._ix--
@@ -117,10 +122,7 @@ class RadioDrama {
 			if(this.lines[i].end>t)actives.push(this.lines[i])
 			i++
 		}
-		if(actives.length===0){
-			this._renderNone&&this._renderNone()
-			return
-		}
+		if(!actives.length){return}
 		const sayList=[]
 		for(let L of actives){
 			let actor=this._findActorByStyle(L.style)
@@ -131,31 +133,35 @@ class RadioDrama {
 				plain=this._stripSpeakerPrefix(plain)
 			}else{
 				const tryA=this._findActorFromTextPrefix(plain)
-				if(tryA){
-					actor=tryA
-					plain=this._stripSpeakerPrefix(plain)
-				}
+				if(tryA){ actor=tryA; plain=this._stripSpeakerPrefix(plain) }
 			}
 			if(!plain)continue
 			sayList.push({actor,plain,actions,style:L.style})
 		}
-		if(sayList.length===0){
-			this._renderNone&&this._renderNone()
-			return
-		}
-		const mergedByKey=new Map()
+		const merged=new Map()
 		for(const s of sayList){
-			const key=s.actor?(s.actor.id||s.actor.name||"@"):("_"+(s.style||"_"))
-			if(!mergedByKey.has(key))mergedByKey.set(key,{actor:s.actor,text:s.plain,actions:[...s.actions],style:s.style})
+			const key=s.actor?(s.actor.name||"@"):("_"+(s.style||"_"))
+			if(!merged.has(key))merged.set(key,{actor:s.actor,text:s.plain,actions:[...s.actions],style:s.style})
 			else{
-				const cur=mergedByKey.get(key)
+				const cur=merged.get(key)
 				cur.text=cur.text?(cur.text+"\n"+s.plain):s.plain
 				if(s.actions&&s.actions.length)cur.actions.push(...s.actions)
 			}
 		}
-		for(const[,v]of mergedByKey){
+		for(const[,v]of merged){
 			if(v.actor)this._deliverToActor(v.actor,v.text,v.actions,v.style)
 			else this._sayFallback(v.text,v.style)
+		}
+	}
+
+	_refreshActorHandles(){
+		const need=["Vuong","Du","Ga"]
+		for(const n of need){
+			if(!this.actors[n]) this._resolvePetByName(n)
+		}
+		for(const k of Object.keys(this._styleIndex)){
+			const a=this._styleIndex[k]
+			if(a&&a.name&&(a.name==="Vuong"||a.name==="Du"||a.name==="Ga")) continue
 		}
 	}
 
@@ -237,13 +243,21 @@ class RadioDrama {
 
 	_findActorByStyle(style){
 		const k=this._normName(style)
-		return this._styleIndex[k]||null
+		let a=this._styleIndex[k]||null
+		if(!a){
+			const guess=this._normName(style).includes("vkh")?"Vuong":(this._normName(style).includes("dvc")?"Du":null)
+			if(guess)a=this._resolvePetByName(guess)
+			if(a)this._styleIndex[k]=a
+		}
+		return a
 	}
 
 	_findActor(name){
 		if(!name)return null
 		const key=this._normName(name)
 		if(this._actorIndex[key])return this._actorIndex[key]
+		const a=this._resolvePetByName(name)
+		if(a)return a
 		for(const k of Object.keys(this._actorIndex)){
 			if(key.includes(k)||k.includes(key))return this._actorIndex[k]
 		}
@@ -453,12 +467,7 @@ class RadioDrama {
 		const b=document.createElement("button")
 		b.id="rd-play-btn"
 		b.textContent="▶ Radio Drama"
-		Object.assign(b.style,{
-			position:"fixed",
-			right:"16px",
-			bottom:"16px",
-			zIndex:2147483647
-		})
+		Object.assign(b.style,{position:"fixed",right:"16px",bottom:"16px",zIndex:2147483647})
 		b.addEventListener("click",()=>this.start())
 		document.body.appendChild(b)
 	}
@@ -467,9 +476,8 @@ class RadioDrama {
 function startRadioDrama(){
 	if(window._radioDrama)return
 	const actors={
-		Vuong:(window.vuong||(window.Pet&&Pet.getByName&&Pet.getByName("Vuong"))),
-		Du:(window.du||(window.Pet&&Pet.getByName&&Pet.getByName("Du"))),
-		Ga:(window.ga||(window.Pet&&Pet.getByName&&Pet.getByName("Ga")))
+		Vuong:(window.Pet&&Pet.getByName&&Pet.getByName("Vuong")),
+		Du:(window.Pet&&Pet.getByName&&Pet.getByName("Du"))
 	}
 	const styleToActor={
 		"VKH":"Vuong","Vương":"Vuong","Vương Kiệt Hi":"Vuong",
