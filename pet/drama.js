@@ -50,13 +50,26 @@ class RadioDrama {
 		this.audio.play().catch(()=>{})
 		this._timer=setInterval(()=>this._tick(),this.tickMs)
 	}
-
+	
 	stop(){
 		if(this._timer)clearInterval(this._timer)
 		this._timer=0
 		try{this.audio.pause()}catch(e){}
+		try{this.audio.src=""}catch(e){}
+		if(this._mini){
+			if(this._h){
+				this.audio.removeEventListener("timeupdate",this._h.time)
+				this.audio.removeEventListener("durationchange",this._h.dur)
+				this.audio.removeEventListener("loadedmetadata",this._h.meta)
+				this.audio.removeEventListener("play",this._h.play)
+				this.audio.removeEventListener("pause",this._h.pause)
+			}
+			this._mini.el&&this._mini.el.remove()
+			this._mini=null
+		}
+		this._started=false
 	}
-
+	
 	async _loadEpisode(series,episode){
 		this.series=series
 		this.episode=episode
@@ -459,7 +472,7 @@ class RadioDrama {
 			sBd.addEventListener("click",(e)=>{e.preventDefault();setSeries("bd")})
 			prev.addEventListener("click",(e)=>{e.preventDefault();incEp(-1)})
 			next.addEventListener("click",(e)=>{e.preventDefault();incEp(1)})
-			close.addEventListener("click",(e)=>{e.preventDefault();el.remove()})
+			close.addEventListener("click",(e)=>{e.preventDefault();this.stop()})
 			el.dataset.bound="1"
 		}
 		const onMeta=()=>{
