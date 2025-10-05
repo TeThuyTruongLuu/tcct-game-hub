@@ -21,7 +21,7 @@ class RadioDrama {
 		}
 		this.audio=new Audio()
 		this.audio.preload="auto"
-		this._sayFallback = (t) => this._showBackgroundLine(t);
+		this._sayFallback=(t,sty)=>this._showBackgroundLine(t,2500,sty)
 		if(opts.autostartButton!==false)this._injectPlayButton()
 	}
 
@@ -36,7 +36,6 @@ class RadioDrama {
 		this._createMini()
 
 		this.audio.addEventListener("loadedmetadata",()=>{
-			console.log("[META] duration =",this.audio.duration)
 			const m=this._mini
 			if(m){
 				m.back.disabled=false
@@ -56,57 +55,57 @@ class RadioDrama {
 	}
 
 	async _loadASS(url){
-		const txt = await fetch(url).then(r=>r.text());
-		this._styleMap = this._parseStyles(txt) || {};
-		this.lines = this._parseASS(txt);
-		this._ix = 0;
+		const txt=await fetch(url).then(r=>r.text())
+		this._styleMap=this._parseStyles(txt)||{}
+		this.lines=this._parseASS(txt)
+		this._ix=0
 	}
 
 	_parseASS(assText){
-		const lines=[];
+		const lines=[]
 		const toSec=(s)=>{
-			const m=String(s||"").trim().match(/(\d+):(\d{2}):(\d{2})[.,](\d{2})/);
-			if(!m)return 0;
-			const h=+m[1],mi=+m[2],se=+m[3],cs=+m[4];
-			return h*3600+mi*60+se+cs/100;
-		};
+			const m=String(s||"").trim().match(/(\d+):(\d{2}):(\d{2})[.,](\d{2})/)
+			if(!m)return 0
+			const h=+m[1],mi=+m[2],se=+m[3],cs=+m[4]
+			return h*3600+mi*60+se+cs/100
+		}
 		const cleanText=(t)=>{
-			let x=String(t||"").replace(/\{[^}]*\}/g,"");
-			x=x.replace(/\\N/g,"\n").replace(/\\n/g,"\n").replace(/\\h/g," ");
-			return x.trim();
-		};
+			let x=String(t||"").replace(/\{[^}]*\}/g,"")
+			x=x.replace(/\\N/g,"\n").replace(/\\n/g,"\n").replace(/\\h/g," ")
+			return x.trim()
+		}
 		const splitDialogue=(row)=>{
-			const head=row.slice(9).trim();
-			let count=0,i=0,cut=-1;
+			const head=row.slice(9).trim()
+			let count=0,i=0,cut=-1
 			for(;i<head.length;i++){
 				if(head[i]===",")count++
-				if(count===9){cut=i;break;}
+				if(count===9){cut=i;break}
 			}
-			if(cut===-1)return null;
-			const meta=head.slice(0,cut).split(",");
-			const text=head.slice(cut+1);
-			return{meta,text};
-		};
-		const rows=assText.split(/\r?\n/);
-		for(let r of rows){
-			if(!r.startsWith("Dialogue:"))continue;
-			const pack=splitDialogue(r);
-			if(!pack)continue;
-			const parts=pack.meta;
-			const textRaw=pack.text;
-			const layer=(parts[0]||"").trim();
-			const start=toSec(parts[1]||"0:00:00.00");
-			const end=toSec(parts[2]||"0:00:00.00");
-			const style=(parts[3]||"").trim();
-			const name=(parts[4]||"").trim();
-			const effect=((parts[8]||"").trim()||"").toLowerCase();
-			if(effect.startsWith("template")||effect.includes("code"))continue;
-			const text=cleanText(textRaw||"");
-			if(!text)continue;
-			lines.push({layer,start,end,style,name,effect,text});
+			if(cut===-1)return null
+			const meta=head.slice(0,cut).split(",")
+			const text=head.slice(cut+1)
+			return{meta,text}
 		}
-		lines.sort((a,b)=>a.start-b.start||a.end-b.end);
-		return lines;
+		const rows=assText.split(/\r?\n/)
+		for(let r of rows){
+			if(!r.startsWith("Dialogue:"))continue
+			const pack=splitDialogue(r)
+			if(!pack)continue
+			const parts=pack.meta
+			const textRaw=pack.text
+			const layer=(parts[0]||"").trim()
+			const start=toSec(parts[1]||"0:00:00.00")
+			const end=toSec(parts[2]||"0:00:00.00")
+			const style=(parts[3]||"").trim()
+			const name=(parts[4]||"").trim()
+			const effect=((parts[8]||"").trim()||"").toLowerCase()
+			if(effect.startsWith("template")||effect.includes("code"))continue
+			const text=cleanText(textRaw||"")
+			if(!text)continue
+			lines.push({layer,start,end,style,name,effect,text})
+		}
+		lines.sort((a,b)=>a.start-b.start||a.end-b.end)
+		return lines
 	}
 
 	_parseTimeASS(t){
@@ -119,60 +118,64 @@ class RadioDrama {
 		return h*3600+mn*60+s+frac/100
 	}
 
-	_tick() {
-		if (!this.audio) return;
-		const t = this.audio.currentTime || 0;
-		while (this._ix > 0 && this.lines[this._ix - 1] && this.lines[this._ix - 1].end > t - 0.001 && this.lines[this._ix - 1].start > t) this._ix--;
-		while (this._ix < this.lines.length - 1 && this.lines[this._ix] && this.lines[this._ix].end <= t) this._ix++
-		const actives = [];
-		let i = this._ix;
-		while (i < this.lines.length && this.lines[i].start <= t) {
-			if (this.lines[i].end > t) actives.push(this.lines[i]);
-			i++;
+	_tick(){
+		if(!this.audio)return
+		const t=this.audio.currentTime||0
+		while(this._ix>0&&this.lines[this._ix-1]&&this.lines[this._ix-1].end>t-0.001&&this.lines[this._ix-1].start>t)this._ix--
+		while(this._ix<this.lines.length-1&&this.lines[this._ix]&&this.lines[this._ix].end<=t)this._ix++
+		const actives=[]
+		let i=this._ix
+		while(i<this.lines.length&&this.lines[i].start<=t){
+			if(this.lines[i].end>t)actives.push(this.lines[i])
+			i++
 		}
-		if (actives.length === 0) {
-			this._renderNone && this._renderNone();
-			return;
+		if(actives.length===0){
+			this._renderNone&&this._renderNone()
+			return
 		}
-		const sayList = [];
-		for (let L of actives) {
-			let actor = this._findActorByStyle && this._findActorByStyle(L.style);
-			if (!actor && this._findActor) actor = this._findActor(L.name);
-			const got = this._extractActions ? this._extractActions(L.text) : { plain: L.text, actions: [] };
-			let plain = this._stripSpeakerPrefix ? this._stripSpeakerPrefix(got.plain) : got.plain;
-			let actions = got.actions || [];
-			if (!actor && this._findActorFromTextPrefix) {
-				const tryA = this._findActorFromTextPrefix(plain);
-				if (tryA) {
-					actor = tryA;
-					plain = this._stripSpeakerPrefix ? this._stripSpeakerPrefix(plain) : plain;
+		const sayList=[]
+		for(let L of actives){
+			let actor=this._findActorByStyle&&this._findActorByStyle(L.style)
+			if(!actor&&this._findActor)actor=this._findActor(L.name)
+			const got=this._extractActions?this._extractActions(L.text):{plain:L.text,actions:[]}
+			let plain=got.plain
+			let actions=got.actions||[]
+			if(!actor&&this._findActorFromTextPrefix){
+				const tryA=this._findActorFromTextPrefix(plain)
+				if(tryA){
+					actor=tryA
+					plain=this._stripSpeakerPrefix?this._stripSpeakerPrefix(plain):plain
 				}
+			}else if(actor){
+				plain=this._stripSpeakerPrefix?this._stripSpeakerPrefix(plain):plain
 			}
-			if (!plain) continue;
-			sayList.push({ actor, plain, actions });
+			if(!plain)continue
+			sayList.push({actor,plain,actions,style:L.style})
 		}
-		if (sayList.length === 0) {
-			this._renderNone && this._renderNone();
-			return;
+		if(sayList.length===0){
+			this._renderNone&&this._renderNone()
+			return
 		}
-		const mergedByActor = new Map();
-		for (const s of sayList) {
-			const key = s.actor ? s.actor.id || s.actor.name || "@" : "_";
-			if (!mergedByActor.has(key)) mergedByActor.set(key, { actor: s.actor, text: s.plain, actions: [...s.actions] });
-			else {
-				const cur = mergedByActor.get(key);
-				cur.text = cur.text ? cur.text + "\n" + s.plain : s.plain;
-				if (s.actions && s.actions.length) cur.actions.push(...s.actions);
+		const mergedByKey=new Map()
+		for(const s of sayList){
+			const key=s.actor?(s.actor.id||s.actor.name||"@"):("_"+(s.style||"_"))
+			if(!mergedByKey.has(key))mergedByKey.set(key,{actor:s.actor,text:s.plain,actions:[...s.actions],style:s.style})
+			else{
+				const cur=mergedByKey.get(key)
+				cur.text=cur.text?(cur.text+"\n"+s.plain):s.plain
+				if(s.actions&&s.actions.length)cur.actions.push(...s.actions)
 			}
 		}
-		for (const [, v] of mergedByActor) {
-			if (v.actor && v.actor._say) v.actor._say(v.text, v.actions);
-			else if (this._sayFallback) this._sayFallback(v.text);
+		for(const[,v]of mergedByKey){
+			if(v.actor&&v.actor._say)v.actor._say(v.text,v.actions)
+			else if(this._sayFallback)this._sayFallback(v.text,v.style)
 		}
 	}
 
 	_showBackgroundLine(text,durationMs=2500,styleName=""){
 		if(!text)return
+		const col=this._getStyleOutline(styleName)||""
+		const bg=col?this._hexToRgba(col,0.5):"rgba(15,18,32,0.92)"
 		let el=document.getElementById("bg-dialogue")
 		if(!el){
 			el=document.createElement("div")
@@ -182,7 +185,6 @@ class RadioDrama {
 				top:"20px",
 				left:"50%",
 				transform:"translateX(-50%)",
-				background:"rgba(15,18,32,0.92)",
 				color:"#e9edf7",
 				padding:"10px 16px",
 				borderRadius:"12px",
@@ -192,10 +194,12 @@ class RadioDrama {
 				zIndex:999999,
 				opacity:0,
 				transition:"opacity .22s ease",
-				whiteSpace:"pre-line"
+				whiteSpace:"pre-line",
+				backdropFilter:"blur(2px)"
 			})
 			document.body.appendChild(el)
 		}
+		el.style.background=bg
 		el.textContent=text
 		el.style.opacity=1
 		clearTimeout(this._bgT)
@@ -235,11 +239,11 @@ class RadioDrama {
 	}
 
 	_findActor(name){
-		if(!name) return null
+		if(!name)return null
 		const key=this._normName(name)
-		if(this._actorIndex[key]) return this._actorIndex[key]
+		if(this._actorIndex[key])return this._actorIndex[key]
 		for(const k of Object.keys(this._actorIndex)){
-			if(key.includes(k)||k.includes(key)) return this._actorIndex[k]
+			if(key.includes(k)||k.includes(key))return this._actorIndex[k]
 		}
 		return null
 	}
@@ -251,7 +255,7 @@ class RadioDrama {
 
 	_stripSpeakerPrefix(plain){
 		const m=String(plain||"").match(/^\s*([^:：]{1,30})\s*[:：]\s*/u)
-		return m?String(plain).slice(m[0].length).replace(/\n/g, " ").trim():String(plain||"")
+		return m?String(plain).slice(m[0].length).replace(/\n/g," ").trim():String(plain||"")
 	}
 
 	_normName(s){
@@ -280,11 +284,13 @@ class RadioDrama {
 			if(section!=="styles")continue
 			if(!l.startsWith("Style:"))continue
 			const arr=l.replace(/^Style:\s*/,"").split(",")
-			if(arr.length<4)continue
+			if(arr.length<7)continue
 			const name=(arr[0]||"").trim()
 			const pcol=(arr[3]||"").trim()
-			const hex=this._assColorToHex(pcol)
-			styles[name]={primary:hex}
+			const ocol=(arr[5]||"").trim()
+			const primary=this._assColorToHex(pcol)
+			const outline=this._assColorToHex(ocol)
+			styles[name]={primary,outline}
 		}
 		return styles
 	}
@@ -307,7 +313,21 @@ class RadioDrama {
 		if(k==="ga")return Pet.getByName("Ga")
 		return null
 	}
-	
+
+	_hexToRgba(hex,alpha){
+		const m=String(hex||"").match(/^#([0-9a-f]{6})$/i)
+		if(!m)return""
+		const n=parseInt(m[1],16)
+		const r=(n>>16)&255,g=(n>>8)&255,b=n&255
+		return"rgba("+r+","+g+","+b+","+(alpha==null?0.9:alpha)+")"
+	}
+
+	_getStyleOutline(sty){
+		if(!sty)return""
+		const s=this._styleMap[sty]
+		return s?(s.outline||s.primary||""):""
+	}
+
 	_createMini(){
 		let el=document.getElementById("dp-mini")
 		if(!el){
@@ -351,59 +371,51 @@ class RadioDrama {
 			const clamp=(v,min,max)=>Math.max(min,Math.min(max,v))
 			const setT=(t)=>{
 				const a=this.audio
-				const dur=a.duration || 0
-				let start=0, end=dur
-				if(dur === 0){
+				const dur=a.duration||0
+				let start=0,end=dur
+				if(dur===0){
 					const sr=a.seekable
-					if(sr && sr.length){
-						start = sr.start(0)
-						end   = sr.end(sr.length-1)
+					if(sr&&sr.length){
+						start=sr.start(0)
+						end=sr.end(sr.length-1)
 					}
 				}
-
-				if(!(end>start)){
-					return
-				}
-				const clamped = Math.max(start, Math.min(end - 0.05, Number(t)))
-				a.currentTime = clamped
+				if(!(end>start))return
+				const clamped=Math.max(start,Math.min(end-0.05,Number(t)))
+				a.currentTime=clamped
 				this._tick()
 				this._updateMini()
 			}
-
 			const jump=(delta)=>{
 				const cur=this.audio.currentTime||0
 				setT(cur+delta)
 			}
-
-			back.addEventListener("click",(e)=>{e.preventDefault(); jump(-10)})
-			fwd.addEventListener("click",(e)=>{e.preventDefault(); jump(10)})
+			back.addEventListener("click",(e)=>{e.preventDefault();jump(-10)})
+			fwd.addEventListener("click",(e)=>{e.preventDefault();jump(10)})
 			const onSlide=()=>setT(Number(s.value)||0)
-
-			p.addEventListener("click",(e)=>{e.preventDefault(); if(this.audio.paused)this.audio.play().catch(()=>{}); else this.audio.pause()})
+			p.addEventListener("click",(e)=>{e.preventDefault();if(this.audio.paused)this.audio.play().catch(()=>{});else this.audio.pause()})
 			s.addEventListener("input",onSlide)
 			s.addEventListener("change",onSlide)
-			let holdTimer=null, wasPlaying=false
+			let holdTimer=null,wasPlaying=false
 			const startHold=(dir)=>{
 				const d=this.audio.duration
-				if(!Number.isFinite(d)||d<=0) return
+				if(!Number.isFinite(d)||d<=0)return
 				wasPlaying=!this.audio.paused
 				this.audio.pause()
-				holdTimer=setInterval(()=>{ jump(dir*3) },200)
+				holdTimer=setInterval(()=>{jump(dir*3)},200)
 			}
 			const stopHold=()=>{
-				if(holdTimer){ clearInterval(holdTimer); holdTimer=null }
-				if(wasPlaying) this.audio.play().catch(()=>{})
+				if(holdTimer){clearInterval(holdTimer);holdTimer=null}
+				if(wasPlaying)this.audio.play().catch(()=>{})
 			}
-
 			const bindHold=(btn,dir)=>{
-				btn.addEventListener("pointerdown",(e)=>{ e.preventDefault(); btn.classList.add("active"); startHold(dir) })
-				btn.addEventListener("pointerup",(e)=>{ e.preventDefault(); btn.classList.remove("active"); stopHold() })
-				btn.addEventListener("pointerleave",(e)=>{ e.preventDefault(); btn.classList.remove("active"); stopHold() })
-				btn.addEventListener("pointercancel",(e)=>{ e.preventDefault(); btn.classList.remove("active"); stopHold() })
+				btn.addEventListener("pointerdown",(e)=>{e.preventDefault();btn.classList.add("active");startHold(dir)})
+				btn.addEventListener("pointerup",(e)=>{e.preventDefault();btn.classList.remove("active");stopHold()})
+				btn.addEventListener("pointerleave",(e)=>{e.preventDefault();btn.classList.remove("active");stopHold()})
+				btn.addEventListener("pointercancel",(e)=>{e.preventDefault();btn.classList.remove("active");stopHold()})
 			}
 			bindHold(back,-1)
 			bindHold(fwd,1)
-
 			el.dataset.bound="1"
 		}
 
@@ -422,22 +434,15 @@ class RadioDrama {
 		this._updateMini()
 	}
 	_ranges(r){
-		if(!r || !r.length) return "[]";
-		let a=[];
-		for(let i=0;i<r.length;i++) a.push([r.start(i).toFixed(3), r.end(i).toFixed(3)]);
-		return JSON.stringify(a);
+		if(!r||!r.length)return"[]"
+		let a=[]
+		for(let i=0;i<r.length;i++)a.push([r.start(i).toFixed(3),r.end(i).toFixed(3)])
+		return JSON.stringify(a)
 	}
 	_enableDebug(){
-		const a=this.audio;
-		const log=(tag)=>()=>console.log(
-			`[AUDIO:${tag}]`,
-			{ t:+(a.currentTime||0).toFixed(3),
-			  dur:+(a.duration||0).toFixed(3),
-			  rs:a.readyState, ns:a.networkState,
-			  seek:this._ranges(a.seekable),
-			  buf:this._ranges(a.buffered) }
-		);
-		["loadedmetadata","canplay","seeking","seeked","timeupdate","waiting","stalled","play","pause"].forEach(ev=>a.addEventListener(ev,log(ev)));
+		const a=this.audio
+		const log=(tag)=>()=>console.log(`[AUDIO:${tag}]`,{t:+(a.currentTime||0).toFixed(3),dur:+(a.duration||0).toFixed(3),rs:a.readyState,ns:a.networkState,seek:this._ranges(a.seekable),buf:this._ranges(a.buffered)})
+		;["loadedmetadata","canplay","seeking","seeked","timeupdate","waiting","stalled","play","pause"].forEach(ev=>a.addEventListener(ev,log(ev)))
 	}
 	_attachMini(){
 		if(!this.audio||!this._mini)return
@@ -478,25 +483,23 @@ class RadioDrama {
 }
 
 function startRadioDramaDemo(){
-	if (window._radioDrama) return;
-
-	const actors = {
-		Vuong: (window.vuong || (window.Pet && Pet.getByName && Pet.getByName("Vuong"))),
-		Du:    (window.du    || (window.Pet && Pet.getByName && Pet.getByName("Du"))),
-		Ga:    (window.ga    || (window.Pet && Pet.getByName && Pet.getByName("Ga")))
-	};
-	const styleToActor = {
+	if(window._radioDrama)return
+	const actors={
+		Vuong:(window.vuong||(window.Pet&&Pet.getByName&&Pet.getByName("Vuong"))),
+		Du:(window.du||(window.Pet&&Pet.getByName&&Pet.getByName("Du"))),
+		Ga:(window.ga||(window.Pet&&Pet.getByName&&Pet.getByName("Ga")))
+	}
+	const styleToActor={
 		"VKH":"Vuong","Vương":"Vuong","Vương Kiệt Hi":"Vuong",
 		"DVC":"Du","Dụ":"Du","Dụ Văn Châu":"Du"
-	};
-
-	const drama = new RadioDrama({
-		audio: "pet/musics/ktt/ep1_ctl.mp3",
+	}
+	const drama=new RadioDrama({
+		audio:"pet/musics/ktt/ep1_ctl.mp3",
 		script:"pet/musics/ktt/ep1_ctl.ass",
 		actors,
 		styleToActor,
-		autostartButton: false
-	});
-	window._radioDrama = drama;
+		autostartButton:false
+	})
+	window._radioDrama=drama
 }
-document.addEventListener("DOMContentLoaded", startRadioDramaDemo);
+document.addEventListener("DOMContentLoaded",startRadioDramaDemo)
