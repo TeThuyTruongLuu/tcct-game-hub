@@ -250,15 +250,15 @@ class Pet{
 			add("Bay lững lờ",()=>{this._stopAll();this._startFlyIdle()})
 			add("Random",()=>{this._stopAll();this._startRandom()})
 			add("Nghe nhạc",()=>{this._openMusicMenu(x,y)})
-			add("Phát kịch truyền thanh", () => {
-				if (!window._radioDrama) startRadioDramaDemo();
-				window._radioDrama && window._radioDrama.start();
-			});
 			const vuong=Pet.getByName("Vuong")
 			const du=Pet.getByName("Du")
 			if(Pet._bothActive(vuong,du)){
 				add("Hôn",()=>{vuong.startKissWith(du)})
 				add("Mời Dụ cưỡi chổi",()=>{vuong.startBroomRideWith(du)})
+				add("Phát kịch truyền thanh", () => {
+					if (!window._radioDrama) startRadioDramaDemo();
+					window._radioDrama && window._radioDrama.start();
+				});
 			}
 			add("Ẩn",()=>{this._hide()})
 		}else if(this.name==="Du"){
@@ -266,12 +266,15 @@ class Pet{
 			add("Đổi hướng đi",()=>{if(this.state==="walk"||this.state==="fly"){this.vx*=-1;this.dir*=-1}})
 			add("Random",()=>{this._stopAll();this._startRandom()})
 			add("Nghe nhạc",()=>{this._openMusicMenu(x,y)})
-			
 			const vuong=Pet.getByName("Vuong")
 			const du=Pet.getByName("Du")
 			if(Pet._bothActive(vuong,du)){
 				add("Hôn",()=>{vuong.startKissWith(du)})
 				add("Bay cùng Vương",()=>{vuong.startBroomRideWith(du)})
+				add("Phát kịch truyền thanh", () => {
+					if (!window._radioDrama) startRadioDramaDemo();
+					window._radioDrama && window._radioDrama.start();
+				});
 			}
 			add("Ẩn",()=>{this._hide()})
 		}else if(this.name==="Ga"){
