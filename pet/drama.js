@@ -79,7 +79,7 @@ class RadioDrama {
 			const head=row.slice(9).trim();
 			let count=0,i=0,cut=-1;
 			for(;i<head.length;i++){
-				if(head[i]===",")count++;
+				if(head[i]===",")count++
 				if(count===9){cut=i;break;}
 			}
 			if(cut===-1)return null;
@@ -123,7 +123,7 @@ class RadioDrama {
 		if (!this.audio) return;
 		const t = this.audio.currentTime || 0;
 		while (this._ix > 0 && this.lines[this._ix - 1] && this.lines[this._ix - 1].end > t - 0.001 && this.lines[this._ix - 1].start > t) this._ix--;
-		while (this._ix < this.lines.length - 1 && this.lines[this._ix] && this.lines[this._ix].end <= t) this._ix++;
+		while (this._ix < this.lines.length - 1 && this.lines[this._ix] && this.lines[this._ix].end <= t) this._ix++
 		const actives = [];
 		let i = this._ix;
 		while (i < this.lines.length && this.lines[i].start <= t) {
@@ -241,19 +241,19 @@ class RadioDrama {
 		for(const k of Object.keys(this._actorIndex)){
 			if(key.includes(k)||k.includes(key)) return this._actorIndex[k]
 		}
-		const toks=key.split(/\s+/)
-		for(const t of toks){ if(this._actorIndex[t]) return this._actorIndex[t] }
-		return this._guessByName(name)
+		return null
 	}
 
 	_findActorFromTextPrefix(plain){
 		const m=String(plain||"").match(/^\s*([^:：]{1,30})\s*[:：]\s*/u)
 		return m?this._findActor(m[1]):null
 	}
+
 	_stripSpeakerPrefix(plain){
 		const m=String(plain||"").match(/^\s*([^:：]{1,30})\s*[:：]\s*/u)
 		return m?String(plain).slice(m[0].length).replace(/\n/g, " ").trim():String(plain||"")
 	}
+
 	_normName(s){
 		return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim()
 	}
@@ -366,6 +366,7 @@ class RadioDrama {
 				}
 				const clamped = Math.max(start, Math.min(end - 0.05, Number(t)))
 				a.currentTime = clamped
+				this._tick()
 				this._updateMini()
 			}
 
