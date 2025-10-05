@@ -2,6 +2,8 @@ class RadioDrama {
 	constructor(opts){
 		this.audioUrl=opts.audio
 		this.scriptUrl=opts.script
+		this.series=(opts.series||"ctl")
+		this.episode=(opts.episode||1)
 		this.tickMs=200
 		this._timer=0
 		this._started=false
@@ -43,8 +45,7 @@ class RadioDrama {
 		this._started=true
 		const btn=document.getElementById("rd-play-btn")
 		if(btn)btn.remove()
-		await this._loadASS(this.scriptUrl)
-		this.audio.src=this.audioUrl
+		await this._loadEpisode(this.series,this.episode)
 		this._createMini()
 		this.audio.play().catch(()=>{})
 		this._timer=setInterval(()=>this._tick(),this.tickMs)
@@ -56,11 +57,22 @@ class RadioDrama {
 		try{this.audio.pause()}catch(e){}
 	}
 
-	async _loadASS(url){
-		const txt=await fetch(url).then(r=>r.text())
-		this._styleMap=this._parseStyles(txt)||{}
-		this.lines=this._parseASS(txt)
+	async _loadEpisode(series,episode){
+		this.series=series
+		this.episode=episode
+		const base="pet/musics/ktt/"
+		const suf=series.toLowerCase()==="bd"?"bd":"ctl"
+		const epStr="ep"+episode+"_"+suf
+		const mp3=base+epStr+".mp3"
+		const ass=base+epStr+".ass"
+		const assTxt=await fetch(ass).then(r=>{if(!r.ok)throw new Error("ass");return r.text()}).catch(()=>null)
+		if(!assTxt){ this._showBackgroundLine("Không tìm thấy tập "+episode.toString().trim().padStart(1,"0").replace(/^0+/,"")+" ("+suf.toUpperCase()+")",2400,""); return }
+		this._styleMap=this._parseStyles(assTxt)||{}
+		this.lines=this._parseASS(assTxt)
 		this._ix=0
+		this.audio.src=mp3
+		this.audio.load()
+		if(this._mini)this._updateHeader()
 	}
 
 	_parseASS(assText){
@@ -330,26 +342,41 @@ class RadioDrama {
 			el=document.createElement("div")
 			el.id="dp-mini"
 			el.innerHTML=`
-				<button type="button" id="dp-back">«10s</button>
-				<button type="button" id="dp-play">▶</button>
-				<button type="button" id="dp-fwd">+10s»</button>
-				<span id="dp-cur">0:00</span>
-				<input id="dp-seek" type="range" min="0" max="1" step="0.1" value="0" style="width:180px;vertical-align:middle;">
-				<span id="dp-dur">0:00</span>
+				<div id="dp-top" style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+					<div id="dp-title" style="font:700 13px ui-sans-serif,system-ui;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw;"></div>
+					<div id="dp-series" style="display:flex;gap:6px;margin-left:auto;">
+						<button type="button" id="dp-s-ctl" data-s="ctl">CTL</button>
+						<button type="button" id="dp-s-bd" data-s="bd">BD</button>
+						<div style="width:1px;height:18px;background:rgba(255,255,255,.12)"></div>
+						<button type="button" id="dp-prev">◀</button>
+						<span id="dp-ep" style="min-width:84px;text-align:center"></span>
+						<button type="button" id="dp-next">▶</button>
+					</div>
+				</div>
+				<div id="dp-row" style="display:flex;align-items:center;gap:8px;">
+					<button type="button" id="dp-back">«10s</button>
+					<button type="button" id="dp-play">▶</button>
+					<button type="button" id="dp-fwd">+10s»</button>
+					<span id="dp-cur">0:00</span>
+					<input id="dp-seek" type="range" min="0" max="1" step="0.1" value="0" style="width:240px;vertical-align:middle;">
+					<span id="dp-dur">0:00</span>
+					<button type="button" id="dp-close" title="Đóng">✕</button>
+				</div>
 			`
 			Object.assign(el.style,{
-				position:"fixed",
-				left:"50%",
-				bottom:"calc(16px + env(safe-area-inset-bottom))",
-				transform:"translateX(-50%)",
-				background:"rgba(15,18,32,.92)",
-				color:"#e9edf7",
-				padding:"8px 10px",
-				borderRadius:"12px",
-				zIndex:2147483647,
-				font:"600 13px/1.4 ui-sans-serif,system-ui",
-				boxShadow:"0 8px 22px rgba(2,6,23,.4)"
-			})
+                position:"fixed",
+                left:"50%",
+                bottom:"calc(18px + env(safe-area-inset-bottom))",
+                transform:"translateX(-50%)",
+                background:"rgba(16,18,28,.92)",
+                color:"#e9edf7",
+                padding:"10px 12px",
+                borderRadius:"14px",
+                zIndex:2147483647,
+                font:"600 13px/1.45 ui-sans-serif,system-ui",
+                boxShadow:"0 10px 26px rgba(2,6,23,.45)",
+				backdropFilter:"blur(6px)"
+            })
 			document.body.appendChild(el)
 		}
 		const back=el.querySelector("#dp-back")
@@ -358,6 +385,16 @@ class RadioDrama {
 		const s=el.querySelector("#dp-seek")
 		const L=el.querySelector("#dp-cur")
 		const R=el.querySelector("#dp-dur")
+		const title=el.querySelector("#dp-title")
+		const epLbl=el.querySelector("#dp-ep")
+		const sCtl=el.querySelector("#dp-s-ctl")
+		const sBd=el.querySelector("#dp-s-bd")
+		const prev=el.querySelector("#dp-prev")
+		const next=el.querySelector("#dp-next")
+		const close=el.querySelector("#dp-close")
+		for(const btn of el.querySelectorAll("button")){
+			Object.assign(btn.style,{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.12)",color:"inherit",padding:"6px 10px",borderRadius:"10px",cursor:"pointer"})
+		}
 		back.disabled=true
 		fwd.disabled=true
 		s.disabled=true
@@ -409,6 +446,20 @@ class RadioDrama {
 			}
 			bindHold(back,-1)
 			bindHold(fwd,1)
+			const setSeries=(skey)=>{
+				if(this.series===skey)return
+				this._loadEpisode(skey,1).then(()=>{ if(this.audio.paused){} else{ this.audio.play().catch(()=>{}) } })
+				this._highlightSeries()
+			}
+			const incEp=(d)=>{
+				const n=Math.max(1,(this.episode||1)+d)
+				this._loadEpisode(this.series,n).then(()=>{ if(!this.audio.paused)this.audio.play().catch(()=>{}) })
+			}
+			sCtl.addEventListener("click",(e)=>{e.preventDefault();setSeries("ctl")})
+			sBd.addEventListener("click",(e)=>{e.preventDefault();setSeries("bd")})
+			prev.addEventListener("click",(e)=>{e.preventDefault();incEp(-1)})
+			next.addEventListener("click",(e)=>{e.preventDefault();incEp(1)})
+			close.addEventListener("click",(e)=>{e.preventDefault();el.remove()})
 			el.dataset.bound="1"
 		}
 		const onMeta=()=>{
@@ -420,9 +471,33 @@ class RadioDrama {
 		}
 		this.audio.addEventListener("loadedmetadata",onMeta)
 		this.audio.addEventListener("durationchange",onMeta)
-		this._mini={el,s,p,L,R,back,fwd}
+		this._mini={el,s,p,L,R,back,fwd,title,epLbl}
 		this._attachMini()
+		this._updateHeader()
 		this._updateMini()
+		this._highlightSeries()
+	}
+
+	_highlightSeries(){
+		const ctl=document.getElementById("dp-s-ctl")
+		const bd=document.getElementById("dp-s-bd")
+		for(const b of [ctl,bd]){
+			if(!b)continue
+			b.style.opacity="0.65"
+			b.style.borderColor="rgba(255,255,255,.14)"
+		}
+		const active=this.series==="bd"?bd:ctl
+		if(active){
+			active.style.opacity="1"
+			active.style.borderColor="rgba(255,255,255,.35)"
+		}
+	}
+
+	_updateHeader(){
+		if(!this._mini)return
+		const name=this.series==="bd"?"Breaking Dawn":"Clear to Land"
+		this._mini.title.textContent=name
+		this._mini.epLbl.textContent="Ep "+this.episode+" – "+(this.series==="bd"?"BD":"CTL")
 	}
 
 	_attachMini(){
@@ -486,11 +561,14 @@ function startRadioDrama(){
 	const drama=new RadioDrama({
 		audio:"pet/musics/ktt/ep1_ctl.mp3",
 		script:"pet/musics/ktt/ep1_ctl.ass",
+		series:"ctl",
+		episode:1,
 		actors,
 		styleToActor,
 		bgAlpha:0.95,
 		autostartButton:false
 	})
 	window._radioDrama=drama
+	drama.start()
 }
 document.addEventListener("DOMContentLoaded",startRadioDrama)
