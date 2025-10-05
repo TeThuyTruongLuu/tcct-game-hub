@@ -250,6 +250,13 @@ class Pet{
 			add("Bay lững lờ",()=>{this._stopAll();this._startFlyIdle()})
 			add("Random",()=>{this._stopAll();this._startRandom()})
 			add("Nghe nhạc",()=>{this._openMusicMenu(x,y)})
+			add("Phát kịch truyền thanh", () => {
+				if (window._radioDrama) {
+					window._radioDrama.start();
+				} else {
+					startRadioDramaDemo();
+				}
+			});
 			const vuong=Pet.getByName("Vuong")
 			const du=Pet.getByName("Du")
 			if(Pet._bothActive(vuong,du)){

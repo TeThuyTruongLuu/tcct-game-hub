@@ -324,7 +324,7 @@ async function loadLeaderboard(game) {
         }
 
         html += `</table>`;
-        leaderboardContent.innerHTML = html; // Set the entire HTML at once
+        leaderboardContent.innerHTML = html;
     } catch (error) {
         console.error(error);
         leaderboardContent.innerHTML = `<h3>Bảng xếp hạng</h3><p>Đã xảy ra lỗi khi tải bảng xếp hạng.</p>`;
