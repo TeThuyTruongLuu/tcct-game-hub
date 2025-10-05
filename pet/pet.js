@@ -2,7 +2,7 @@ class Pet{
 	static all=[]
 	static _interactTimer=0
 	static _nextInteractAt=0
-	static config={kissProb:0.25,broomProb:0.45,interactCooldownMs:3000,spawnGraceMs:2000}
+	static config={kissProb:0.25,broomProb:0.45,interactCooldownMs:3000,spawnGraceMs:5000}
 	static getByName(n){return Pet.all.find(p=>p.name===n)}
 	static _bothActive(a,b){
 		return a && b && a.node && b.node && a.node.style.display!=="none" && b.node.style.display!=="none"
@@ -382,6 +382,7 @@ class Pet{
 		du._busy=true
 		this.state="broom"
 		du.state="ridePassenger"
+		if (du.img) du.img.style.opacity = "0";
 		this.vx=this.speed*(Math.random()<0.5?-1:1)
 		this.dir=this.vx<0?-1:1
 		this._lock(8000)
@@ -398,6 +399,7 @@ class Pet{
 			du._busy=false;
 			du.state="idle";
 			du._loadImage(du.idle);
+			if (du.img) du.img.style.opacity = "1";
 
 			const push = (this.dir<0 ? -du.node.offsetWidth-14 : pr.width+14);
 			du._place(pr.left + push, pr.top);

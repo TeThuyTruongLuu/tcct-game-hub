@@ -50,24 +50,29 @@ class RadioDrama {
 		this.audio.play().catch(()=>{})
 		this._timer=setInterval(()=>this._tick(),this.tickMs)
 	}
-	
+		
 	stop(){
-		if(this._timer)clearInterval(this._timer)
-		this._timer=0
-		try{this.audio.pause()}catch(e){}
-		try{this.audio.src=""}catch(e){}
+		if(this._timer) clearInterval(this._timer);
+		this._timer=0;
+		try{ this.audio.pause() }catch(e){}
+		try{ this.audio.src="" }catch(e){}
+
+		if(this._bgT) { clearTimeout(this._bgT); this._bgT = null; }
+		const bg = document.getElementById("bg-dialogue");
+		if(bg) bg.remove();
+
 		if(this._mini){
 			if(this._h){
-				this.audio.removeEventListener("timeupdate",this._h.time)
-				this.audio.removeEventListener("durationchange",this._h.dur)
-				this.audio.removeEventListener("loadedmetadata",this._h.meta)
-				this.audio.removeEventListener("play",this._h.play)
-				this.audio.removeEventListener("pause",this._h.pause)
+				this.audio.removeEventListener("timeupdate",this._h.time);
+				this.audio.removeEventListener("durationchange",this._h.dur);
+				this.audio.removeEventListener("loadedmetadata",this._h.meta);
+				this.audio.removeEventListener("play",this._h.play);
+				this.audio.removeEventListener("pause",this._h.pause);
 			}
-			this._mini.el&&this._mini.el.remove()
-			this._mini=null
+			this._mini.el && this._mini.el.remove();
+			this._mini = null;
 		}
-		this._started=false
+		this._started=false;
 	}
 	
 	async _loadEpisode(series,episode){
@@ -561,17 +566,17 @@ class RadioDrama {
 	}
 }
 
-function startRadioDrama(){
-	if(window._radioDrama)return
-	const actors={
+function ensureRadioDrama(){
+	if(window._radioDrama) return window._radioDrama;
+	const actors = {
 		Vuong:(window.Pet&&Pet.getByName&&Pet.getByName("Vuong")),
 		Du:(window.Pet&&Pet.getByName&&Pet.getByName("Du"))
-	}
-	const styleToActor={
+	};
+	const styleToActor = {
 		"VKH":"Vuong","Vương":"Vuong","Vương Kiệt Hi":"Vuong",
 		"DVC":"Du","Dụ":"Du","Dụ Văn Châu":"Du"
-	}
-	const drama=new RadioDrama({
+	};
+	const drama = new RadioDrama({
 		audio:"pet/musics/ktt/ep1_ctl.mp3",
 		script:"pet/musics/ktt/ep1_ctl.ass",
 		series:"ctl",
@@ -579,9 +584,14 @@ function startRadioDrama(){
 		actors,
 		styleToActor,
 		bgAlpha:0.95,
-		autostartButton:false
-	})
-	window._radioDrama=drama
-	drama.start()
+		autostartButton:false     // Optional: hiện nút ▶ Radio Drama
+	});
+	window._radioDrama = drama;
+	return drama;
 }
-document.addEventListener("DOMContentLoaded",startRadioDrama)
+
+window.startRadioDrama = function(){
+	ensureRadioDrama().start();
+};
+
+document.addEventListener("DOMContentLoaded", ()=>{ ensureRadioDrama(); });
