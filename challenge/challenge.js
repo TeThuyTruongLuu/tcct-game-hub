@@ -1,6 +1,9 @@
 (()=>{
 	const fdb=window.db
 	const storage=firebase.storage()
+	const auth=firebase.auth();
+	const authReady=new Promise(r=>{auth.onAuthStateChanged(u=>{if(u)r(u)})});
+	if(!auth.currentUser){auth.signInAnonymously().catch(()=>{})}
 	const uname=localStorage.getItem("username")||""
 	const hello=document.getElementById("hello")
 	if(uname) hello.textContent="Xin chào, "+uname
@@ -452,6 +455,7 @@
 		saveBtn.disabled=true
 		saveHint.textContent="Đang lưu..."
 		let imageUrl=""
+		await authReady;
 		if(imgInput.files[0]){
 			const f=imgInput.files[0]
 			const ref=storage.ref("challenge33/"+uname+"/day"+currentDay+"_"+Date.now()+"_"+f.name)
