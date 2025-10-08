@@ -153,6 +153,19 @@
 		}
 
 		.credit { margin-bottom: -2px; }
+		@media (max-width: 600px) {
+			.upload-row {
+				flex-direction: column;
+				gap: 20px;
+			}
+			.upload-container {
+				width: 95%;
+				padding: 15px;
+			}
+			input[type="file"] {
+				max-width: 100%;
+			}
+		}
     </style>
 </head>
 <body>
