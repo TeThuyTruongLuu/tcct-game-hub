@@ -1,8 +1,8 @@
 (()=>{
 	const fdb=window.db
 	const storage=firebase.storage()
-	const auth=firebase.auth();
-	const authReady=new Promise(r=>{auth.onAuthStateChanged(u=>{if(u)r(u)})});
+	const auth=firebase.auth()
+	const authReady=new Promise(r=>{auth.onAuthStateChanged(u=>{if(u)r(u)})})
 	if(!auth.currentUser){auth.signInAnonymously().catch(()=>{})}
 	const uname=localStorage.getItem("username")||""
 	const hello=document.getElementById("hello")
@@ -64,7 +64,6 @@
 	]
 
 	const overlay=document.getElementById("overlay")
-
 	const poster=document.querySelector(".poster")
 	const baseImg=document.querySelector(".poster .base")
 	let posterAlt=false
@@ -80,8 +79,8 @@
 		overlay.innerHTML=""
 		const baseW=900,baseH=2002
 		const cellW=145,cellH=143
-		const gapX=7,gapY=20
-		const startX=74,startY=739
+		const gapX=15,gapY=24
+		const startX=60,startY=732
 		const fullCols=5,rows=7
 		let day=1
 		for(let r=0;r<rows;r++){
@@ -107,7 +106,7 @@
 	}
 
 	if(baseImg.complete) buildSlots(); else baseImg.addEventListener("load",buildSlots)
-
+	baseImg.addEventListener("load",buildSlots)
 
 	async function pick(d,slot){
 		document.querySelectorAll(".day-slot").forEach(s=>s.classList.remove("active"))
@@ -143,73 +142,67 @@
 	}
 
 	async function loadRecentFeed(){
-	  currentDay=null
-	  composer.classList.remove("show")
-	  pagerEl.style.display="none"
-	  sortSelect.value="desc"
-	  titleEl.textContent="5 cảm nghĩ gần nhất"
-	  commentsList.innerHTML=""
-	  const snap=await fdb.collectionGroup("comments").orderBy("updatedAt","desc").limit(5).get()
-	  if(snap.empty){
-		const p=document.createElement("p")
-		p.textContent="Chưa có bình luận nào."
-		p.style.color="#8a6b82"
-		commentsList.appendChild(p)
-		return
-	  }
-	  for(const doc of snap.docs){
-		const c=doc.data()
-		const dayId=doc.ref.parent.parent.id
-		const day=parseInt(dayId.replace("day",""))||0
-
-		const card=document.createElement("div")
-		card.className="card"
-		const ava=document.createElement("div")
-		ava.className="avatar"
-		ava.style.background=colorFor(c.username)
-		ava.style.color="#fff"
-		ava.style.borderColor=ava.style.background
-		ava.textContent=avatar(c.username)
-		const body=document.createElement("div")
-
-		const meta=document.createElement("div")
-		meta.className="meta"
-		const n=document.createElement("span")
-		n.className="name"; n.textContent=c.username
-		const t=document.createElement("span")
-		t.textContent="• "+fmt(c.updatedAt)+" • Ngày "+day
-		meta.appendChild(n); meta.appendChild(t)
-
-		const msg=document.createElement("div")
-		msg.className="msg"; msg.textContent=c.text||""
-
-		body.appendChild(meta)
-		body.appendChild(msg)
-		if(c.imageUrl){
-		  const im=document.createElement("img")
-		  im.src=c.imageUrl; im.className="thumb"
-		  body.appendChild(im)
+		currentDay=null
+		composer.classList.remove("show")
+		pagerEl.style.display="none"
+		sortSelect.value="desc"
+		titleEl.textContent="5 cảm nghĩ gần nhất"
+		commentsList.innerHTML=""
+		const snap=await fdb.collectionGroup("comments").orderBy("updatedAt","desc").limit(5).get()
+		if(snap.empty){
+			const p=document.createElement("p")
+			p.textContent="Chưa có bình luận nào."
+			p.style.color="#8a6b82"
+			commentsList.appendChild(p)
+			return
 		}
-
-		const toolsRow=document.createElement("div")
-		toolsRow.className="tools-row"
-		const leftTools=document.createElement("div")
-		leftTools.className="left-tools"
-		const openBtn=document.createElement("button")
-		openBtn.className="tool"
-		openBtn.textContent="Xem ngày "+day
-		openBtn.onclick=()=>{
-		  const slot=document.querySelector(".day-slot[data-day='"+day+"']")
-		  if(slot) pick(day,slot)
+		for(const doc of snap.docs){
+			const c=doc.data()
+			const dayId=doc.ref.parent.parent.id
+			const day=parseInt(dayId.replace("day",""))||0
+			const card=document.createElement("div")
+			card.className="card"
+			const ava=document.createElement("div")
+			ava.className="avatar"
+			ava.style.background=colorFor(c.username)
+			ava.style.color="#fff"
+			ava.style.borderColor=ava.style.background
+			ava.textContent=avatar(c.username)
+			const body=document.createElement("div")
+			const meta=document.createElement("div")
+			meta.className="meta"
+			const n=document.createElement("span")
+			n.className="name"; n.textContent=c.username
+			const t=document.createElement("span")
+			t.textContent="• "+fmt(c.updatedAt)+" • Ngày "+day
+			meta.appendChild(n); meta.appendChild(t)
+			const msg=document.createElement("div")
+			msg.className="msg"; msg.textContent=c.text||""
+			body.appendChild(meta)
+			body.appendChild(msg)
+			if(c.imageUrl){
+				const im=document.createElement("img")
+				im.src=c.imageUrl; im.className="thumb"
+				body.appendChild(im)
+			}
+			const toolsRow=document.createElement("div")
+			toolsRow.className="tools-row"
+			const leftTools=document.createElement("div")
+			leftTools.className="left-tools"
+			const openBtn=document.createElement("button")
+			openBtn.className="tool"
+			openBtn.textContent="Xem ngày "+day
+			openBtn.onclick=()=>{
+				const slot=document.querySelector(".day-slot[data-day='"+day+"']")
+				if(slot) pick(day,slot)
+			}
+			leftTools.appendChild(openBtn)
+			toolsRow.appendChild(leftTools)
+			body.appendChild(toolsRow)
+			card.appendChild(ava)
+			card.appendChild(body)
+			commentsList.appendChild(card)
 		}
-		leftTools.appendChild(openBtn)
-		toolsRow.appendChild(leftTools)
-		body.appendChild(toolsRow)
-
-		card.appendChild(ava)
-		card.appendChild(body)
-		commentsList.appendChild(card)
-	  }
 	}
 
 	function fmt(ts){const t=ts?new Date(ts):new Date();return t.toLocaleString()}
@@ -253,7 +246,6 @@
 			ava.style.borderColor=ava.style.background
 			ava.textContent=avatar(c.username)
 			const body=document.createElement("div")
-
 			const meta=document.createElement("div")
 			meta.className="meta"
 			const n=document.createElement("span")
@@ -261,10 +253,8 @@
 			const t=document.createElement("span")
 			t.textContent="• "+fmt(c.updatedAt)
 			meta.appendChild(n); meta.appendChild(t)
-
 			const msg=document.createElement("div")
 			msg.className="msg"; msg.textContent=c.text||""
-
 			body.appendChild(meta)
 			body.appendChild(msg)
 			if(c.imageUrl){
@@ -272,7 +262,6 @@
 				im.src=c.imageUrl; im.className="thumb"
 				body.appendChild(im)
 			}
-
 			const toolsRow=document.createElement("div")
 			toolsRow.className="tools-row"
 			const leftTools=document.createElement("div")
@@ -292,31 +281,26 @@
 			}
 			const rightTools=document.createElement("div")
 			rightTools.className="right-tools"
-
 			const likeBtn=document.createElement("button")
 			likeBtn.className="tool like-btn"
 			likeBtn.innerHTML=`❤️ <span class="count">${c.likeCount||0}</span>`
 			likeBtn.onclick=()=>{
-			  toggleLike(day,doc.id)
+				toggleLike(day,doc.id)
 			}
 			likeBtn.oncontextmenu=(e)=>{
-			  e.preventDefault()
-			  showLikes(day,doc.id)
+				e.preventDefault()
+				showLikes(day,doc.id)
 			}
 			rightTools.appendChild(likeBtn)
-
 			toolsRow.appendChild(leftTools)
 			toolsRow.appendChild(rightTools)
 			body.appendChild(toolsRow)
-
 			const replyWrap=document.createElement("div")
 			replyWrap.className="reply-wrap"
 			body.appendChild(replyWrap)
-
 			card.appendChild(ava)
 			card.appendChild(body)
 			commentsList.appendChild(card)
-
 			await renderReplies(day,doc.id,replyWrap,0)
 		}
 		const totalPages=Math.ceil(allComments.length/pageSize)
@@ -455,7 +439,7 @@
 		saveBtn.disabled=true
 		saveHint.textContent="Đang lưu..."
 		let imageUrl=""
-		await authReady;
+		await authReady
 		if(imgInput.files[0]){
 			const f=imgInput.files[0]
 			const ref=storage.ref("challenge33/"+uname+"/day"+currentDay+"_"+Date.now()+"_"+f.name)
@@ -495,8 +479,8 @@
 		if(currentPage<totalPages){currentPage++; if(currentDay)renderPage(currentDay)}
 	}
 	;(async()=>{
-	  await ensureLogin()
-	  await loadProgress()
-	  await loadRecentFeed()
+		await ensureLogin()
+		await loadProgress()
+		await loadRecentFeed()
 	})()
 })()
