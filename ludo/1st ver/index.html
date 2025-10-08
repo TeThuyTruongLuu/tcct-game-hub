@@ -1,45 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title>Cờ cá ngựa</title>
-	<script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
-	<script src="game.js"></script>
-	<link rel="stylesheet" href="style.css">
-	<link rel="icon" href="../favicon.ico" type="image/x-icon" />
+  <meta charset="UTF-8">
+  <title>Ludo Board Redesign</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
+  <script src="game.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="../favicon.ico" type="image/x-icon" />
 </head>
 <body>
-	<div class="container">
-		<div class="container1">
-			<!--green-->
-			<div class="rol1-col1" style="background-image: url('img/Vuong_2.png');">
-			</div>
-			<!--path-->
-			<div class="rol1-col2"></div>
-			<!--yellow-->
-			<div class="rol1-col3" style="background-image: url('img/Cao.png');">
-			</div>
-		</div>
-		<div class="container2">
-			<!--path-->
-			<div class="rol2-col1"></div>
-			<!--home-->
-			<div class="rol2-col2"></div>
-			<!--path-->
-			<div class="rol2-col3"></div>		
-		</div>
-		<div class="container3">
-			<!--red-->
-			<div class="rol3-col1" style="background-image: url('img/Chu.png');">
-			</div>
-			<!--path-->
-			<div class="rol3-col2"></div>
-			<!--blue-->
-			<div class="rol3-col3" style="background-image: url('img/Dvu.png');">
-			</div>	
-		</div>	
+  <div id="board">
+    <!-- Home Areas with Images -->
+	<div class="home red" style="grid-column: 1 / span 5; grid-row: 1 / span 5;">
+	  <img src="img/Vuong_2.png" class="home-img" alt="Red House">
+	  <div class="piece-wrapper">
+		<div id="red-1" class="piece red"></div>
+		<div id="red-2" class="piece red"></div>
+		<div id="red-3" class="piece red"></div>
+		<div id="red-4" class="piece red"></div>
+	  </div>
 	</div>
+	
+	<div class="home green" style="grid-column: 11 / span 5; grid-row: 1 / span 5;">
+	  <img src="img/Cao.png" class="home-img" alt="Green House">
+	  <div class="piece-wrapper">
+		<div id="green-1" class="piece green"></div>
+		<div id="green-2" class="piece green"></div>
+		<div id="green-3" class="piece green"></div>
+		<div id="green-4" class="piece green"></div>
+	  </div>
+	</div>
+
+	<div class="home yellow" style="grid-column: 1 / span 5; grid-row: 11 / span 5;">
+	  <img src="img/Chu.png" class="home-img" alt="Yellow House">
+	  <div class="piece-wrapper">
+		<div id="yellow-1" class="piece yellow"></div>
+		<div id="yellow-2" class="piece yellow"></div>
+		<div id="yellow-3" class="piece yellow"></div>
+		<div id="yellow-4" class="piece yellow"></div>
+	  </div>
+	</div>
+
+	<div class="home blue" style="grid-column: 11 / span 5; grid-row: 11 / span 5;">
+	  <img src="img/Dvu.png" class="home-img" alt="Blue House">
+	  <div class="piece-wrapper">
+		<div id="blue-1" class="piece blue"></div>
+		<div id="blue-2" class="piece blue"></div>
+		<div id="blue-3" class="piece blue"></div>
+		<div id="blue-4" class="piece blue"></div>
+	  </div>
+	</div>
+
+
+    <!-- Start Positions -->
+    <div class="cell start red" id="cell-1-6" style="grid-column: 6; grid-row: 1;"></div>
+    <div class="cell start yellow" id="cell-10-1" style="grid-column: 1; grid-row: 10;"></div>
+    <div class="cell start green" id="cell-6-15" style="grid-column: 15; grid-row: 6;"></div>
+    <div class="cell start blue" id="cell-15-10" style="grid-column: 10; grid-row: 15;"></div>
+
+	<div id="dice-box">
+	  <div id="dice-canvas"></div>
+	  <button onclick="rollDice()">🎲 Roll Dice</button>
+	  <div id="dice-result">Kết quả sẽ hiện ở đây</div>
+	</div>
+
+
+
+	<script>
+	  window.onload = function () {
+		updateHomeHighlight('red');
+		if (typeof initDice === 'function') {
+		  initDice("dice-canvas", onDiceRolled);
+		} else {
+		  console.error("initDice chưa được define. Hãy chắc chắn game.js đã load đúng.");
+		}
+	  };
+	</script>
 
 
     <!-- Path: Full clockwise layout including middle links -->
