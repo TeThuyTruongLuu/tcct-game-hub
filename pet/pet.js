@@ -38,6 +38,8 @@ class Pet{
 		this.name=opts.name||"Pet"
 		this.basePath=opts.basePath||""
 		this.idle=opts.idle||"idle.png"
+		this.kissLeft  = opts.kissLeft  || "kiss_left.png";
+		this.kissRight = opts.kissRight || "kiss_right.png";
 		this.actions=opts.actions||{}
 		this.speed=opts.speed||80
 		this.spawn=opts.spawn||{x:40,y:40}
@@ -351,27 +353,24 @@ class Pet{
 	}
 
 	startKissWith(other){
-		if(this._busy||other._busy) return;
+		if(this._busy || other._busy) return;
+
 		this._busy = other._busy = true;
 		this.state = other.state = "kiss";
 		this._lock(2000); other._lock(2000);
-		this._loadImage("kiss.png"); other._loadImage("kiss.png");
 
 		const ra = this.node.getBoundingClientRect();
 		const rb = other.node.getBoundingClientRect();
-		const gap = -6;                                     // nếu muốn sát nhau thì 0
-		const duW = rb.width || 40;
-		const xLeft = Math.max(0, Math.min(ra.left, rb.left));
-		const yTop = Math.min(ra.top, rb.top);
+		const thisOnLeft  = ra.left <= rb.left;
+		const otherOnLeft = !thisOnLeft;
 
-		other._place(xLeft, yTop);
-		this._place(xLeft + duW + gap, yTop);
-
+		this._loadImage(thisOnLeft ? this.kissLeft : this.kissRight);
+		other._loadImage(otherOnLeft ? other.kissLeft : other.kissRight);
 		setTimeout(()=>{
-			other._place(xLeft - 12, yTop);
-			this._place(xLeft + duW + gap + 12, yTop);
-			this._busy=false; other._busy=false;
-			this._loadImage(this.idle); other._loadImage(other.idle);
+			this._busy=false;
+			other._busy=false;
+			this._loadImage(this.idle);
+			other._loadImage(other.idle);
 		}, 2000);
 	}
 

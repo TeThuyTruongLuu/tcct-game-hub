@@ -534,6 +534,8 @@ document.addEventListener("DOMContentLoaded", function () {
 		name: "Vuong",
 		basePath: "pet/img/vuong/",
 		idle: "idle.png",
+		kissLeft: "kiss_left.png",
+		kissRight: "kiss_right.png",
 		actions: {
 			walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
 			bounce: [],
@@ -558,6 +560,8 @@ document.addEventListener("DOMContentLoaded", function () {
 		name: "Du",
 		basePath: "pet/img/du/",
 		idle: "idle.png",
+		kissLeft: "kiss_left.png",
+		kissRight: "kiss_right.png",
 		actions: {
 			walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
 			bounce: [],
