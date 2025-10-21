@@ -167,8 +167,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             const codeInputValue = document.getElementById("code-input").value.trim();
             const nicknameInputValue = document.getElementById("nickname-input").value.trim();
 
-            if (codeInputValue !== "TCCT" || !nicknameInputValue) {
-                alert("Nhập đúng mã 'TCCT' và điền tên hợp lệ nha bồ ơi.");
+            if (codeInputValue !== "Close" || !nicknameInputValue) {
+                alert("Đóng web rồi mấy ní. Chờ tính điểm nhé.");
                 return;
             }
 
