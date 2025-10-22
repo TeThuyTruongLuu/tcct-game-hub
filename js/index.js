@@ -52,8 +52,12 @@ if (!firebase.apps.length) {
 }
 
 window.addEventListener('load', () => {
-  const appCheck = firebase.appCheck();
-  appCheck.activate('6Lce2bMrAAAAADjXD0PhQZE4ub30USoxX2zRrp12', true);
+	if (firebase.appCheck) {
+		const appCheck = firebase.appCheck();
+		appCheck.activate('6Lce2bMrAAAAADjXD0PhQZE4ub30USoxX2zRrp12', true);
+	} else {
+		console.info("Không cần AppCheck SDK, skip.");
+	}
 });
 
 const db = firebase.firestore();
@@ -120,124 +124,142 @@ async function fetchCharacterImages(character) {
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
-    let username = localStorage.getItem("username");
-    let selectedCharacter = localStorage.getItem("selectedCharacter") || "Vuong";
-    let totalScore = localStorage.getItem("totalScore") ? parseInt(localStorage.getItem("totalScore")) : "N/A";
-	document.querySelector(".carousel-wrapper").style.display = "none";
-	document.querySelector(".nav-dots").style.display = "none";
-	document.querySelector(".page-title").style.display = "none";
+	const onGhPages = location.hostname.endsWith("github.io");
+	const homepagePaths = new Set(["/", "/index.html"]);
+	if (onGhPages) {
+		homepagePaths.add("/tcct-game-hub/");
+		homepagePaths.add("/tcct-game-hub/index.html");
+	}
+	const isHome = homepagePaths.has(location.pathname);
 
-    if (username) {
-        document.getElementById("login-modal").style.display = "none";
-        document.getElementById("welcome-message").style.display = "block";
-        document.getElementById("display-name").innerText = username;
-        document.getElementById("logout-button").style.display = "block";
+	let username = localStorage.getItem("username");
+	let selectedCharacter = localStorage.getItem("selectedCharacter") || "Vuong";
+	let totalScore = localStorage.getItem("totalScore") ? parseInt(localStorage.getItem("totalScore")) : "N/A";
 
-        document.querySelector(".points").style.display = "block";
-        document.querySelector(".scoreboard-container").style.display = "flex";
-        document.querySelector(".carousel-wrapper").style.display = "grid";
-		document.querySelector(".nav-dots").style.display = "flex";
-		document.querySelector(".page-title").style.display = "block";
-        document.getElementById("scoreboard").style.display = "block";
-        document.getElementById("character-callout").style.display = "flex";
-        document.getElementById("settings-btn-game").style.display = "block";
+	document.querySelector(".carousel-wrapper")?.style.setProperty("display","none");
+	document.querySelector(".nav-dots")?.style.setProperty("display","none");
+	document.querySelector(".page-title")?.style.setProperty("display","none");
 
-        const userRef = db.collection("users").doc(username);
-        const userDoc = await userRef.get();
+	if (username) {
+		document.getElementById("login-modal")?.style && (document.getElementById("login-modal").style.display = "none");
+		document.getElementById("welcome-message")?.style && (document.getElementById("welcome-message").style.display = "block");
+		document.getElementById("display-name") && (document.getElementById("display-name").innerText = username);
+		document.getElementById("logout-button")?.style && (document.getElementById("logout-button").style.display = "block");
 
-        if (userDoc.exists) {
-            selectedCharacter = userDoc.data().bias || selectedCharacter;
-            localStorage.setItem("selectedCharacter", selectedCharacter);
-            await updateTotalScore();
-        }
-    } else {
-        document.getElementById("settings-btn-game").style.display = "block";
-    }
+		document.querySelector(".points")?.style && (document.querySelector(".points").style.display = "block");
+		document.querySelector(".scoreboard-container")?.style && (document.querySelector(".scoreboard-container").style.display = "flex");
+		document.querySelector(".carousel-wrapper")?.style && (document.querySelector(".carousel-wrapper").style.display = "grid");
+		document.querySelector(".nav-dots")?.style && (document.querySelector(".nav-dots").style.display = "flex");
+		document.querySelector(".page-title")?.style && (document.querySelector(".page-title").style.display = "block");
+		document.getElementById("scoreboard")?.style && (document.getElementById("scoreboard").style.display = "block");
+		document.getElementById("character-callout")?.style && (document.getElementById("character-callout").style.display = "flex");
+		document.getElementById("settings-btn-game")?.style && (document.getElementById("settings-btn-game").style.display = "block");
 
-    document.getElementById("character-select").value = selectedCharacter;
-    document.getElementById("user-points").innerText = totalScore;
-    
-    showRandomCharacterImage();
-    showRandomCharacterQuote();
-    checkUserPoints();
+		try {
+			const userRef = db.collection("users").doc(username);
+			const userDoc = await userRef.get();
+			if (userDoc.exists) {
+				selectedCharacter = userDoc.data().bias || selectedCharacter;
+				localStorage.setItem("selectedCharacter", selectedCharacter);
+				if (typeof updateTotalScore === "function") {
+					await updateTotalScore();
+				}
+			}
+		} catch(e){}
+	} else {
+		document.getElementById("settings-btn-game")?.style && (document.getElementById("settings-btn-game").style.display = "block");
+	}
 
-    const startButton = document.getElementById("start-button");
-    if (startButton) {
-        startButton.addEventListener("click", async () => {
-            const codeInputValue = document.getElementById("code-input").value.trim();
-            const nicknameInputValue = document.getElementById("nickname-input").value.trim();
+	document.getElementById("character-select") && (document.getElementById("character-select").value = selectedCharacter);
+	document.getElementById("user-points") && (document.getElementById("user-points").innerText = totalScore);
 
-            if (codeInputValue !== "TCCT" || !nicknameInputValue) {
-                alert("Sai code rồi bạn hiền.");
-                return;
-            }
+	if (document.getElementById("callout-avatar")) {
+		if (typeof showRandomCharacterImage === "function") showRandomCharacterImage();
+		if (typeof showRandomCharacterQuote === "function") showRandomCharacterQuote();
+		if (typeof checkUserPoints === "function") checkUserPoints();
+	}
 
-            const userRef = db.collection("users").doc(nicknameInputValue);
-            const userDoc = await userRef.get();
+	const startButton = document.getElementById("start-button");
+	if (startButton && isHome) {
+		startButton.addEventListener("click", async () => {
+			const codeInputValue = (document.getElementById("code-input")?.value || "").trim();
+			const nicknameInputValue = (document.getElementById("nickname-input")?.value || "").trim();
 
-            if (userDoc.exists) {
-                alert(`Chào mừng trở lại, ${nicknameInputValue}!`);
-            } else {
-                await userRef.set({ username: nicknameInputValue, bias: "Vuong", totalScore: 0 });
-                alert(`Tạo tài khoản thành công! Xin chào, ${nicknameInputValue}.`);
-            }
+			if (codeInputValue !== "TCCT" || !nicknameInputValue) {
+				alert("Sai code rồi bạn hiền.");
+				return;
+			}
 
-            localStorage.setItem("username", nicknameInputValue);
+			try {
+				const userRef = db.collection("users").doc(nicknameInputValue);
+				const userDoc = await userRef.get();
 
-			document.getElementById("login-modal").style.display = "none";
-			document.getElementById("welcome-message").style.display = "block";
-			document.getElementById("display-name").innerText = username;
-			document.getElementById("logout-button").style.display = "block";
+				if (userDoc.exists) {
+					alert(`Chào mừng trở lại, ${nicknameInputValue}!`);
+				} else {
+					await userRef.set({ username: nicknameInputValue, bias: "Vuong", totalScore: 0 });
+					alert(`Tạo tài khoản thành công! Xin chào, ${nicknameInputValue}.`);
+				}
 
-			document.querySelector(".points").style.display = "block";
-			document.querySelector(".scoreboard-container").style.display = "flex";
-			document.querySelector(".carousel-wrapper").style.display = "grid";
-			document.querySelector(".nav-dots").style.display = "flex";
-			document.querySelector(".page-title").style.display = "block";
-			document.getElementById("scoreboard").style.display = "block";
-			document.getElementById("character-callout").style.display = "flex";
-			document.getElementById("settings-btn-game").style.display = "block";
-        });
-    }
+				localStorage.setItem("username", nicknameInputValue);
+				username = nicknameInputValue;
 
-    function handleEnterKey(event) {
-        if (event.key === "Enter" && startButton) {
-            startButton.click();
-        }
-    }
-    document.getElementById("code-input")?.addEventListener("keydown", handleEnterKey);
-    document.getElementById("nickname-input")?.addEventListener("keydown", handleEnterKey);
+				document.getElementById("login-modal")?.style && (document.getElementById("login-modal").style.display = "none");
+				document.getElementById("welcome-message")?.style && (document.getElementById("welcome-message").style.display = "block");
+				document.getElementById("display-name") && (document.getElementById("display-name").innerText = username);
+				document.getElementById("logout-button")?.style && (document.getElementById("logout-button").style.display = "block");
 
-    const playWithoutLoginButton = document.getElementById("play-without-login");
-    if (playWithoutLoginButton) {
-	playWithoutLoginButton.addEventListener("click", () => {
-		localStorage.setItem("anonymous", "true");
-		localStorage.setItem("anonymousOrigin", "homepage");
-		document.getElementById("login-modal").style.display = "none";
-		document.querySelector(".game-list").style.display = "grid";
-		document.querySelector(".carousel-wrapper").style.display = "grid";
-		document.querySelector(".nav-dots").style.display = "flex";
-		document.querySelector(".page-title").style.display = "block";
-		document.querySelector(".points").style.display = "none";
-		document.querySelector(".scoreboard-container").style.display = "none";
-		document.getElementById("scoreboard").style.display = "none";
-		document.getElementById("logout-button").style.display = "none";
-		document.getElementById("character-callout").style.display = "flex";
-		document.getElementById("settings-btn-game").style.display = "block";
+				document.querySelector(".points")?.style && (document.querySelector(".points").style.display = "block");
+				document.querySelector(".scoreboard-container")?.style && (document.querySelector(".scoreboard-container").style.display = "flex");
+				document.querySelector(".carousel-wrapper")?.style && (document.querySelector(".carousel-wrapper").style.display = "grid");
+				document.querySelector(".nav-dots")?.style && (document.querySelector(".nav-dots").style.display = "flex");
+				document.querySelector(".page-title")?.style && (document.querySelector(".page-title").style.display = "block");
+				document.getElementById("scoreboard")?.style && (document.getElementById("scoreboard").style.display = "block");
+				document.getElementById("character-callout")?.style && (document.getElementById("character-callout").style.display = "flex");
+				document.getElementById("settings-btn-game")?.style && (document.getElementById("settings-btn-game").style.display = "block");
+			} catch(e){}
+		});
+	}
 
-		alert("Bồ đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
-	});
-    }
+	function handleEnterKey(event) {
+		if (event.key === "Enter" && startButton) {
+			startButton.click();
+		}
+	}
+	document.getElementById("code-input")?.addEventListener("keydown", handleEnterKey);
+	document.getElementById("nickname-input")?.addEventListener("keydown", handleEnterKey);
 
-    loadLeaderboard("2048");
+	const playWithoutLoginButton = document.getElementById("play-without-login");
+	if (playWithoutLoginButton && isHome) {
+		playWithoutLoginButton.addEventListener("click", () => {
+			localStorage.setItem("anonymous", "true");
+			localStorage.setItem("anonymousOrigin", "homepage");
+			document.getElementById("login-modal")?.style && (document.getElementById("login-modal").style.display = "none");
+			document.querySelector(".game-list")?.style && (document.querySelector(".game-list").style.display = "grid");
+			document.querySelector(".carousel-wrapper")?.style && (document.querySelector(".carousel-wrapper").style.display = "grid");
+			document.querySelector(".nav-dots")?.style && (document.querySelector(".nav-dots").style.display = "flex");
+			document.querySelector(".page-title")?.style && (document.querySelector(".page-title").style.display = "block");
+			document.querySelector(".points")?.style && (document.querySelector(".points").style.display = "none");
+			document.querySelector(".scoreboard-container")?.style && (document.querySelector(".scoreboard-container").style.display = "none");
+			document.getElementById("scoreboard")?.style && (document.getElementById("scoreboard").style.display = "none");
+			document.getElementById("logout-button")?.style && (document.getElementById("logout-button").style.display = "none");
+			document.getElementById("character-callout")?.style && (document.getElementById("character-callout").style.display = "flex");
+			document.getElementById("settings-btn-game")?.style && (document.getElementById("settings-btn-game").style.display = "block");
+			alert("Bồ đang chơi mà không đăng nhập, điểm số sẽ không được lưu!");
+		});
+	}
 
-    const calloutAvatar = document.getElementById("callout-avatar");
-    if (calloutAvatar) {
-        calloutAvatar.addEventListener("click", function () {
-            showRandomCharacterImage();
-            showRandomCharacterQuote();
-        });
-    }
+	if (typeof loadLeaderboard === "function" && document.getElementById("leaderboard-content")) {
+		loadLeaderboard("2048");
+	}
+
+	const calloutAvatar = document.getElementById("callout-avatar");
+	if (calloutAvatar) {
+		calloutAvatar.addEventListener("click", function () {
+			if (typeof showRandomCharacterImage === "function") showRandomCharacterImage();
+			if (typeof showRandomCharacterQuote === "function") showRandomCharacterQuote();
+		});
+	}
 });
 
 function logout() {
@@ -495,135 +517,145 @@ async function updateOldLeaderboardData() {
 updateOldLeaderboardData();
 
 document.addEventListener("DOMContentLoaded", function () {
-	const btn = document.getElementById("settings-btn-game");
-	const modal = document.getElementById("settings-modal");
-	const closeBtn = document.getElementById("close-settings");
-
-	if (btn && modal) {
-		btn.addEventListener("click", function () {
-			modal.style.display = "block";
-		});
+	const onGhPages = location.hostname.endsWith("github.io");
+	const homepagePaths = new Set(["/","/index.html"]);
+	if (onGhPages) {
+		homepagePaths.add("/tcct-game-hub/");
+		homepagePaths.add("/tcct-game-hub/index.html");
 	}
-	if (closeBtn) {
-		closeBtn.addEventListener("click", function () {
-			modal.style.display = "none";
-		});
-	}
+	const isHome = homepagePaths.has(location.pathname);
 
-	const tSpeech = document.querySelector('.set-tab[data-tab="speech"]');
-	const tPet = document.querySelector('.set-tab[data-tab="pet"]');
-	const paneSpeech = document.getElementById("tab-speech");
-	const panePet = document.getElementById("tab-pet");
+	if (isHome && typeof window.Pet !== "undefined") {
+		const btn = document.getElementById("settings-btn-game");
+		const modal = document.getElementById("settings-modal");
+		const closeBtn = document.getElementById("close-settings");
 
-	if (tSpeech && tPet && paneSpeech && panePet) {
-		[tSpeech, tPet].forEach(tab => {
-			tab.addEventListener("click", () => {
-				tSpeech.classList.remove("active");
-				tPet.classList.remove("active");
-				tab.classList.add("active");
-				const isSpeech = tab.dataset.tab === "speech";
-				paneSpeech.style.display = isSpeech ? "block" : "none";
-				panePet.style.display = isSpeech ? "none" : "block";
+		if (btn && modal) {
+			btn.addEventListener("click", function () {
+				modal.style.display = "block";
 			});
+		}
+		if (closeBtn) {
+			closeBtn.addEventListener("click", function () {
+				modal.style.display = "none";
+			});
+		}
+
+		const tSpeech = document.querySelector('.set-tab[data-tab="speech"]');
+		const tPet = document.querySelector('.set-tab[data-tab="pet"]');
+		const paneSpeech = document.getElementById("tab-speech");
+		const panePet = document.getElementById("tab-pet");
+
+		if (tSpeech && tPet && paneSpeech && panePet) {
+			[tSpeech, tPet].forEach(tab => {
+				tab.addEventListener("click", () => {
+					tSpeech.classList.remove("active");
+					tPet.classList.remove("active");
+					tab.classList.add("active");
+					const isSpeech = tab.dataset.tab === "speech";
+					paneSpeech.style.display = isSpeech ? "block" : "none";
+					panePet.style.display = isSpeech ? "none" : "block";
+				});
+			});
+			paneSpeech.style.display = "block";
+			panePet.style.display = "none";
+		}
+
+		const vuong = new Pet({
+			name: "Vuong",
+			basePath: "pet/img/vuong/",
+			idle: "idle.png",
+			kissLeft: "kiss_left.png",
+			kissRight: "kiss_right.png",
+			actions: {
+				walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
+				bounce: [],
+				fly: ["fly_idle1.png","fly_idle2.png","fly_left.png","fly_right.png"]
+			},
+			spawn: { x: 30, y: 200 },
+			speed: 90
 		});
-		paneSpeech.style.display = "block";
-		panePet.style.display = "none";
-	}
+		const ga = new Pet({
+			name: "Ga",
+			basePath: "pet/img/walking-chick/",
+			idle: "idle.png",
+			actions: {
+				walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
+				bounce: ["hop_1.webp","hop_2.webp","hop_4.webp","hop_5.webp"],
+				fly: []
+			},
+			spawn: { x: 250, y: 100 },
+			speed: 70
+		});
+		const du = new Pet({
+			name: "Du",
+			basePath: "pet/img/du/",
+			idle: "idle.png",
+			kissLeft: "kiss_left.png",
+			kissRight: "kiss_right.png",
+			actions: {
+				walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
+				bounce: [],
+				fly: []
+			},
+			spawn: { x: 160, y: 180 },
+			speed: 80
+		});
+		window._pets = { vuong, ga };
+		vuong.node.style.display = "none";
+		du.node.style.display = "none";
+		ga.node.style.display = "none";
 
-	const vuong = new Pet({
-		name: "Vuong",
-		basePath: "pet/img/vuong/",
-		idle: "idle.png",
-		kissLeft: "kiss_left.png",
-		kissRight: "kiss_right.png",
-		actions: {
-			walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
-			bounce: [],
-			fly: ["fly_idle1.png","fly_idle2.png","fly_left.png","fly_right.png"]
-		},
-		spawn: { x: 30, y: 200 },
-		speed: 90
-	});
-	const ga = new Pet({
-		name: "Ga",
-		basePath: "pet/img/walking-chick/",
-		idle: "idle.png",
-		actions: {
-			walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
-			bounce: ["hop_1.webp","hop_2.webp","hop_4.webp","hop_5.webp"],
-			fly: []
-		},
-		spawn: { x: 250, y: 100 },
-		speed: 70
-	});
-	const du = new Pet({
-		name: "Du",
-		basePath: "pet/img/du/",
-		idle: "idle.png",
-		kissLeft: "kiss_left.png",
-		kissRight: "kiss_right.png",
-		actions: {
-			walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
-			bounce: [],
-			fly: []
-		},
-		spawn: { x: 160, y: 180 },
-		speed: 80
-	})
-	window._pets = { vuong, ga };
-	vuong.node.style.display = "none";
-	du.node.style.display = "none";
-	ga.node.style.display = "none";
+		const elV = document.getElementById("toggle-vuong");
+		const elY = document.getElementById("toggle-du");
+		const elG = document.getElementById("toggle-ga");
 
-	const elV = document.getElementById("toggle-vuong");
-	const elY = document.getElementById("toggle-du");
-	const elG = document.getElementById("toggle-ga");
+		function apply(state) {
+			vuong.node.style.display = state.vuong ? "flex" : "none";
+			du.node.style.display = state.du ? "flex" : "none";
+			ga.node.style.display = state.ga ? "flex" : "none";
 
-	function apply(state) {
-		vuong.node.style.display = state.vuong ? "flex" : "none";
-		du.node.style.display    = state.du    ? "flex" : "none";
-		ga.node.style.display    = state.ga    ? "flex" : "none";
-
-		if (state.vuong && vuong.state==="idle") vuong._startRandom();
-		if (state.du    && du.state==="idle")    du._startRandom();
-		if (state.ga    && ga.state==="idle")    ga._startRandom();
-	}
-
-	async function load() {
-		const username = localStorage.getItem("username");
-		let state = { vuong: false, du: false, ga: false };
-		if (username) {
-			const snap = await db.collection("users").doc(username).get();
-			if (snap.exists && snap.data().petToggles) state = snap.data().petToggles;
-		} else {
-			const raw = localStorage.getItem("petToggles");
-			if (raw) state = JSON.parse(raw);
+			if (state.vuong && vuong.state === "idle") vuong._startRandom();
+			if (state.du && du.state === "idle") du._startRandom();
+			if (state.ga && ga.state === "idle") ga._startRandom();
 		}
-		if (elV) elV.checked = !!state.vuong;
-		if (elY) elY.checked = !!state.du;
-		if (elG) elG.checked = !!state.ga;
-		apply(state);
-	}
 
-	async function save() {
-		const state = {
-			vuong: elV ? elV.checked : false,
-			du: elY ? elY.checked : false,
-			ga: elG ? elG.checked : false
-		};
-		const username = localStorage.getItem("username");
-		if (username) {
-			await db.collection("users").doc(username).set({ petToggles: state }, { merge: true });
-		} else {
-			localStorage.setItem("petToggles", JSON.stringify(state));
+		async function load() {
+			const username = localStorage.getItem("username");
+			let state = { vuong: false, du: false, ga: false };
+			if (username) {
+				const snap = await db.collection("users").doc(username).get();
+				if (snap.exists && snap.data().petToggles) state = snap.data().petToggles;
+			} else {
+				const raw = localStorage.getItem("petToggles");
+				if (raw) state = JSON.parse(raw);
+			}
+			if (elV) elV.checked = !!state.vuong;
+			if (elY) elY.checked = !!state.du;
+			if (elG) elG.checked = !!state.ga;
+			apply(state);
 		}
-		apply(state);
-	}
 
-	if (elV) elV.addEventListener("change", save);
-	if (elY) elY.addEventListener("change", save);
-	if (elG) elG.addEventListener("change", save);
-	load();
+		async function save() {
+			const state = {
+				vuong: elV ? elV.checked : false,
+				du: elY ? elY.checked : false,
+				ga: elG ? elG.checked : false
+			};
+			const username = localStorage.getItem("username");
+			if (username) {
+				await db.collection("users").doc(username).set({ petToggles: state }, { merge: true });
+			} else {
+				localStorage.setItem("petToggles", JSON.stringify(state));
+			}
+			apply(state);
+		}
+
+		if (elV) elV.addEventListener("change", save);
+		if (elY) elY.addEventListener("change", save);
+		if (elG) elG.addEventListener("change", save);
+		load();
+	}
 });
 
 async function loadUserBias() {
