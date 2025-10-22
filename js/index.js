@@ -544,122 +544,120 @@ document.addEventListener("DOMContentLoaded", function () {
 	const isHome = homepagePaths.has(location.pathname);
 
 	if (isHome) {
-		if (typeof window.Pet !== "undefined") {
-			const tSpeech = document.querySelector('.set-tab[data-tab="speech"]');
-			const tPet = document.querySelector('.set-tab[data-tab="pet"]');
-			const paneSpeech = document.getElementById("tab-speech");
-			const panePet = document.getElementById("tab-pet");
+		const tSpeech = document.querySelector('.set-tab[data-tab="speech"]');
+		const tPet = document.querySelector('.set-tab[data-tab="pet"]');
+		const paneSpeech = document.getElementById("tab-speech");
+		const panePet = document.getElementById("tab-pet");
 
-			if (tSpeech && tPet && paneSpeech && panePet) {
-				[tSpeech, tPet].forEach(tab => {
-					tab.addEventListener("click", () => {
-						tSpeech.classList.remove("active");
-						tPet.classList.remove("active");
-						tab.classList.add("active");
-						const isSpeech = tab.dataset.tab === "speech";
-						paneSpeech.style.display = isSpeech ? "block" : "none";
-						panePet.style.display = isSpeech ? "none" : "block";
-					});
+		if (tSpeech && tPet && paneSpeech && panePet) {
+			[tSpeech, tPet].forEach(tab => {
+				tab.addEventListener("click", () => {
+					tSpeech.classList.remove("active");
+					tPet.classList.remove("active");
+					tab.classList.add("active");
+					const isSpeech = tab.dataset.tab === "speech";
+					paneSpeech.style.display = isSpeech ? "block" : "none";
+					panePet.style.display = isSpeech ? "none" : "block";
 				});
-				paneSpeech.style.display = "block";
-				panePet.style.display = "none";
-			}
-
-			const vuong = new Pet({
-				name: "Vuong",
-				basePath: "pet/img/vuong/",
-				idle: "idle.png",
-				kissLeft: "kiss_left.png",
-				kissRight: "kiss_right.png",
-				actions: {
-					walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
-					bounce: [],
-					fly: ["fly_idle1.png","fly_idle2.png","fly_left.png","fly_right.png"]
-				},
-				spawn: { x: 30, y: 200 },
-				speed: 90
 			});
-			const ga = new Pet({
-				name: "Ga",
-				basePath: "pet/img/walking-chick/",
-				idle: "idle.png",
-				actions: {
-					walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
-					bounce: ["hop_1.webp","hop_2.webp","hop_4.webp","hop_5.webp"],
-					fly: []
-				},
-				spawn: { x: 250, y: 100 },
-				speed: 70
-			});
-			const du = new Pet({
-				name: "Du",
-				basePath: "pet/img/du/",
-				idle: "idle.png",
-				kissLeft: "kiss_left.png",
-				kissRight: "kiss_right.png",
-				actions: {
-					walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
-					bounce: [],
-					fly: []
-				},
-				spawn: { x: 160, y: 180 },
-				speed: 80
-			});
-			window._pets = { vuong, ga };
-			vuong.node.style.display = "none";
-			du.node.style.display = "none";
-			ga.node.style.display = "none";
-
-			const elV = document.getElementById("toggle-vuong");
-			const elY = document.getElementById("toggle-du");
-			const elG = document.getElementById("toggle-ga");
-
-			function apply(state) {
-				vuong.node.style.display = state.vuong ? "flex" : "none";
-				du.node.style.display = state.du ? "flex" : "none";
-				ga.node.style.display = state.ga ? "flex" : "none";
-
-				if (state.vuong && vuong.state === "idle") vuong._startRandom();
-				if (state.du && du.state === "idle") du._startRandom();
-				if (state.ga && ga.state === "idle") ga._startRandom();
-			}
-
-			async function load() {
-				const username = localStorage.getItem("username");
-				let state = { vuong: false, du: false, ga: false };
-				if (username) {
-					const snap = await db.collection("users").doc(username).get();
-					if (snap.exists && snap.data().petToggles) state = snap.data().petToggles;
-				} else {
-					const raw = localStorage.getItem("petToggles");
-					if (raw) state = JSON.parse(raw);
-				}
-				if (elV) elV.checked = !!state.vuong;
-				if (elY) elY.checked = !!state.du;
-				if (elG) elG.checked = !!state.ga;
-				apply(state);
-			}
-
-			async function save() {
-				const state = {
-					vuong: elV ? elV.checked : false,
-					du: elY ? elY.checked : false,
-					ga: elG ? elG.checked : false
-				};
-				const username = localStorage.getItem("username");
-				if (username) {
-					await db.collection("users").doc(username).set({ petToggles: state }, { merge: true });
-				} else {
-					localStorage.setItem("petToggles", JSON.stringify(state));
-				}
-				apply(state);
-			}
-
-			if (elV) elV.addEventListener("change", save);
-			if (elY) elY.addEventListener("change", save);
-			if (elG) elG.addEventListener("change", save);
-			load();
+			paneSpeech.style.display = "block";
+			panePet.style.display = "none";
 		}
+
+		const vuong = new Pet({
+			name: "Vuong",
+			basePath: "pet/img/vuong/",
+			idle: "idle.png",
+			kissLeft: "kiss_left.png",
+			kissRight: "kiss_right.png",
+			actions: {
+				walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
+				bounce: [],
+				fly: ["fly_idle1.png","fly_idle2.png","fly_left.png","fly_right.png"]
+			},
+			spawn: { x: 30, y: 200 },
+			speed: 90
+		});
+		const ga = new Pet({
+			name: "Ga",
+			basePath: "pet/img/walking-chick/",
+			idle: "idle.png",
+			actions: {
+				walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
+				bounce: ["hop_1.webp","hop_2.webp","hop_4.webp","hop_5.webp"],
+				fly: []
+			},
+			spawn: { x: 250, y: 100 },
+			speed: 70
+		});
+		const du = new Pet({
+			name: "Du",
+			basePath: "pet/img/du/",
+			idle: "idle.png",
+			kissLeft: "kiss_left.png",
+			kissRight: "kiss_right.png",
+			actions: {
+				walk: ["walk_left_1.png","walk_left_2.png","walk_left_3.png","walk_right_1.png","walk_right_2.png","walk_right_3.png"],
+				bounce: [],
+				fly: []
+			},
+			spawn: { x: 160, y: 180 },
+			speed: 80
+		});
+		window._pets = { vuong, ga };
+		vuong.node.style.display = "none";
+		du.node.style.display = "none";
+		ga.node.style.display = "none";
+
+		const elV = document.getElementById("toggle-vuong");
+		const elY = document.getElementById("toggle-du");
+		const elG = document.getElementById("toggle-ga");
+
+		function apply(state) {
+			vuong.node.style.display = state.vuong ? "flex" : "none";
+			du.node.style.display = state.du ? "flex" : "none";
+			ga.node.style.display = state.ga ? "flex" : "none";
+
+			if (state.vuong && vuong.state === "idle") vuong._startRandom();
+			if (state.du && du.state === "idle") du._startRandom();
+			if (state.ga && ga.state === "idle") ga._startRandom();
+		}
+
+		async function load() {
+			const username = localStorage.getItem("username");
+			let state = { vuong: false, du: false, ga: false };
+			if (username) {
+				const snap = await db.collection("users").doc(username).get();
+				if (snap.exists && snap.data().petToggles) state = snap.data().petToggles;
+			} else {
+				const raw = localStorage.getItem("petToggles");
+				if (raw) state = JSON.parse(raw);
+			}
+			if (elV) elV.checked = !!state.vuong;
+			if (elY) elY.checked = !!state.du;
+			if (elG) elG.checked = !!state.ga;
+			apply(state);
+		}
+
+		async function save() {
+			const state = {
+                vuong: elV ? elV.checked : false,
+                du: elY ? elY.checked : false,
+                ga: elG ? elG.checked : false
+			};
+			const username = localStorage.getItem("username");
+			if (username) {
+				await db.collection("users").doc(username).set({ petToggles: state }, { merge: true });
+			} else {
+				localStorage.setItem("petToggles", JSON.stringify(state));
+			}
+			apply(state);
+		}
+
+		if (elV) elV.addEventListener("change", save);
+		if (elY) elY.addEventListener("change", save);
+		if (elG) elG.addEventListener("change", save);
+		load();
 	}
 });
 
