@@ -276,9 +276,12 @@ async function saveScoreToDB(game, newScore) {
 
 	const scoreDocId = `${username}-${game}`;
 	const scoreRef = firebase.firestore().collection("userScores").doc(scoreDocId);
+	const userRef = firebase.firestore().collection("users").doc(username);
 
 	try {
+		let oldScore = 0;
 		const docSnapshot = await scoreRef.get();
+
 		if (!docSnapshot.exists) {
 			await scoreRef.set({
 				username,
@@ -286,20 +289,36 @@ async function saveScoreToDB(game, newScore) {
 				score: newScore,
 				updatedAt: new Date().toISOString()
 			});
+			console.log("✅ Tạo bản ghi mới:", newScore);
 		} else {
-			const oldScore = Number(docSnapshot.data().score) || 0;
+			oldScore = Number(docSnapshot.data().score) || 0;
 			if (newScore > oldScore) {
 				await scoreRef.update({
 					score: newScore,
 					updatedAt: new Date().toISOString()
 				});
+				console.log(`🔼 Cập nhật điểm cao hơn: ${oldScore} → ${newScore}`);
+			} else {
+				console.log(`⏩ Điểm ${newScore} không cao hơn ${oldScore}, giữ nguyên.`);
 			}
 		}
-		if (typeof updateTotalScore === "function") {
-			await updateTotalScore(); // an toàn vì hàm mới sẽ tự guard DOM
-		}
+
+		const querySnapshot = await firebase.firestore()
+			.collection("userScores")
+			.where("username", "==", username)
+			.get();
+
+		let totalScore = 0;
+		querySnapshot.forEach(doc => {
+			totalScore += Number(doc.data().score) || 0;
+		});
+
+		await userRef.set({ totalScore }, { merge: true });
+		localStorage.setItem("totalScore", totalScore);
+		console.log("⭐ Tổng điểm đã cập nhật:", totalScore);
+		return totalScore;
 	} catch (error) {
-		console.error(error);
+		console.error("❌ Lỗi khi lưu điểm:", error);
 	}
 }
 
