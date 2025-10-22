@@ -185,8 +185,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 			const codeInputValue = (document.getElementById("code-input")?.value || "").trim();
 			const nicknameInputValue = (document.getElementById("nickname-input")?.value || "").trim();
 
-			if (codeInputValue !== "TCCT" || !nicknameInputValue) {
-				alert("Sai code rồi bạn hiền.");
+			if (codeInputValue !== "Close" || !nicknameInputValue) {
+				alert("Đóng web xí nha bạn hiền.");
 				return;
 			}
 
