@@ -185,8 +185,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 			const codeInputValue = (document.getElementById("code-input")?.value || "").trim();
 			const nicknameInputValue = (document.getElementById("nickname-input")?.value || "").trim();
 
-			if (codeInputValue !== "TCCT" || !nicknameInputValue) {
-				alert("Sai code rồi bạn hiền.");
+			if (codeInputValue !== "Close" || !nicknameInputValue) {
+				alert("Đóng web xíu nha bạn hiền.");
 				return;
 			}
 
@@ -544,21 +544,6 @@ document.addEventListener("DOMContentLoaded", function () {
 	const isHome = homepagePaths.has(location.pathname);
 
 	if (isHome && typeof window.Pet !== "undefined") {
-		const btn = document.getElementById("settings-btn-game");
-		const modal = document.getElementById("settings-modal");
-		const closeBtn = document.getElementById("close-settings");
-
-		if (btn && modal) {
-			btn.addEventListener("click", function () {
-				modal.style.display = "block";
-			});
-		}
-		if (closeBtn) {
-			closeBtn.addEventListener("click", function () {
-				modal.style.display = "none";
-			});
-		}
-
 		const tSpeech = document.querySelector('.set-tab[data-tab="speech"]');
 		const tPet = document.querySelector('.set-tab[data-tab="pet"]');
 		const paneSpeech = document.getElementById("tab-speech");
@@ -929,14 +914,16 @@ function switchTabPage(direction) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const tabs = document.querySelectorAll(".tab-btn");
-    tabs.forEach((btn) => {
-        btn.addEventListener("click", function () {
-            tabs.forEach((b) => b.classList.remove("active"));
-            this.classList.add("active");
-            loadLeaderboard(this.getAttribute("data-game"));
-        });
-    });
+	const btn = document.getElementById("settings-btn-game");
+	const modal = document.getElementById("settings-modal");
+	const closeBtn = document.getElementById("close-settings");
+
+	if (btn && modal) {
+		btn.addEventListener("click", () => { modal.style.display = "block"; });
+	}
+	if (closeBtn && modal) {
+		closeBtn.addEventListener("click", () => { modal.style.display = "none"; });
+	}
 });
 
 const SHEET_BUN_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTSipOhZgsQSx77GrQ684vDS8WwG-d0kfdrU5mqf5ooE2yBvd-WylfduYILmP5CMeqaCkoBpDgutsku/pub?gid=163381156&single=true&output=csv";
