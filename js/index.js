@@ -510,8 +510,6 @@ async function showLeaderboard() {
     }
 }
 
-
-
 async function updateOldLeaderboardData() {
     const scoresRef = firebase.firestore().collection("userScores");
     try {
