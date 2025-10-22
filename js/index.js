@@ -185,8 +185,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 			const codeInputValue = (document.getElementById("code-input")?.value || "").trim();
 			const nicknameInputValue = (document.getElementById("nickname-input")?.value || "").trim();
 
-			if (codeInputValue !== "Close" || !nicknameInputValue) {
-				alert("Đóng web xíu nha bạn hiền.");
+			if (codeInputValue !== "TCCT" || !nicknameInputValue) {
+				alert("Sai code rồi bạn hiền.");
 				return;
 			}
 
@@ -329,7 +329,7 @@ async function updateTotalScore() {
 	}
 
 	const username = localStorage.getItem("username");
-	const totalScoreElement = document.getElementById("user-points"); // có thể null ở trang game
+	const totalScoreElement = document.getElementById("user-points");
 	const hasUI = !!totalScoreElement;
 
 	if (!username) {
@@ -347,7 +347,6 @@ async function updateTotalScore() {
 		}
 	}
 
-	// Không online thì thôi, giữ cache/UI hiện có
 	if (!navigator.onLine) return;
 
 	const scoresRef = firebase.firestore().collection("userScores");
@@ -386,7 +385,6 @@ async function updateTotalScore() {
 			localStorage.setItem("totalScore", String(totalScore));
 		}
 
-		// Phần “điểm project” chỉ render khi có UI
 		projectScore = Math.floor(projectScore / 10);
 		if (hasUI) {
 			let projectRow = document.getElementById("project-points");
