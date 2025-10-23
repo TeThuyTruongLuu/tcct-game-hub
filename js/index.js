@@ -1318,6 +1318,17 @@ function hideScoreEmbed(){
   if (embed) embed.style.display = 'none';
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const game = btn.dataset.game;
+      await loadLeaderboard(game);
+    });
+  });
+});
+
 document.querySelector(".sv-tabs")?.addEventListener("click",e=>{
   const btn=e.target.closest(".sv-tab")
   if(!btn) return
