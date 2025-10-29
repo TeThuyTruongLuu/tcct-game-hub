@@ -263,7 +263,7 @@ let gestureCooldownUntil=0;
 
 async function initHand(){
 	if(!window.FilesetResolver||!window.HandLandmarker) throw new Error('Vision bundle not ready');
-	const vision=await window.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm');
+	const vision = await window.FilesetResolver.forVisionTasks("https://unpkg.com/@mediapipe/tasks-vision@0.10.20/wasm");
 	handLandmarker=await window.HandLandmarker.createFromOptions(vision,{
 		baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-tasks/hand_landmarker/hand_landmarker.task'},
 		runningMode:'VIDEO',
