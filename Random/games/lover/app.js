@@ -16,6 +16,7 @@ async function startCamera(){
 }
 
 function showSpeech(text,isUser=false){
+	if(isUser&&(!canEchoUser()||playing)) return;
 	speechBox.textContent=text||'';
 	if(!text){
 		speechBox.style.display='none';
@@ -23,6 +24,7 @@ function showSpeech(text,isUser=false){
 	}
 	speechBox.style.display='block';
 	speechBox.classList.toggle('speech--user',!!isUser);
+	if(isUser) lastUserEcho=text;
 }
 
 function showCharacter(on){
@@ -68,13 +70,11 @@ const CHARACTERS={
 };
 
 let currentCharacterKey='artem';
-
 function setCharacter(key){
 	const cfg=CHARACTERS[key]||CHARACTERS.artem;
 	currentCharacterKey=key;
 	characterImg.src=cfg.image;
 }
-
 function getResponses(){
 	return (CHARACTERS[currentCharacterKey]||CHARACTERS.artem).responses;
 }
@@ -96,7 +96,14 @@ let currentAudio=null;
 let keepListening=false;
 let recognizer=null;
 let lastTriggerAt=0;
+let suppressUserEchoUntil=0;
+let lastUserEcho='';
 const COOLDOWN_MS=1500;
+const GRACE_MS=1200;
+
+function canEchoUser(){
+	return Date.now()>=suppressUserEchoUntil;
+}
 
 async function playResponse(item){
 	if(playing) return;
@@ -111,9 +118,9 @@ async function playResponse(item){
 	}
 	currentAudio.onended=()=>{
 		showCharacter(false);
-		showSpeech('');
 		playing=false;
 		currentAudio=null;
+		suppressUserEchoUntil=Date.now()+GRACE_MS;
 		if(keepListening&&recognizer){
 			try{recognizer.start();}catch(_){}
 		}
@@ -135,12 +142,12 @@ function setupRecognizer(){
 	rec.onresult=(evt)=>{
 		let chunk='';
 		for(let i=evt.resultIndex;i<evt.results.length;i++){
-			chunk+=evt.results[i][0].transcript;
+			const part=evt.results[i][0].transcript;
+			chunk+=part;
 			if(!evt.results[i].isFinal){
 				const m=findResponse(chunk);
 				if(m&&Date.now()-lastTriggerAt>COOLDOWN_MS&&!playing){
 					lastTriggerAt=Date.now();
-					showSpeech('Bạn: '+chunk,true);
 					try{rec.stop();}catch(_){}
 					playResponse(m.item);
 					return;
@@ -149,12 +156,13 @@ function setupRecognizer(){
 		}
 		const finalTxt=chunk.trim();
 		if(finalTxt){
-			showSpeech('Bạn: '+finalTxt,true);
 			const m=findResponse(finalTxt);
 			if(m&&Date.now()-lastTriggerAt>COOLDOWN_MS&&!playing){
 				lastTriggerAt=Date.now();
 				try{rec.stop();}catch(_){}
 				playResponse(m.item);
+			}else{
+				if(finalTxt!==lastUserEcho) showSpeech('Bạn: '+finalTxt,true);
 			}
 		}
 	};
