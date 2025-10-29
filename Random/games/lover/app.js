@@ -87,7 +87,7 @@ const CHARACTERS={
 				keywords:['vương','quan hệ'],
 				audio:'ywz/Vương.mp3',
 				subtitle:'Quan hệ giữa tôi với Vương Kiệt Hi là gì hả? Bạn bè đó. Trên sân thi đấu là đối thủ, xuống sân là bạn bè thân.'
-			},			
+			}
 		]
 	}
 };
@@ -102,6 +102,7 @@ function getResponses(){
 }
 
 function findResponse(transcript){
+	if(Date.now()<suppressDetectUntil) return null;
 	const raw=transcript.trim();
 	const plain=normalizeNoAccent(raw);
 	for(const item of getResponses()){
@@ -120,8 +121,10 @@ let recognizer=null;
 let lastTriggerAt=0;
 let suppressUserEchoUntil=0;
 let lastUserEcho='';
-const COOLDOWN_MS=1500;
+let suppressDetectUntil=0;
+const COOLDOWN_MS=2000;
 const GRACE_MS=1200;
+const RESTART_DELAY_MS=800;
 
 function canEchoUser(){
 	return Date.now()>=suppressUserEchoUntil;
@@ -130,6 +133,8 @@ function canEchoUser(){
 async function playResponse(item){
 	if(playing) return;
 	playing=true;
+	lastTriggerAt=Date.now();
+	if(recognizer){try{recognizer.stop();}catch(_){}}	
 	const prevSrc=characterImg.src||'';
 	const cand=imgCandidatesFromAudio(item.audio);
 	const swap=await pickExistingImage(cand);
@@ -149,8 +154,9 @@ async function playResponse(item){
 		playing=false;
 		currentAudio=null;
 		suppressUserEchoUntil=Date.now()+GRACE_MS;
+		suppressDetectUntil=Date.now()+1200;
 		if(keepListening&&recognizer){
-			try{recognizer.start();}catch(_){}
+			setTimeout(()=>{try{recognizer.start();}catch(_){}},RESTART_DELAY_MS);
 		}
 	};
 }
@@ -168,6 +174,7 @@ function setupRecognizer(){
 	rec.interimResults=true;
 	rec.maxAlternatives=1;
 	rec.onresult=(evt)=>{
+		if(Date.now()<suppressDetectUntil) return;
 		let chunk='';
 		for(let i=evt.resultIndex;i<evt.results.length;i++){
 			const part=evt.results[i][0].transcript;
@@ -263,7 +270,7 @@ let gestureCooldownUntil=0;
 
 async function initHand(){
 	if(!window.FilesetResolver||!window.HandLandmarker) throw new Error('Vision bundle not ready');
-	const vision = await window.FilesetResolver.forVisionTasks("https://unpkg.com/@mediapipe/tasks-vision@0.10.20/wasm");
+	const vision=await window.FilesetResolver.forVisionTasks("https://unpkg.com/@mediapipe/tasks-vision@0.10.20/wasm");
 	handLandmarker=await window.HandLandmarker.createFromOptions(vision,{
 		baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-tasks/hand_landmarker/hand_landmarker.task'},
 		runningMode:'VIDEO',
@@ -285,8 +292,8 @@ function isThumbDownFist(lm){
 	for(const t of tips){const dx=t.x-wrist.x,dy=t.y-wrist.y;spread+=Math.sqrt(dx*dx+dy*dy);}
 	spread/=4;
 	const thumbTip=lm[4];
-	const thumbDown=thumbTip.y>wrist.y+0.04;
-	return spread<0.18&&thumbDown;
+	const thumbDown=thumbTip.y>wrist.y+0.02;
+	return spread<0.22&&thumbDown;
 }
 
 function handleGesture(g){
@@ -306,15 +313,18 @@ async function handLoop(){
 	const ts=performance.now();
 	if(lastVideoTime!==video.currentTime){
 		const res=await handLandmarker.detectForVideo(video,ts);
-		if(res.landmarks&&res.landmarks[0]){
-			const lm=res.landmarks[0];
-			const wrist=lm[0];
-			const dt=(ts-lastTs)/1000;
-			const v=avgSpeed(prevWrist,wrist,dt);
-			prevWrist={x:wrist.x,y:wrist.y};
-			lastTs=ts;
-			if(v>0.008) handleGesture('wave');
-			else if(isThumbDownFist(lm)) handleGesture('thumbs_down_fist');
+		if(res.landmarks&&res.landmarks.length){
+			let triggered=false;
+			for(const lm of res.landmarks){
+				const wrist=lm[0];
+				const dt=(ts-lastTs)/1000;
+				const v=avgSpeed(prevWrist,wrist,dt);
+				prevWrist={x:wrist.x,y:wrist.y};
+				lastTs=ts;
+				if(v>0.01){handleGesture('wave');triggered=true;break;}
+				if(isThumbDownFist(lm)){handleGesture('thumbs_down_fist');triggered=true;break;}
+			}
+			if(triggered){}
 		}
 		lastVideoTime=video.currentTime;
 	}
