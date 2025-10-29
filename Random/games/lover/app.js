@@ -43,13 +43,13 @@ const CHARACTERS={
 		responses:[
 			{
 				name:'hello',
-				keywords:['hello','xin chao','chao','hi'],
+				keywords:['chao', 'chao buoi sang'],
 				audio:'Artem/Hi.mp3',
 				subtitle:'Chào buổi sáng, hôm nay em có đi làm không?'
 			},
 			{
 				name:'work',
-				keywords:['đi làm','di lam','di lam nhe'],
+				keywords:['đi làm','di lam','di lam nhe', 'da co'],
 				audio:'Artem/Go to work.mp3',
 				subtitle:'Anh đang chuẩn bị đi làm. 10 phút nữa anh sẽ ghé, chúng ta đi làm cùng nhau nhé?'
 			}
@@ -206,6 +206,19 @@ characterSelect.addEventListener('change',(e)=>{
 	setCharacter(e.target.value);
 	showSpeech('Đã chọn '+(CHARACTERS[e.target.value]?.label||'nhân vật'),false);
 });
+
+let hintBox=document.getElementById('hint')||(()=>{const n=document.createElement('div');n.id='hint';n.className='hint';document.body.appendChild(n);return n;})();
+function setHintForCharacter(key){
+	if(key==='artem') hintBox.textContent='Từ gợi ý: "xin chào", "đi làm", "dạ có"';
+	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay"';
+	else hintBox.textContent='';
+}
+function setCharacter(key){
+	const cfg=CHARACTERS[key]||CHARACTERS.artem;
+	currentCharacterKey=key;
+	characterImg.src=cfg.image;
+	setHintForCharacter(key);
+}
 
 setCharacter(currentCharacterKey);
 startCamera();
