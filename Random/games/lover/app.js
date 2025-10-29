@@ -209,7 +209,7 @@ characterSelect.addEventListener('change',(e)=>{
 
 let hintBox=document.getElementById('hint')||(()=>{const n=document.createElement('div');n.id='hint';n.className='hint';document.body.appendChild(n);return n;})();
 function setHintForCharacter(key){
-	if(key==='artem') hintBox.textContent='Từ gợi ý: "xin chào", "đi làm", "dạ có"';
+	if(key==='artem') hintBox.textContent='Từ gợi ý: "chào buổi sáng", "đi làm", "dạ có"';
 	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay"';
 	else hintBox.textContent='';
 }
