@@ -36,6 +36,25 @@ function normalizeNoAccent(s){
 	return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
 }
 
+function imgCandidatesFromAudio(p){
+	const base=p.replace(/\.[^/.]+$/,'');
+	return [base+'.png',base+'.jpg',base+'.webp'];
+}
+
+function pickExistingImage(paths){
+	return new Promise(res=>{
+		let i=0;
+		const probe=()=>{
+			if(i>=paths.length){res(null);return;}
+			const im=new Image();
+			im.onload=()=>res(paths[i]);
+			im.onerror=()=>{i++;probe();};
+			im.src=paths[i];
+		};
+		probe();
+	});
+}
+
 const CHARACTERS={
 	artem:{
 		label:'Artem',
@@ -43,7 +62,7 @@ const CHARACTERS={
 		responses:[
 			{
 				name:'hello',
-				keywords:['chao', 'chao buoi sang'],
+				keywords:['chao', 'chao buoi sang', 'buổi sáng'],
 				audio:'Artem/Hi.mp3',
 				subtitle:'Chào buổi sáng, hôm nay em có đi làm không?'
 			},
@@ -114,6 +133,10 @@ function canEchoUser(){
 async function playResponse(item){
 	if(playing) return;
 	playing=true;
+	const prevSrc=characterImg.src;
+	const cand=imgCandidatesFromAudio(item.audio);
+	const swap=await pickExistingImage(cand);
+	if(swap) characterImg.src=swap;
 	currentAudio=new Audio(item.audio);
 	showCharacter(true);
 	if(item.subtitle) showSpeech(item.subtitle,false);
@@ -123,7 +146,9 @@ async function playResponse(item){
 		showSpeech('Không phát được âm thanh. Hãy bấm một nút trước để cấp quyền âm thanh.',false);
 	}
 	currentAudio.onended=()=>{
+		characterImg.src=prevSrc;
 		showCharacter(false);
+		showSpeech('');
 		playing=false;
 		currentAudio=null;
 		suppressUserEchoUntil=Date.now()+GRACE_MS;
@@ -216,7 +241,7 @@ characterSelect.addEventListener('change',(e)=>{
 let hintBox=document.getElementById('hint')||(()=>{const n=document.createElement('div');n.id='hint';n.className='hint';document.body.appendChild(n);return n;})();
 function setHintForCharacter(key){
 	if(key==='artem') hintBox.textContent='Từ gợi ý: "chào buổi sáng", "đi làm", "dạ có"';
-	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay"';
+	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay", "Vương"';
 	else hintBox.textContent='';
 }
 function setCharacter(key){
