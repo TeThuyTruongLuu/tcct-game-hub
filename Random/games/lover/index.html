@@ -8,7 +8,7 @@
 </head>
 <body>
 	<video id="video" autoplay muted playsinline></video>
-	<img id="character" class="character" src="6132779.png" alt="character" />
+	<img id="character" class="character" alt="character" />
 	<div id="speech" class="speech" style="display:none"></div>
 	<div class="controls">
 		<select id="characterSelect" aria-label="Chọn nhân vật">
@@ -16,10 +16,11 @@
 			<option value="ywz">Dụ Văn Châu</option>
 		</select>
 		<button id="btnStart">🎤 Bắt đầu nghe</button>
-		<button id="btnStop" class="secondary">⏹️ Dừng nghe</button>
+		<button id="btnStop" class="secondary">🚫 Dừng nghe</button>
 		<button id="btnTest" class="success">Test</button>
 	</div>
 	<div id="hint" class="hint"></div>
+	<script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.js"></script>
 	<script src="app.js"></script>
 </body>
 </html>

@@ -2,25 +2,26 @@ html, body {
 	margin: 0;
 	padding: 0;
 	height: 100%;
-	background: #000;
+	background: #0b0f17;
 	color: #fff;
-	font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+	font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	overflow: hidden;
 }
 
 video {
 	position: absolute;
-	top: 0;
-	left: 0;
+	inset: 0;
 	width: 100vw;
 	height: 100vh;
 	object-fit: cover;
 	transform: scaleX(-1);
+	filter: brightness(0.95) contrast(1.05) saturate(1.05);
 }
 
 .character {
@@ -32,70 +33,88 @@ video {
 	display: none;
 }
 
-.speech {
-	position: absolute;
-	bottom: 22%;
-	left: 50%;
-	transform: translateX(-50%);
-	background: rgba(0,0,0,0.6);
-	padding: 12px 18px;
-	border-radius: 18px;
-	font-size: 1.05rem;
-	max-width: min(86vw, 800px);
-	text-align: center;
-	line-height: 1.45;
-	backdrop-filter: blur(2px);
-}
-
 .controls {
 	position: absolute;
-	top: 14px;
+	top: 24px;
 	left: 50%;
 	transform: translateX(-50%);
 	display: flex;
-	gap: 10px;
-	flex-wrap: wrap;
+	gap: 12px;
 	align-items: center;
+	background: rgba(12,16,24,0.52);
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255,255,255,0.08);
+	box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+	padding: 10px 14px;
+	border-radius: 14px;
 }
 
 button, select {
-	background: #fff;
-	color: #000;
+	background: #ffffff;
+	color: #0b0f17;
 	border: 0;
 	padding: 10px 16px;
-	border-radius: 10px;
+	border-radius: 12px;
 	font-weight: 700;
 	cursor: pointer;
+	transition: transform .06s ease, box-shadow .2s ease, background .2s ease;
+}
+
+button:active, select:active {
+	transform: translateY(0);
+	box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+button.secondary {
+	background: #e9eef7;
+}
+
+button.success {
+	background: #22c55e;
+	color: #fff;
 }
 
 select {
 	padding: 10px 12px;
 }
 
-button.secondary {
-	background: #e9e9ef;
-}
-
-button.success {
-	background: #4CAF50;
-	color: #fff;
+.speech {
+	position: absolute;
+	bottom: 18%;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(12,16,24,0.62);
+	padding: 14px 20px;
+	border-radius: 16px;
+	font-size: 1.05rem;
+	max-width: min(86vw, 820px);
+	text-align: center;
+	line-height: 1.5;
+	backdrop-filter: blur(8px);
+	border: 1px solid rgba(255,255,255,0.08);
+	box-shadow: 0 12px 30px rgba(0,0,0,0.35);
 }
 
 .speech--user {
-	background: rgba(20,20,20,0.65);
-	border: 1px solid rgba(255,255,255,0.08);
+	background: rgba(20,20,24,0.72);
+	border-color: rgba(255,255,255,0.12);
 }
 
 .hint {
 	position: absolute;
 	left: 50%;
 	transform: translateX(-50%);
-	bottom: calc(10px + env(safe-area-inset-bottom));
-	color: #ddd;
+	bottom: calc(14px + env(safe-area-inset-bottom));
+	color: #e6eaf2;
 	font-size: 0.95rem;
 	text-align: center;
 	opacity: 0.9;
 	z-index: 3;
 	pointer-events: none;
 	text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+	background: rgba(12,16,24,0.45);
+	backdrop-filter: blur(6px);
+	border: 1px solid rgba(255,255,255,0.08);
+	padding: 8px 12px;
+	border-radius: 12px;
 }

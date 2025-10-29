@@ -58,17 +58,16 @@ function pickExistingImage(paths){
 const CHARACTERS={
 	artem:{
 		label:'Artem',
-		image:'artem.png',
 		responses:[
 			{
 				name:'hello',
-				keywords:['chao', 'chao buoi sang', 'buổi sáng'],
+				keywords:['chao','chao buoi sang','buổi sáng','hello','xin chao','hi'],
 				audio:'Artem/Hi.mp3',
 				subtitle:'Chào buổi sáng, hôm nay em có đi làm không?'
 			},
 			{
 				name:'work',
-				keywords:['đi làm','di lam','di lam nhe', 'da co'],
+				keywords:['đi làm','di lam','di lam nhe','da co'],
 				audio:'Artem/Go to work.mp3',
 				subtitle:'Anh đang chuẩn bị đi làm. 10 phút nữa anh sẽ ghé, chúng ta đi làm cùng nhau nhé?'
 			}
@@ -76,7 +75,6 @@ const CHARACTERS={
 	},
 	ywz:{
 		label:'Dụ Văn Châu',
-		image:'ywz.jpg',
 		responses:[
 			{
 				name:'tay',
@@ -85,20 +83,19 @@ const CHARACTERS={
 				subtitle:'Tay tàn thì có gì sai chứ? Anh vẫn dắt em chơi game được mà.'
 			},
 			{
-				name:'vuong',
-				keywords:['vuong kiet hi','quan he', 'Vương'],
+				name:'Vương',
+				keywords:['vương','quan hệ'],
 				audio:'ywz/Vương.mp3',
-				subtitle:'Quan hệ giữa tôi với Vương Kiệt Hi là gì hả?\nBạn bè đó. Trên sân thi đấu là đối thủ, xuống sân là bạn bè thân.'
-			}
+				subtitle:'Quan hệ giữa tôi với Vương Kiệt Hi là gì hả? Bạn bè đó. Trên sân thi đấu là đối thủ, xuống sân là bạn bè thân.'
+			},			
 		]
 	}
 };
 
 let currentCharacterKey='artem';
 function setCharacter(key){
-	const cfg=CHARACTERS[key]||CHARACTERS.artem;
 	currentCharacterKey=key;
-	characterImg.src=cfg.image;
+	setHintForCharacter(key);
 }
 function getResponses(){
 	return (CHARACTERS[currentCharacterKey]||CHARACTERS.artem).responses;
@@ -133,7 +130,7 @@ function canEchoUser(){
 async function playResponse(item){
 	if(playing) return;
 	playing=true;
-	const prevSrc=characterImg.src;
+	const prevSrc=characterImg.src||'';
 	const cand=imgCandidatesFromAudio(item.audio);
 	const swap=await pickExistingImage(cand);
 	if(swap) characterImg.src=swap;
@@ -216,6 +213,12 @@ btnStart.addEventListener('click',async()=>{
 		try{recognizer.start();}catch(_){}
 		showSpeech('Đang lắng nghe…',false);
 	}
+	if(window.FilesetResolver&&window.HandLandmarker){
+		if(!handLandmarker) await initHand();
+		requestAnimationFrame(handLoop);
+	}else{
+		showSpeech('Không tải được nhận diện tay. Tiếp tục nghe giọng nói.',true);
+	}
 });
 
 btnStop.addEventListener('click',()=>{
@@ -234,22 +237,86 @@ btnTest.addEventListener('click',()=>{
 });
 
 characterSelect.addEventListener('change',(e)=>{
-	setCharacter(e.target.value);
+	setCharacterWithHint(e.target.value);
 	showSpeech('Đã chọn '+(CHARACTERS[e.target.value]?.label||'nhân vật'),false);
 });
 
 let hintBox=document.getElementById('hint')||(()=>{const n=document.createElement('div');n.id='hint';n.className='hint';document.body.appendChild(n);return n;})();
 function setHintForCharacter(key){
-	if(key==='artem') hintBox.textContent='Từ gợi ý: "chào buổi sáng", "đi làm", "dạ có"';
-	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay", "Vương"';
+	if(key==='artem') hintBox.textContent='Từ gợi ý: "xin chào", "đi làm", "dạ có"';
+	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay"';
 	else hintBox.textContent='';
 }
-function setCharacter(key){
-	const cfg=CHARACTERS[key]||CHARACTERS.artem;
+function setCharacterWithHint(key){
 	currentCharacterKey=key;
-	characterImg.src=cfg.image;
 	setHintForCharacter(key);
 }
 
-setCharacter(currentCharacterKey);
+setCharacterWithHint(currentCharacterKey);
 startCamera();
+
+let handLandmarker=null;
+let lastVideoTime=-1;
+let prevWrist=null;
+let lastTs=0;
+let gestureCooldownUntil=0;
+
+async function initHand(){
+	if(!window.FilesetResolver||!window.HandLandmarker) throw new Error('Vision bundle not ready');
+	const vision=await window.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm');
+	handLandmarker=await window.HandLandmarker.createFromOptions(vision,{
+		baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-tasks/hand_landmarker/hand_landmarker.task'},
+		runningMode:'VIDEO',
+		numHands:2
+	});
+}
+
+function avgSpeed(pPrev,pNow,dt){
+	if(!pPrev||!pNow||dt<=0) return 0;
+	const dx=pNow.x-pPrev.x,dy=pNow.y-pPrev.y;
+	return Math.sqrt(dx*dx+dy*dy)/dt;
+}
+
+function isThumbDownFist(lm){
+	if(!lm||lm.length<21) return false;
+	const wrist=lm[0];
+	const tips=[lm[8],lm[12],lm[16],lm[20]];
+	let spread=0;
+	for(const t of tips){const dx=t.x-wrist.x,dy=t.y-wrist.y;spread+=Math.sqrt(dx*dx+dy*dy);}
+	spread/=4;
+	const thumbTip=lm[4];
+	const thumbDown=thumbTip.y>wrist.y+0.04;
+	return spread<0.18&&thumbDown;
+}
+
+function handleGesture(g){
+	if(Date.now()<gestureCooldownUntil||playing) return;
+	if(currentCharacterKey==='artem'&&g==='wave'){
+		const item=getResponses().find(r=>normalizeNoAccent(r.name)==='hello');
+		if(item){gestureCooldownUntil=Date.now()+1500;playResponse(item);}
+	}
+	if(currentCharacterKey==='ywz'&&g==='thumbs_down_fist'){
+		const item=getResponses().find(r=>normalizeNoAccent(r.name)==='tay');
+		if(item){gestureCooldownUntil=Date.now()+1500;playResponse(item);}
+	}
+}
+
+async function handLoop(){
+	if(!handLandmarker||!video.videoWidth){requestAnimationFrame(handLoop);return;}
+	const ts=performance.now();
+	if(lastVideoTime!==video.currentTime){
+		const res=await handLandmarker.detectForVideo(video,ts);
+		if(res.landmarks&&res.landmarks[0]){
+			const lm=res.landmarks[0];
+			const wrist=lm[0];
+			const dt=(ts-lastTs)/1000;
+			const v=avgSpeed(prevWrist,wrist,dt);
+			prevWrist={x:wrist.x,y:wrist.y};
+			lastTs=ts;
+			if(v>0.008) handleGesture('wave');
+			else if(isThumbDownFist(lm)) handleGesture('thumbs_down_fist');
+		}
+		lastVideoTime=video.currentTime;
+	}
+	requestAnimationFrame(handLoop);
+}
