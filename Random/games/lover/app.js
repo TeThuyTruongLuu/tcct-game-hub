@@ -64,6 +64,12 @@ const CHARACTERS={
 				keywords:['tay','slow hand'],
 				audio:'ywz/Slow hand.mp3',
 				subtitle:'Tay tàn thì có gì sai chứ? Anh vẫn dắt em chơi game được mà.'
+			},
+			{
+				name:'vuong',
+				keywords:['vuong kiet hi','quan he', 'Vương'],
+				audio:'ywz/Vương.mp3',
+				subtitle:'Quan hệ giữa tôi với Vương Kiệt Hi là gì hả?\nBạn bè đó. Trên sân thi đấu là đối thủ, xuống sân là bạn bè thân.'
 			}
 		]
 	}
