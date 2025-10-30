@@ -83,7 +83,7 @@ const CHARACTERS={
 				subtitle:'Tay tồn thì có gì sai chứ? Anh vẫn dắt em chơi game được mà.'
 			},
 			{
-				name:'VÆ°Æ¡ng',
+				name:'Vương',
 				keywords:['vương','quan hệ'],
 				audio:'ywz/Vương.mp3',
 				subtitle:'Quan hệ giữa tôi với Vương Kiệt Hi là gì hả? Bạn bè đó. Trên sân thi đấu là đối thủ, xuống sân là bạn bè thân.'
@@ -250,8 +250,8 @@ characterSelect.addEventListener('change',(e)=>{
 
 let hintBox=document.getElementById('hint')||(()=>{const n=document.createElement('div');n.id='hint';n.className='hint';document.body.appendChild(n);return n;})();
 function setHintForCharacter(key){
-	if(key==='artem') hintBox.textContent='Từ gợi ý: "chào buổi sáng", "đi làm" hoặc 👍';
-	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay", "Vương" hoặc 👎';
+	if(key==='artem') hintBox.textContent='Từ gợi ý: "xin chào", "đi làm" hoặc vẫy tay / giơ ngón cái';
+	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay", "Vương" hoặc hạ ngón cái';
 	else hintBox.textContent='';
 }
 function setCharacterWithHint(key){
