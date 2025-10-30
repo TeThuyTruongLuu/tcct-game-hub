@@ -250,8 +250,8 @@ characterSelect.addEventListener('change',(e)=>{
 
 let hintBox=document.getElementById('hint')||(()=>{const n=document.createElement('div');n.id='hint';n.className='hint';document.body.appendChild(n);return n;})();
 function setHintForCharacter(key){
-	if(key==='artem') hintBox.textContent='Từ gợi ý: "xin chào", "đi làm" hoặc vẫy tay / giơ ngón cái';
-	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay", "Vương" hoặc hạ ngón cái';
+	if(key==='artem') hintBox.textContent='Từ gợi ý: "chào buổi sáng", "đi làm" hoặc 👍';
+	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay", "Vương" hoặc 👎';
 	else hintBox.textContent='';
 }
 function setCharacterWithHint(key){
