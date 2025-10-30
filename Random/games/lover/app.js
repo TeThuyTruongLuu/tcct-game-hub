@@ -80,10 +80,10 @@ const CHARACTERS={
 				name:'tay',
 				keywords:['tay','slow hand'],
 				audio:'ywz/Slow hand.mp3',
-				subtitle:'Tay tàn thì có gì sai chứ? Anh vẫn dắt em chơi game được mà.'
+				subtitle:'Tay tồn thì có gì sai chứ? Anh vẫn dắt em chơi game được mà.'
 			},
 			{
-				name:'Vương',
+				name:'VÆ°Æ¡ng',
 				keywords:['vương','quan hệ'],
 				audio:'ywz/Vương.mp3',
 				subtitle:'Quan hệ giữa tôi với Vương Kiệt Hi là gì hả? Bạn bè đó. Trên sân thi đấu là đối thủ, xuống sân là bạn bè thân.'
@@ -220,9 +220,9 @@ btnStart.addEventListener('click',async()=>{
 		try{recognizer.start();}catch(_){}
 		showSpeech('Đang lắng nghe…',false);
 	}
-	if(window.FilesetResolver&&window.HandLandmarker){
-		if(!handLandmarker) await initHand();
-		requestAnimationFrame(handLoop);
+	if(window.GestureRecognizer){
+		if(!gestureRecognizer) await initGesture();
+		requestAnimationFrame(gestureLoop);
 	}else{
 		showSpeech('Không tải được nhận diện tay. Tiếp tục nghe giọng nói.',true);
 	}
@@ -250,8 +250,8 @@ characterSelect.addEventListener('change',(e)=>{
 
 let hintBox=document.getElementById('hint')||(()=>{const n=document.createElement('div');n.id='hint';n.className='hint';document.body.appendChild(n);return n;})();
 function setHintForCharacter(key){
-	if(key==='artem') hintBox.textContent='Từ gợi ý: "xin chào", "đi làm", "dạ có"';
-	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay", "Vương"';
+	if(key==='artem') hintBox.textContent='Từ gợi ý: "chào buổi sáng", "đi làm" hoặc 👍';
+	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay", "Vương" hoặc 👎';
 	else hintBox.textContent='';
 }
 function setCharacterWithHint(key){
@@ -262,71 +262,131 @@ function setCharacterWithHint(key){
 setCharacterWithHint(currentCharacterKey);
 startCamera();
 
-let handLandmarker=null;
+let gestureRecognizer=null;
 let lastVideoTime=-1;
-let prevWrist=null;
-let lastTs=0;
 let gestureCooldownUntil=0;
+let waveBuf=[];
+let gestureCount={};
+let gestureFrames=0;
 
-async function initHand(){
-	if(!window.FilesetResolver||!window.HandLandmarker) throw new Error('Vision bundle not ready');
+async function initGesture(){
+	if(!window.FilesetResolver||!window.GestureRecognizer) throw new Error('Vision bundle not ready');
 	const vision=await window.FilesetResolver.forVisionTasks("https://unpkg.com/@mediapipe/tasks-vision@0.10.20/wasm");
-	handLandmarker=await window.HandLandmarker.createFromOptions(vision,{
-		baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-tasks/hand_landmarker/hand_landmarker.task'},
+	gestureRecognizer=await window.GestureRecognizer.createFromOptions(vision,{
+		baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-tasks/gesture_recognizer/gesture_recognizer.task'},
 		runningMode:'VIDEO',
 		numHands:2
 	});
+	console.log('GestureRecognizer initialized');
 }
 
-function avgSpeed(pPrev,pNow,dt){
-	if(!pPrev||!pNow||dt<=0) return 0;
-	const dx=pNow.x-pPrev.x,dy=pNow.y-pPrev.y;
-	return Math.sqrt(dx*dx+dy*dy)/dt;
-}
-
-function isThumbDownFist(lm){
-	if(!lm||lm.length<21) return false;
-	const wrist=lm[0];
-	const tips=[lm[8],lm[12],lm[16],lm[20]];
-	let spread=0;
-	for(const t of tips){const dx=t.x-wrist.x,dy=t.y-wrist.y;spread+=Math.sqrt(dx*dx+dy*dy);}
-	spread/=4;
-	const thumbTip=lm[4];
-	const thumbDown=thumbTip.y>wrist.y+0.02;
-	return spread<0.22&&thumbDown;
+function isWaving(series){
+	if(series.length<5) return false;
+	const now=performance.now();
+	const recent=series.filter(p=>now-p.t<1000);
+	if(recent.length<5) return false;
+	let dirs=[];
+	for(let i=1;i<recent.length;i++){
+		const dx=recent[i].x-recent[i-1].x;
+		if(Math.abs(dx)>0.003) dirs.push(Math.sign(dx));
+	}
+	let flips=0;
+	for(let i=1;i<dirs.length;i++){
+		if(dirs[i]!==dirs[i-1]) flips++;
+	}
+	const xs=recent.map(p=>p.x);
+	const range=Math.max(...xs)-Math.min(...xs);
+	return flips>=2&&range>=0.08;
 }
 
 function handleGesture(g){
+	console.log('handleGesture called:',g,'playing:',playing,'cooldown:',Date.now()<gestureCooldownUntil,'char:',currentCharacterKey);
 	if(Date.now()<gestureCooldownUntil||playing) return;
 	if(currentCharacterKey==='artem'&&g==='wave'){
-		const item=getResponses().find(r=>normalizeNoAccent(r.name)==='hello');
-		if(item){gestureCooldownUntil=Date.now()+1500;playResponse(item);}
+		const item=getResponses().find(r=>r.name==='hello');
+		console.log('Artem wave -> hello',item);
+		if(item){
+			gestureCooldownUntil=Date.now()+1800;
+			playResponse(item);
+		}
 	}
-	if(currentCharacterKey==='ywz'&&g==='thumbs_down_fist'){
-		const item=getResponses().find(r=>normalizeNoAccent(r.name)==='tay');
-		if(item){gestureCooldownUntil=Date.now()+1500;playResponse(item);}
+	if(currentCharacterKey==='artem'&&g==='thumbs_up'){
+		const item=getResponses().find(r=>r.name==='work');
+		console.log('Artem thumbs_up -> work',item);
+		if(item){
+			gestureCooldownUntil=Date.now()+1800;
+			playResponse(item);
+		}
+	}
+	if(currentCharacterKey==='ywz'&&g==='thumbs_down'){
+		const item=getResponses().find(r=>r.name==='tay');
+		console.log('YWZ thumbs_down -> tay',item);
+		if(item){
+			gestureCooldownUntil=Date.now()+1800;
+			playResponse(item);
+		}
 	}
 }
 
-async function handLoop(){
-	if(!handLandmarker||!video.videoWidth){requestAnimationFrame(handLoop);return;}
+async function gestureLoop(){
+	if(!gestureRecognizer||!video.videoWidth){requestAnimationFrame(gestureLoop);return;}
 	const ts=performance.now();
 	if(lastVideoTime!==video.currentTime){
-		const res=await handLandmarker.detectForVideo(video,ts);
-		if(res.landmarks&&res.landmarks.length){
-			let triggered=false;
-			for(const lm of res.landmarks){
-				const wrist=lm[0];
-				const dt=(ts-lastTs)/1000;
-				const v=avgSpeed(prevWrist,wrist,dt);
-				prevWrist={x:wrist.x,y:wrist.y};
-				lastTs=ts;
-				if(v>0.01){handleGesture('wave');triggered=true;break;}
-				if(isThumbDownFist(lm)){handleGesture('thumbs_down_fist');triggered=true;break;}
+		const res=await gestureRecognizer.recognizeForVideo(video,ts);
+		let detectedLabel=null;
+		if(res.gestures&&res.gestures.length){
+			console.log('Detected hands:',res.gestures.length);
+			for(let h=0;h<res.gestures.length;h++){
+				const gests=res.gestures[h];
+				const lms=res.landmarks[h];
+				if(!gests||!gests.length||!lms||lms.length<21) continue;
+				const top=gests[0];
+				console.log('Hand',h,'gesture:',top.categoryName,'score:',top.score.toFixed(2));
+				if(top.categoryName==='Open_Palm'&&top.score>=0.55){
+					const wrist=lms[0];
+					waveBuf.push({t:ts,x:wrist.x});
+					if(waveBuf.length>40) waveBuf.shift();
+					if(isWaving(waveBuf)){
+						detectedLabel='wave';
+						console.log('Wave detected!');
+						break;
+					}
+				}
+				if(top.categoryName==='Thumb_Up'&&top.score>=0.5){
+					detectedLabel='thumbs_up';
+					console.log('Thumbs up detected!');
+					break;
+				}
+				if(top.categoryName==='Thumb_Down'&&top.score>=0.5){
+					detectedLabel='thumbs_down';
+					console.log('Thumbs down detected!');
+					break;
+				}
 			}
-			if(triggered){}
+		}
+		if(!res.gestures||!res.gestures.length){
+			waveBuf=[];
+		}
+		if(detectedLabel){
+			gestureCount[detectedLabel]=(gestureCount[detectedLabel]||0)+1;
+		}
+		gestureFrames++;
+		if(gestureFrames>=4){
+			let best=null,maxCount=0;
+			for(const k in gestureCount){
+				if(gestureCount[k]>maxCount){
+					maxCount=gestureCount[k];
+					best=k;
+				}
+			}
+			if(best&&maxCount>=2){
+				console.log('Triggering gesture:',best,'count:',maxCount);
+				handleGesture(best);
+			}
+			gestureCount={};
+			gestureFrames=0;
 		}
 		lastVideoTime=video.currentTime;
 	}
-	requestAnimationFrame(handLoop);
+	requestAnimationFrame(gestureLoop);
 }

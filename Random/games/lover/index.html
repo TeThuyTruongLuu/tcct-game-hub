@@ -6,10 +6,12 @@
 	<title>Á há há</title>
 	<link rel="stylesheet" href="styles.css"/>
 	<script type="module">
-		import { FilesetResolver, HandLandmarker } from "https://unpkg.com/@mediapipe/tasks-vision@0.10.20/vision_bundle.mjs";
+		import { FilesetResolver, HandLandmarker, GestureRecognizer } from "https://unpkg.com/@mediapipe/tasks-vision@0.10.20/vision_bundle.mjs";
 		window.FilesetResolver = FilesetResolver;
 		window.HandLandmarker = HandLandmarker;
+		window.GestureRecognizer = GestureRecognizer;
 	</script>
+
 </head>
 <body>
 	<video id="video" autoplay muted playsinline></video>
