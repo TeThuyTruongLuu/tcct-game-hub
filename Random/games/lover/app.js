@@ -80,7 +80,7 @@ const CHARACTERS={
 				name:'tay',
 				keywords:['tay','slow hand'],
 				audio:'ywz/Slow hand.mp3',
-				subtitle:'Tay tồn thì có gì sai chứ? Anh vẫn dắt em chơi game được mà.'
+				subtitle:'Tay tàn thì có gì sai chứ? Anh vẫn dắt em chơi game được mà.'
 			},
 			{
 				name:'Vương',
