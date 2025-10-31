@@ -250,8 +250,8 @@ characterSelect.addEventListener('change',(e)=>{
 
 let hintBox=document.getElementById('hint')||(()=>{const n=document.createElement('div');n.id='hint';n.className='hint';document.body.appendChild(n);return n;})();
 function setHintForCharacter(key){
-	if(key==='artem') hintBox.textContent='Từ gợi ý: "chào buổi sáng", "đi làm" hoặc 👍';
-	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay", "Vương" hoặc 👎';
+	if(key==='artem') hintBox.textContent='Từ gợi ý: "chào buổi sáng", "đi làm" hoặc 👍,👋';
+	else if(key==='ywz') hintBox.textContent='Từ gợi ý: "tay", "Vương" hoặc 👎,✌️';
 	else hintBox.textContent='';
 }
 function setCharacterWithHint(key){
@@ -281,22 +281,38 @@ async function initGesture(){
 }
 
 function isWaving(series){
-	if(series.length<5) return false;
+	if(series.length<3) return false;  // Chỉ cần 3 điểm
 	const now=performance.now();
-	const recent=series.filter(p=>now-p.t<1000);
-	if(recent.length<5) return false;
+	const recent=series.filter(p=>now-p.t<800);  // Giảm window time xuống 800ms
+	if(recent.length<3) return false;
+	
+	// Tính vận tốc và hướng
 	let dirs=[];
+	let speeds=[];
 	for(let i=1;i<recent.length;i++){
 		const dx=recent[i].x-recent[i-1].x;
-		if(Math.abs(dx)>0.003) dirs.push(Math.sign(dx));
+		const dt=(recent[i].t-recent[i-1].t)/1000; // convert to seconds
+		const speed=Math.abs(dx/dt);
+		if(speed>0.1) {  // Chỉ tính những chuyển động đủ nhanh
+			dirs.push(Math.sign(dx));
+			speeds.push(speed);
+		}
 	}
+	
+	// Đếm số lần đổi hướng
 	let flips=0;
 	for(let i=1;i<dirs.length;i++){
 		if(dirs[i]!==dirs[i-1]) flips++;
 	}
+	
+	// Tính khoảng cách di chuyển
 	const xs=recent.map(p=>p.x);
 	const range=Math.max(...xs)-Math.min(...xs);
-	return flips>=2&&range>=0.08;
+	
+	// Tính tốc độ trung bình
+	const avgSpeed=speeds.length>0?speeds.reduce((a,b)=>a+b)/speeds.length:0;
+	
+	return flips>=1 && range>=0.03 && avgSpeed>0.15;  // Thêm điều kiện tốc độ
 }
 
 function handleGesture(g){
@@ -326,6 +342,14 @@ function handleGesture(g){
 			playResponse(item);
 		}
 	}
+	if(currentCharacterKey==='ywz'&&g==='victory'){
+		const item=getResponses().find(r=>r.name==='Vương');
+		console.log('YWZ victory -> Vương',item);
+		if(item){
+			gestureCooldownUntil=Date.now()+1800;
+			playResponse(item);
+		}
+	}
 }
 
 async function gestureLoop(){
@@ -342,7 +366,7 @@ async function gestureLoop(){
 				if(!gests||!gests.length||!lms||lms.length<21) continue;
 				const top=gests[0];
 				console.log('Hand',h,'gesture:',top.categoryName,'score:',top.score.toFixed(2));
-				if(top.categoryName==='Open_Palm'&&top.score>=0.55){
+				if(top.categoryName==='Open_Palm'&&top.score>=0.4){
 					const wrist=lms[0];
 					waveBuf.push({t:ts,x:wrist.x});
 					if(waveBuf.length>40) waveBuf.shift();
@@ -362,6 +386,11 @@ async function gestureLoop(){
 					console.log('Thumbs down detected!');
 					break;
 				}
+				if(top.categoryName==='Victory'&&top.score>=0.5){
+					detectedLabel='victory';
+					console.log('Victory sign detected!');
+					break;
+				}
 			}
 		}
 		if(!res.gestures||!res.gestures.length){
@@ -371,7 +400,7 @@ async function gestureLoop(){
 			gestureCount[detectedLabel]=(gestureCount[detectedLabel]||0)+1;
 		}
 		gestureFrames++;
-		if(gestureFrames>=4){
+		if(gestureFrames>=2){  // Giảm số frame cần để kiểm tra
 			let best=null,maxCount=0;
 			for(const k in gestureCount){
 				if(gestureCount[k]>maxCount){
@@ -379,7 +408,7 @@ async function gestureLoop(){
 					best=k;
 				}
 			}
-			if(best&&maxCount>=2){
+			if(best&&maxCount>=1){  // Chỉ cần 1 lần detect là đủ
 				console.log('Triggering gesture:',best,'count:',maxCount);
 				handleGesture(best);
 			}
