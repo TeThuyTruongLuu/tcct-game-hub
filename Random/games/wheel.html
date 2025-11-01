@@ -9,31 +9,74 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
             background-color: #ffebef;
             font-family: 'Quicksand', sans-serif;
         }
+        .main-container {
+            display: grid;
+            grid-template-columns: minmax(250px, 1fr) minmax(300px, 2fr) minmax(250px, 1fr);
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .main-container.single-column .control-panel {
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .control-panel h3 {
+            color: #ff4081;
+            margin-top: 0;
+            text-align: center;
+        }
+        .page-title {
+            text-align: center;
+            margin-bottom: 12px;
+        }
         .wheel-container {
-            width: 300px;
-            height: 300px;
+            width: 460px;
+            height: 460px;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+			margin-top: 6px; margin-bottom: 6px;
+        }
+        #wheelCanvas {
+            width: 420px !important;
+            height: 420px !important;
+            max-width: 100%;
+            max-height: 100%;
+            transform-origin: 50% 50%;
+            transition: transform 0.1s linear;
         }
         .spin-button {
-            margin-top: 20px;
-            padding: 10px 20px;
+            margin-top: 0px;
+            padding: 12px 26px;
             background-color: #ff4081;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 16px;
-			font-weight: bold;
-            transition: all 0.2s ease-in-out;
-			font-family: 'Quicksand', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            transition: all 0.15s ease-in-out;
+            font-family: 'Quicksand', sans-serif;
+            box-shadow: 0 8px 18px rgba(255,64,129,0.18);
         }
         .spin-button:hover {
             background-color: #e0356f;
@@ -54,6 +97,123 @@
             white-space: pre-line;
             font-size: 14px;
             outline: none;
+        }
+        .question-container {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .question-container select, 
+        .question-container input {
+            width: 220px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 14px;
+            outline: none;
+        }
+        .question-container input {
+            box-sizing: border-box;
+        }
+        .set-selection select,
+        #questionSetTop {
+            width: 100%;
+            max-width: 320px;
+            padding: 10px 12px;
+            border: 2px solid rgba(255,64,129,0.15);
+            border-radius: 12px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 15px;
+            margin-bottom: 5px;
+            background-color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(255,64,129,0.06);
+            color: #333;
+        }
+        .set-selection select:focus, #questionSetTop:focus {
+            outline: none;
+            border-color: #ff8aa0;
+            box-shadow: 0 6px 18px rgba(255,64,129,0.12);
+        }
+        .question-list {
+            margin: 15px 0;
+        }
+        .question-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: #fff;
+            border: 1px solid rgba(255,64,129,0.18);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: grab;
+            gap: 10px;
+        }
+        .question-item .drag-handle {
+            cursor: grab;
+            padding: 6px 8px;
+            color: #ff4081;
+            border-radius: 6px;
+            background: rgba(255,64,129,0.06);
+            font-weight: 700;
+        }
+        .question-item .remove-btn {
+            margin-left: auto;
+            color: #ff4081;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 18px;
+        }
+        .action-button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-button.add {
+            background-color: #ff4081;
+            color: white;
+        }
+        .action-button.add:hover {
+            background-color: #e0356f;
+        }
+        .current-question {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff4081;
+        }
+        .predefined-answers {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+			gap: 6px;
+        }
+        
+        .name-input {
+            width: 360px;
+            max-width: calc(100% - 40px);
+            height: 120px;
+            border-radius: 10px;
+            border: 1px solid #f0c0d0;
+            padding: 12px;
+            resize: vertical;
+            font-family: 'Quicksand', sans-serif;
+            margin-top: 18px;
         }
         .modal {
             display: none;
@@ -87,7 +247,7 @@
             cursor: pointer;
             font-size: 20px;
             font-weight: bold;
-			font-family: 'Quicksand', sans-serif;
+            font-family: 'Quicksand', sans-serif;
         }
         .modal-button {
             padding: 10px 15px;
@@ -106,7 +266,7 @@
         .modal-button.remove {
             background-color: #ff4081;
             color: white;
-			font-family: 'Quicksand', sans-serif;
+            font-family: 'Quicksand', sans-serif;
         }
         .modal-button.remove:hover {
             background-color: #e0356f;
@@ -126,42 +286,476 @@
     </style>
 </head>
 <body>
-    <h1>Vòng quay <a href="../games/lover/index.html" style="color:#ff4081;text-decoration:none;">may mắn</a></h1>
-    <div class="wheel-container">
-		<div class="arrow" id="arrow"></div>
-        <canvas id="wheelCanvas"></canvas>
+    <div class="page-title">
+        <h1>Vòng quay <a href="../games/lover/index.html" style="color:#ff4081;text-decoration:none;">may mắn</a></h1>
+        <div style="margin-top:12px;">
+            <select id="questionSetTop" onchange="handleQuestionSetChange();" class="set-selection">
+                <option value="none">Không sử dụng bộ câu hỏi</option>
+                <option value="author">Set câu hỏi cho tác giả</option>
+                <option value="artist">Set câu hỏi cho artist</option>
+            </select>
+        </div>
     </div>
-    <button class="spin-button" onclick="spinWheel()">Quay</button>
-    
-    <div class="input-container">
-        <textarea id="nameInput" oninput="updateNames()" onkeydown="handleEnter(event)">Đây
-Là
-Game
-Của
-Phong</textarea>
-	</div>
+    <div class="main-container">
+        <div class="control-panel left-panel">
+            <h3>Danh sách câu hỏi<br>theo thứ tự</h3>
+            <div id="setQuestions" class="set-questions" style="display: none;">
+                <div class="question-order">
+                    <div id="questionList" class="question-list"></div>
+                </div>
+                <button class="action-button add" onclick="addCustomQuestion()">+ Thêm câu hỏi tùy chỉnh</button>
+            </div>
+        </div>
+
+        <div class="center-panel">
+            <div class="wheel-container">
+                <div class="arrow" id="arrow"></div>
+                <canvas id="wheelCanvas"></canvas>
+            </div>
+            <div class="current-question" id="currentQuestion"></div>
+            <button class="spin-button" id="spinBtn" onclick="spinWheel()">Quay</button>
+            <textarea id="nameInput" class="name-input" oninput="updateNames()" onkeydown="handleEnter(event)">
+				Đây
+				Là
+				Game
+				Của
+				Phong
+			</textarea>
+        </div>
+
+            <div class="control-panel right-panel">
+            <h3>Câu trả lời có sẵn</h3>
+            <div id="predefinedAnswers" class="predefined-answers"></div>
+        </div>
+    </div>
 
     <div id="winnerModal" class="modal">
         <div id="winnerHeader" class="modal-header">
             <span class="close-button" onclick="closeModal()">&times;</span>
-            <h2>Chúng ta đã có<br>người chiến thắng!</h2>
+            <h2>Chúng ta đã có<br>kết quả!</h2>
         </div>
         <div class="modal-body">
             <p id="winnerText"></p>
         </div>
         <div class="modal-footer">
-            <button class="modal-button close" onclick="closeModal()">Đóng</button>
-            <button class="modal-button remove" onclick="removeWinner()">Xóa kết quả vừa quay</button>
+			<button class="modal-button close" onclick="deleteWinner()">Xóa kết quả vừa quay</button>
+            <button class="modal-button close" onclick="rejectWinner()" style="background-color: #ff4080; color:white;">Quay lần nữa</button>
+			<button class="modal-button remove" onclick="confirmWinner()">Chốt</button>
         </div>
     </div>
-
-
-    
     <script>
-        let names = ["Đây", "Là", "Game", "Của", "Phong"];
+    const defaultNames = ["Đây", "Là", "Game", "Của", "Phong"];
+    let names = defaultNames.slice();
+    let labelMode = 'tangent'    
+        const questionSets = {
+            author: {
+                name: "Set câu hỏi cho tác giả",
+                questions: [
+                    {
+                        id: "gongAge",
+                        title: "Tuổi công",
+                        options: Array.from({length: 25}, (_, i) => (i + 16).toString())
+                    },
+                    {
+                        id: "shouAge",
+                        title: "Tuổi thụ",
+                        options: Array.from({length: 25}, (_, i) => (i + 16).toString())
+                    },
+                    {
+                        id: "gongJob",
+                        title: "Nghề nghiệp công",
+                        options: [
+                            "Cảnh sát",
+                            "Sát thủ",
+                            "Luật sư",
+                            "Bác sĩ",
+                            "Diễn viên",
+                            "Chủ tịch tập đoàn",
+                            "Giáo viên",
+                            "Quân nhân",
+                            "Vệ sĩ",
+                            "Học sinh",
+                            "Họa sĩ",
+                            "Kiến trúc sư",
+                            "Nhà thiết kế",
+                            "Doanh nhân",
+                            "Tướng quân",
+                            "Vương gia",
+                            "Hoàng đế",
+                            "Thiên sư",
+                            "Nhà tâm lý học",
+                            "Nhà khoa học",
+                            "Minh tinh",
+                            "Tác giả",
+                            "Quản lý",
+                            "Phi công",
+                            "Nô lệ tư bản",
+                            "Thư ký",
+                            "Phóng viên",
+                            "Sinh vật siêu nhiên",
+                            "Thiếu gia",
+                            "Vận động viên",
+                            "Kiểm soát viên không lưu"
+                        ]
+                    },
+                    {
+                        id: "shouJob",
+                        title: "Nghề nghiệp thụ",
+                        options: [
+                            "Cảnh sát",
+                            "Sát thủ",
+                            "Luật sư",
+                            "Bác sĩ",
+                            "Diễn viên",
+                            "Chủ tịch tập đoàn",
+                            "Giáo viên",
+                            "Quân nhân",
+                            "Vệ sĩ",
+                            "Học sinh",
+                            "Họa sĩ",
+                            "Kiến trúc sư",
+                            "Nhà thiết kế",
+                            "Doanh nhân",
+                            "Tướng quân",
+                            "Vương gia",
+                            "Hoàng đế",
+                            "Thiên sư",
+                            "Nhà tâm lý học",
+                            "Nhà khoa học",
+                            "Minh tinh",
+                            "Tác giả",
+                            "Quản lý",
+                            "Phi công",
+                            "Nô lệ tư bản",
+                            "Thư ký",
+                            "Phóng viên",
+                            "Sinh vật siêu nhiên",
+                            "Thiếu gia",
+                            "Vận động viên",
+                            "Kiểm soát viên không lưu"
+                        ]
+                    },
+                    {
+                        id: "gongPersonality",
+                        title: "Tính cách công",
+                        options: ["Xảo quyệt", "Dịu dàng", "Lạnh lùng", "Trung khuyển", "Bá đạo", "Thâm tình", "Tra", "Ngạo kiều", "Xán lạn", "Ngoan ngoãn", "Quyến rũ", "Thẹn thùng", "Ngốc nghếch", "Mạnh mẽ", "Yếu đuối", "Nhược thân", "Si tình", "Cố chấp", "Lãnh đạm", "Mặt than", "Bệnh kiều", "Hoạt bát", "Trầm tĩnh", "Thông minh", "Bất cần", "Dị năng", "Dễ khóc", "Lười biếng", "Chính trực", "Cứng đầu", "Ngoài lạnh trong nóng", "Đáng yêu", "Cấm dục"]
+                    },
+                    {
+                        id: "shouPersonality",
+                        title: "Tính cách thụ",
+                        options: ["Xảo quyệt", "Dịu dàng", "Lạnh lùng", "Trung khuyển", "Bá đạo", "Thâm tình", "Tra", "Ngạo kiều", "Xán lạn", "Ngoan ngoãn", "Quyến rũ", "Thẹn thùng", "Ngốc nghếch", "Mạnh mẽ", "Yếu đuối", "Nhược thân", "Si tình", "Cố chấp", "Lãnh đạm", "Mặt than", "Bệnh kiều", "Hoạt bát", "Trầm tĩnh", "Thông minh", "Bất cần", "Dị năng", "Dễ khóc", "Lười biếng", "Chính trực", "Cứng đầu", "Ngoài lạnh trong nóng", "Đáng yêu", "Cấm dục"]
+                    },
+                    {
+                        id: "setting",
+                        title: "Bối cảnh",
+                        options: [
+                            "Hiện đại", "Cổ đại", "Dân quốc", "Tương lai", "Fantasy",
+                            "Học đường", "Công sở", "Xuyên không", "Tu tiên", "Apocalypse"
+                        ]
+                    },
+                    {
+                        id: "ending",
+                        title: "Kết cục",
+                        options: [
+                            "HE (Happy Ending)",
+                            "BE (Bad Ending)",
+                            "SE (Sweet Ending)",
+                            "GE (Good Ending)",
+                            "OE (Open Ending)"
+                        ]
+                    }
+                ]
+            },
+            artist: {
+                name: "Set câu hỏi cho artist",
+                questions: [
+                    {
+                        id: "artStyle",
+                        title: "Loại hình",
+                        options: ["Chibi", "Normal", "Series", "CP"]
+                    },
+                    {
+                        id: "artType",
+                        title: "Thể loại",
+                        options: ["Sketch", "Line", "Color", "Illustration"]
+                    }
+                ]
+            }
+        };
+
+        let currentSet = null;
+        let currentQuestionIndex = -1;
+        let customQuestions = [];
+
+        function handleQuestionSetChange() {
+            const topSelect = document.getElementById("questionSetTop");
+            const selectedSet = topSelect ? topSelect.value : 'none';
+            const setQuestions = document.getElementById("setQuestions");
+
+            const leftPanel = document.querySelector('.left-panel');
+            const rightPanel = document.querySelector('.right-panel');
+            const nameInput = document.getElementById('nameInput');
+
+            if (selectedSet === "none") {
+                // reset to default names when no set selected
+                names = defaultNames.slice();
+                setQuestions.style.display = "none";
+                leftPanel.style.display = 'none';
+                rightPanel.style.display = 'none';
+
+                
+                const main = document.querySelector('.main-container');
+                if (main) {
+                    main.style.gridTemplateColumns = '1fr';
+                    main.classList.add('single-column');
+                }
+
+                nameInput.style.display = 'block';
+                nameInput.value = names.join('\n');
+                if (typeof drawWheel === 'function') drawWheel();
+                currentSet = null;
+                currentQuestionIndex = -1;
+                updateCurrentQuestion();
+                renderPredefinedAnswers();
+            } else {
+                
+                setQuestions.style.display = "block";
+                leftPanel.style.display = 'block';
+                rightPanel.style.display = 'block';
+                nameInput.style.display = 'none';
+
+                const main = document.querySelector('.main-container');
+                if (main) {
+                    main.style.gridTemplateColumns = 'minmax(250px, 1fr) minmax(300px, 2fr) minmax(250px, 1fr)';
+                    main.classList.remove('single-column');
+                }
+
+                currentSet = JSON.parse(JSON.stringify(questionSets[selectedSet]));
+                currentQuestionIndex = 0;
+                customQuestions = [];
+                updateQuestionList();
+                updateCurrentQuestion();
+                renderPredefinedAnswers();
+            }
+        }
+
+        function updateQuestionList() {
+            const questionList = document.getElementById("questionList");
+            questionList.innerHTML = "";
+            
+            if (!currentSet) return;
+            const questions = [...currentSet.questions, ...customQuestions];
+            questions.forEach((question, index) => {
+                const item = document.createElement("div");
+                item.className = "question-item";
+                item.setAttribute('draggable', 'true');
+
+                const drag = document.createElement('span');
+                drag.className = 'drag-handle';
+                drag.textContent = '⋮';
+
+                const title = document.createElement('span');
+                title.textContent = question.title;
+
+                const resultSpan = document.createElement('span');
+                resultSpan.style.marginLeft = '10px';
+                resultSpan.style.color = '#777';
+                if (question.id && resultsByQuestion[question.id]) {
+                    resultSpan.textContent = ` — ${resultsByQuestion[question.id]}`;
+                }
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', index.toString());
+                    e.currentTarget.style.opacity = '0.4';
+                });
+                item.addEventListener('dragend', (e) => {
+                    e.currentTarget.style.opacity = '';
+                });
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+                item.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const from = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                    const to = index;
+                    if (isNaN(from)) return;
+                    const arr = [...currentSet.questions, ...customQuestions];
+                    const itemObj = arr.splice(from, 1)[0];
+                    arr.splice(to, 0, itemObj);
+                    
+                    currentSet.questions = arr.slice(0, currentSet.questions.length);
+                    customQuestions = arr.slice(currentSet.questions.length).map(q => q.isCustom ? q : q);
+                    updateQuestionList();
+                    updateCurrentQuestion();
+                });
+
+                item.appendChild(drag);
+                item.appendChild(title);
+                item.appendChild(resultSpan);
+                if (question.isCustom) {
+                    const rem = document.createElement('button');
+                    rem.className = 'remove-btn';
+                    rem.textContent = '×';
+                    rem.onclick = () => removeQuestion(index);
+                    item.appendChild(rem);
+                }
+                questionList.appendChild(item);
+            });
+        }
+
+        function moveQuestion(index, dir) {
+            const questions = [...currentSet.questions, ...customQuestions];
+            const newIndex = index + dir;
+            if (newIndex < 0 || newIndex >= questions.length) return;
+            const arr = questions;
+            [arr[index], arr[newIndex]] = [arr[newIndex], arr[index]];
+            
+            const fixed = arr.slice(0, currentSet.questions.length);
+            const customs = arr.slice(currentSet.questions.length).map(q => q.isCustom ? q : q);
+            currentSet.questions = fixed;
+            customQuestions = customs;
+            updateQuestionList();
+        }
+
+        function updateCurrentQuestion() {
+            const currentQuestionDiv = document.getElementById("currentQuestion");
+            const predefinedAnswers = document.getElementById("predefinedAnswers");
+
+            if (!currentSet || currentQuestionIndex === -1) {
+                currentQuestionDiv.textContent = "";
+                predefinedAnswers.innerHTML = "";
+                return;
+            }
+
+            const questions = [...currentSet.questions, ...customQuestions];
+            const currentQuestion = questions[currentQuestionIndex];
+            
+            currentQuestionDiv.textContent = (currentQuestionIndex + 1) + '. ' + currentQuestion.title;
+
+            if (currentQuestion.options) {
+                names = currentQuestion.options.slice();
+                drawWheel();
+            }
+            renderPredefinedAnswers();
+        }
+
+        function addCustomQuestion() {
+            const title = prompt("Nhập câu hỏi mới:");
+            if (title) {
+                customQuestions.push({
+                    id: `custom_${Date.now()}`,
+                    title: title,
+                    isCustom: true
+                });
+                updateQuestionList();
+            }
+        }
+
+        function removeQuestion(index) {
+            if (!currentSet) return;
+            if (!confirm("Bạn có chắc muốn xóa câu hỏi này?")) return;
+            if (index < currentSet.questions.length) {
+                currentSet.questions.splice(index, 1);
+            } else {
+                const ci = index - currentSet.questions.length;
+                if (ci >= 0 && ci < customQuestions.length) customQuestions.splice(ci, 1);
+            }
+            updateQuestionList();
+            updateCurrentQuestion();
+            renderPredefinedAnswers();
+        }
+
+        function moveToNextQuestion() {
+            if (!currentSet) return;
+            
+            const questions = [...currentSet.questions, ...customQuestions];
+            currentQuestionIndex = (currentQuestionIndex + 1) % questions.length;
+            updateCurrentQuestion();
+        }
+        
+        function confirmWinner() {
+            document.getElementById('winnerModal').style.display = 'none';
+            if (!currentSet || currentQuestionIndex === -1) return;
+            const questions = [...currentSet.questions, ...customQuestions];
+            const q = questions[currentQuestionIndex];
+            if (q && q.id) {
+                resultsByQuestion[q.id] = lastWinner;
+            } else if (q && q.title) {
+                resultsByQuestion[q.title] = lastWinner;
+            }
+            updateQuestionList();
+            
+            setTimeout(() => {
+                moveToNextQuestion();
+                renderPredefinedAnswers();
+            }, 300);
+        }
+
+        function rejectWinner() {
+            document.getElementById('winnerModal').style.display = 'none';
+        }
+
+        function deleteWinner() {
+            
+            if (currentSet && currentQuestionIndex !== -1) {
+                const questions = [...currentSet.questions, ...customQuestions];
+                const q = questions[currentQuestionIndex];
+                if (q && q.options && lastWinnerIndex > -1) {
+                    q.options.splice(lastWinnerIndex, 1);
+                    names = q.options.slice();
+                    drawWheel();
+                    renderPredefinedAnswers();
+                }
+            } else {
+                
+                names = names.filter((n, i) => i !== lastWinnerIndex);
+                document.getElementById('nameInput').value = names.join('\n');
+                drawWheel();
+                renderPredefinedAnswers();
+            }
+            document.getElementById('winnerModal').style.display = 'none';
+        }
         let wheelCanvas = document.getElementById("wheelCanvas");
         let wheelChart;
         
+        function generateColors(n) {
+            const base = ["#ffcc80", "#ffab91", "#ff8a80", "#f48fb1", "#ce93d8", "#b39ddb", "#90caf9", "#81d4fa", "#a5d6a7", "#ffe082"];
+            const out = [];
+            for (let i = 0; i < n; i++) {
+                out.push(base[i % base.length]);
+            }
+            return out;
+        }
+		window.labelMode = 'tangent'
+		window.textDirection = 'inward'
+		const WheelLabelsPlugin = {
+			id: 'wheelLabels',
+			afterDatasetsDraw(chart) {
+				const meta = chart.getDatasetMeta(0)
+				const inset = 50
+				for (let i = 0; i < meta.data.length; i++) {
+					const el = meta.data[i]
+					const label = chart.data.labels[i] || ''
+					if (!el || !label) continue
+					const mid = (el.startAngle + el.endAngle) / 2
+					const r = el.outerRadius - inset
+					const fontPx = Math.max(12, Math.min(24, el.outerRadius * 0.09))
+					const ctx = chart.ctx
+					ctx.save()
+					ctx.translate(el.x, el.y)
+					ctx.rotate(mid)
+					if (window.labelMode === 'tangent') ctx.rotate(Math.PI / 2)
+					if (window.labelMode === 'radial') ctx.rotate(Math.PI)
+					if (window.textDirection === 'inward') ctx.rotate(Math.PI)
+					ctx.translate(r, 0)
+					ctx.font = `600 ${fontPx}px Quicksand, sans-serif`
+					ctx.fillStyle = '#111'
+					ctx.textAlign = 'center'
+					ctx.textBaseline = 'middle'
+					ctx.fillText(label, 0, 0)
+					ctx.restore()
+				}
+			}
+		}
         function drawWheel() {
             if (wheelChart) {
                 wheelChart.destroy();
@@ -171,41 +765,25 @@ Phong</textarea>
                 data: {
                     labels: names,
                     datasets: [{
-                        data: names.map(name => name === "" ? 0 : 1),
-                        backgroundColor: ["#ffcc80", "#ffab91", "#ff8a80", "#f48fb1", "#ce93d8", "#b39ddb", "#90caf9", "#81d4fa"],
-                        borderWidth: 1
-                    }]
+                            data: names.map(name => name === "" ? 0 : 1),
+                            backgroundColor: generateColors(names.length),
+                            borderWidth: 1
+                        }]
                 },
                 options: {
                     responsive: true,
                     plugins: {
-						legend: {
-							display: false
-						},
-						tooltip: {
-							enabled: false
-						},
-                        datalabels: {
-                            color: 'black',
-                            font: {
-                                size: 16,
-                                weight: 'bold',
-								//family: 'Quicksand'
-                            },
-                            formatter: (value, context) => context.chart.data.labels[context.dataIndex] || "",
-                            anchor: 'center',
-                            align: 'center',
-                            display: function(context) {
-                                return context.dataset.data[context.dataIndex] > 0;
-                            }
-                        }
+						legend: {display: false},
+						tooltip: {enabled: false}
                     }
                 },
-                plugins: [ChartDataLabels]
+                plugins: [WheelLabelsPlugin]
             });
         }
         
-		let lastWinner = "";
+    let lastWinner = "";
+    let lastWinnerIndex = -1;
+    let resultsByQuestion = {};
 
         function adjustColor(color, amount) {
             let colorInt = parseInt(color.slice(1), 16);
@@ -223,7 +801,7 @@ Phong</textarea>
 function spinWheel() {
     let sliceAngle = 360 / names.length;
     let rotations = Math.floor(Math.random() * 5 + 5) * 360;
-    let randomStopAngle = Math.random() * 360; // Để dừng ở góc ngẫu nhiên
+    let randomStopAngle = Math.random() * 360;
     let totalRotation = rotations + randomStopAngle;
     let duration = 5000;
     let start = null;
@@ -242,9 +820,22 @@ function spinWheel() {
             let winningIndex = Math.floor((360 - finalRotation) / sliceAngle) % names.length;
 
             lastWinner = names[winningIndex];
+            lastWinnerIndex = winningIndex;
             let winnerColor = wheelChart.data.datasets[0].backgroundColor[winningIndex];
             document.getElementById("winnerHeader").style.backgroundColor = adjustColor(winnerColor, -30);
             document.getElementById("winnerText").innerText = lastWinner;
+            // adjust modal buttons depending on whether a set is active
+            const confirmBtn = document.querySelector('.modal-button.remove');
+            const firstBtn = document.querySelectorAll('#winnerModal .modal-button')[0];
+            if (confirmBtn) {
+                if (!currentSet) {
+                    confirmBtn.style.display = 'none';
+                    if (firstBtn) firstBtn.textContent = 'Quay tiếp';
+                } else {
+                    confirmBtn.style.display = 'inline-block';
+                    if (firstBtn) firstBtn.textContent = 'Quay lại';
+                }
+            }
             document.getElementById("winnerModal").style.display = "block";
         }
     }
@@ -254,26 +845,24 @@ function spinWheel() {
 
 
 		function closeModal() {
-			document.getElementById("winnerModal").style.display = "none"; // Đóng modal
+        document.getElementById("winnerModal").style.display = "none";
 		}
 
 		function removeWinner() {
-			names = names.filter(name => name !== lastWinner); // Xóa khỏi pie
-			document.getElementById("nameInput").value = names.join("\n"); // Xóa khỏi textarea
-			
-			drawWheel(); // Cập nhật chart
-			closeModal(); // Đóng modal
+            names = names.filter(name => name !== lastWinner);
+            document.getElementById("nameInput").value = names.join("\n");
+            drawWheel();
+            closeModal();
 		}
 
-		function updateNames() {
-			let nameInput = document.getElementById("nameInput").value.split(/\r?\n/);
-
-			// Cập nhật nội dung từng pie mà không xóa dòng trống
-			names = [...nameInput]; // Giữ nguyên số lượng dòng kể cả dòng trống
-			wheelChart.data.labels = names;
-			wheelChart.data.datasets[0].data = names.map(name => 1); // Tất cả pies có dữ liệu
-			wheelChart.update();
-		}
+        function updateNames() {
+            let nameInput = document.getElementById("nameInput").value.split(/\r?\n/);
+            names = [...nameInput];
+            wheelChart.data.labels = names;
+            wheelChart.data.datasets[0].data = names.map(name => 1);
+            wheelChart.update();
+            renderPredefinedAnswers();
+        }
 
 
 
@@ -288,11 +877,69 @@ function spinWheel() {
 				wheelChart.data.labels = names;
 				wheelChart.data.datasets[0].data.push(1);
 				wheelChart.update();
+                renderPredefinedAnswers();
 			}
 		}		
 
         
-        drawWheel();
+    drawWheel();
+    handleQuestionSetChange();
+    renderPredefinedAnswers();
+
+        
+        function splitLabel(text, chunk) {
+            if (!text) return '';
+            if (text.length <= chunk) return text;
+            let out = '';
+            for (let i = 0; i < text.length; i += chunk) {
+                out += text.substr(i, chunk) + (i + chunk < text.length ? '\n' : '');
+            }
+            return out;
+        }
+
+    function renderPredefinedAnswers() {
+            const container = document.getElementById('predefinedAnswers');
+            container.innerHTML = '';
+
+            if (!currentSet) {
+                return;
+            }
+
+            
+            const questions = [...currentSet.questions, ...customQuestions];
+            if (questions.length === 0) return;
+            const q = questions[currentQuestionIndex];
+            if (!q) return;
+
+            const heading = document.createElement('div');
+            heading.style.marginBottom = '8px';
+            heading.textContent = q.title;
+            container.appendChild(heading);
+
+            const ta = document.createElement('textarea');
+            ta.style.width = '100%';
+            ta.style.minHeight = '220px';
+            ta.style.boxSizing = 'border-box';
+            ta.style.padding = '10px';
+            ta.style.borderRadius = '8px';
+            ta.style.border = '1px solid #f0c0d0';
+            ta.value = (q.options || []).join('\n');
+            ta.oninput = () => {
+                const lines = ta.value.split(/\r?\n/).map(s => s.trim());
+                q.options = lines.filter(l => l.length > 0);
+                names = q.options.slice();
+                drawWheel();
+            };
+
+            const hint = document.createElement('div');
+            hint.style.fontSize = '12px';
+            hint.style.color = '#666';
+            hint.style.marginTop = '6px';
+            hint.textContent = 'Nhập mỗi lựa chọn trên một dòng. Kéo câu hỏi bên trái để thay đổi thứ tự.';
+
+            container.appendChild(ta);
+            container.appendChild(hint);
+        }
     </script>
 </body>
 </html>
