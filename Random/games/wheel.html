@@ -406,7 +406,7 @@
             <select id="questionSetTop" onchange="handleQuestionSetChange();" class="set-selection">
                 <option value="none">Không sử dụng bộ câu hỏi</option>
                 <option value="author">Bộ câu hỏi cho tác giả</option>
-                <option value="artist">Bộ câu hỏi cho artist</option>
+                <option value="artist">Bộ câu hỏi cho đặt cồm</option>
             </select>
         </div>
     </div>
@@ -582,124 +582,158 @@
                     }
                 ]
             },
-            artist: {
-                name: "Set câu hỏi cho artist",
-                questions: [
-                    {
-                        id: "artStyle", title: "Món",
-                        options: ["YCH", "Chibi", "Normal", "Head", "Bust-up", "Half-body", "Knee-up", "Full-body"]
-                    },
-                    {
-                        id: "artType", title: "Thể loại",
-                        options: ["Sketch", "Line", "Flat color", "Inking", "Color", "Illustration", "Character sheet", "Emote pack", "Gacha"]
-                    },
+			artist:{
+				name:"Set câu hỏi cho artist",
+				questions:[
 					{
-						id: "pose", title: "Tư thế",
-						options: [
-							"Đứng", "Ngồi", "Ngồi xổm", "Nằm nghiêng", "Nằm ngửa", "Nằm sấp", "Bắt chéo chân", "Ngồi gác chân", "Ngồi khép chân",
-							"Chạy", "Nhảy", "Múa", "Đi dạo", "Cúi người", "Ngả lưng", "Tựa tường", "Tựa bàn", "Tựa lưng nhau",
-							"Tựa vai nhau", "Ôm", "Cõng", "Bế công chúa", "Nắm tay", "Đan tay", "Kéo tay", "Đang ăn", "Thái cực quyền",
-							"Đối mặt nhau", "Tựa đầu lên vai", "Nhìn qua vai", "Quay lưng lại", "Ngẩng đầu", "Cúi đầu", "Giơ tay lên trời",
-							"Ngồi bắt chéo chân", "Ngồi kiểu Nhật (seiza)", "Chống tay lên bàn", "Nhún vai", "Vươn vai", "Cắn môi", "Che miệng cười",
-							"Đang vẽ/viết", "Đang cầm điện thoại", "Đang cầm ly nước", "Đang cầm vũ khí", "Đang đọc sách",
-							"Tư thế chiến đấu", "Biến thân", "Đang thi triển phép", "Đang trình diễn sân khấu",
-							"Ngồi trên lan can", "Đang rơi", "Bay giữa không trung", "Dễ thương", "Gợi cảm", "Hôn"
+						id:"artStyle",title:"Món",
+						options:["YCH","Chibi","Normal","Head","Bust-up","Half-body","Knee-up","Full-body","Sticker","Pixel"]
+					},
+					{
+						id:"artType",title:"Thể loại",
+						options:["Sketch","Line","Flat color","Inking","Color","Illustration","Character sheet","Emote pack","Gacha","GIF"]
+					},
+					{
+						id:"relations",title:"Quan hệ giữa các nhân vật",
+						options:["Độc lập","Bạn bè","Đồng đội","Anh chị em","Người yêu","Đồng nghiệp","Đối thủ","Gia đình","Ban nhạc","Tổ đội","Đại đại đi"]
+					},
+					{
+						id:"pose",title:"Tư thế",
+						options:[
+							"Đứng","Ngồi","Ngồi xổm","Nằm nghiêng","Nằm ngửa","Nằm sấp","Bắt chéo chân","Ngồi gác chân","Ngồi khép chân",
+							"Chạy","Nhảy","Múa","Đi dạo","Cúi người","Ngả lưng","Tựa tường","Tựa bàn","Tựa lưng nhau",
+							"Tựa vai nhau","Ôm","Cõng","Bế công chúa","Nắm tay","Đan tay","Kéo tay","Đang ăn","Thái cực quyền",
+							"Đối mặt nhau","Tựa đầu lên vai","Nhìn qua vai","Quay lưng lại","Ngẩng đầu","Cúi đầu","Giơ tay lên trời",
+							"Ngồi bắt chéo chân","Ngồi kiểu Nhật (seiza)","Chống tay lên bàn","Nhún vai","Vươn vai","Cắn môi","Che miệng cười",
+							"Đang vẽ/viết","Đang cầm điện thoại","Đang cầm ly nước","Đang cầm vũ khí","Đang đọc sách",
+							"Tư thế chiến đấu","Biến thân","Đang thi triển phép","Đang trình diễn sân khấu",
+							"Ngồi trên lan can","Đang rơi","Bay giữa không trung","Dễ thương","Gợi cảm","Hôn"
 						]
 					},
 					{
-						id: "hand post", title: "Động tác tay",
-						options: [
-							"Giơ tay chào", "Đưa tay lên đầu", "Chống cằm", "Chống hông", "Khoanh tay",
-							"Nắm tay", "Xòe tay", "Đưa tay ra phía trước", "Cầm điện thoại", "Cầm vũ khí",
-							"Cầm ly", "Cầm hoa", "Cầm bút/sổ", "Cầm micro", "Cầm nhẫn",
-							"Chạm môi", "Chạm má", "Chạm tóc", "Chạm ngực", "Chạm vai người khác",
-							"Bắt tay", "Ôm đầu", "Che miệng cười", "Che miệng ngáp", "Đặt tay lên tim",
-							"Giơ ngón cái 👍", "Giơ peace ✌️", "Chỉ tay", "Vẫy tay", "Tựa tay lên vai bạn đồng hành",
-							"Đưa tay ra sau lưng", "Nắm áo đối phương", "Vuốt tóc đối phương", "Đan tay", "Cầm vật kỷ niệm",
-							"Cầm súng/dao", "Tay trong túi quần", "Đỡ mặt người khác", "Cào nhẹ", "Tựa đầu lên tay"						
+						id:"hand post",title:"Động tác tay",
+						options:[
+							"Giơ tay chào","Đưa tay lên đầu","Chống cằm","Chống hông","Khoanh tay",
+							"Nắm tay","Xòe tay","Đưa tay ra phía trước","Cầm điện thoại","Cầm vũ khí",
+							"Cầm ly","Cầm hoa","Cầm bút/sổ","Cầm micro","Cầm nhẫn","Sấy tóc","Cầm kẹo",
+							"Chạm môi","Chạm má","Chạm tóc","Chạm ngực","Chạm vai người khác",
+							"Bắt tay","Ôm đầu","Che miệng cười","Che miệng ngáp","Đặt tay lên tim",
+							"Giơ ngón cái 👍","Giơ peace ✌️","Chỉ tay","Vẫy tay","Tựa tay lên vai",
+							"Đưa tay ra sau lưng","Nắm áo đối phương","Vuốt tóc đối phương","Đan tay","Cầm vật kỷ niệm",
+							"Cầm súng/dao","Tay trong túi quần","Đỡ mặt người khác","Cào nhẹ","Tựa đầu lên tay"
 						]
 					},
 					{
-						id: "camera", title: "Góc máy",
-						options: [
-						"Chính diện", "Từ dưới lên", "Từ trên cao",
-						"Nghiêng chéo", "Cận cảnh", "Trung cảnh", "Toàn cảnh",
-						"Góc mắt cá", "POV"]
+						id:"camera",title:"Góc máy",
+						options:["Chính diện","Từ dưới lên","Từ trên cao","Nghiêng chéo","Cận cảnh","Trung cảnh","Toàn cảnh","Góc mắt cá","POV"]
 					},
 					{
-						id: "mood", title: "Không khí",
-						options: ["Dễ thương", "Bình thường","Kinh dị", "Bí ẩn", "Lãng mạn", "R16"]
+						id:"mood",title:"Không khí",
+						options:["Dễ thương","Bình thường","Kinh dị","Bí ẩn","Lãng mạn","R16","Hài hước","U ám","Điện ảnh","Tươi sáng","Căng thẳng","Nồng nhiệt","Thanh bình"]
 					},
 					{
-						id: "background", title: "Nền",
-						options: ["Không nền", "Trong nhà", "Thành phố", "Rừng", "Biển", "Bầu trời", "Vũ trụ", "Cổ đại"]
+						id:"background",title:"Nền",
+						options:["Không nền","Trong nhà","Thành phố","Rừng","Biển","Bầu trời","Vũ trụ","Cổ đại","Đường phố","Cyberpunk","Quán café","Trường học","Sa mạc","Tuyết rơi","Sân khấu","Thư viện","Vườn hoa","Đền/miếu","Chợ/Siêu thị","Hẻm nhỏ"]
 					},
 					{
-						id: "outfit", title: "Trang phục",
-						options: ["Học sinh", "Suit", "Techwear/Cyberpunk", "Áo giáp", "Quân phục", "Sơ mi mở cúc",
-						"Hán phục", "Đồ bơi", "Đồ thể thao", "Đồng phục cảnh sát", "Áo blouse", "Lễ phục",
-						"Áo len/sweater", "Áo khoác dài", "Hoodie", "Áo thun", "Streetwear",
-						"Đồ ngủ", "Đồ truyền thống", "Đồ cưới", "Đồ hầu gái/quản gia", "Cosplay", "Áo blouse",
-						"Áo khoác da biker", "Áo choàng ma pháp sư", "Đồ ninja",
-						"Đồ idol biểu diễn", "Trang phục công sở", "Đồ mùa đông", "Đồ mùa hè", "Đồ thường ngày đơn giản",
-						"Đồ thí nghiệm/nhà khoa học", "Thần thánh/thiên sứ", "Trang phục ác quỷ/vampire",
-						"Đồ lễ hội", "Đồ ngủ sexy", "Đồ liền thân", "Đồ công chúa/hoàng tử", "Đồ biểu diễn nhạc rock",
-						"Đồ cưỡi ngựa", "Đồ phi hành gia"
+						id:"outfit",title:"Trang phục",
+						options:[
+							"Học sinh","Suit","Techwear/Cyberpunk","Áo giáp","Quân phục","Sơ mi mở cúc",
+							"Hán phục","Đồ bơi","Đồ thể thao","Đồng phục cảnh sát","Áo blouse","Lễ phục",
+							"Áo len/sweater","Áo khoác dài","Hoodie","Áo thun","Streetwear",
+							"Đồ ngủ","Đồ truyền thống","Đồ cưới","Đồ hầu gái/quản gia","Cosplay",
+							"Áo khoác da biker","Áo choàng ma pháp sư","Đồ ninja",
+							"Đồ idol biểu diễn","Trang phục công sở","Đồ mùa đông","Đồ mùa hè","Đồ thường ngày đơn giản",
+							"Đồ thí nghiệm/nhà khoa học","Thần thánh/thiên sứ","Trang phục ác quỷ/vampire",
+							"Đồ lễ hội","Đồ liền thân","Đồ công chúa/hoàng tử","Đồ biểu diễn nhạc rock",
+							"Đồ cưỡi ngựa","Đồ phi hành gia","Corset","Váy xếp ly","Quần yếm"
 						]
 					},
 					{
-						id: "accessories", title: "Phụ kiện",
-						options: [
-						"Kính", "Khẩu trang", "Khuyên", "Hình xăm", "Tai nghe", "Băng cá nhân",
-						"Tai thú", "Sừng", "Cánh", "Đuôi", "Khăn choàng", "Túi xách"
+						id:"accessories",title:"Phụ kiện",
+						options:["Kính","Khẩu trang","Khuyên","Hình xăm","Tai nghe","Băng cá nhân","Tai thú","Sừng","Cánh","Đuôi","Khăn choàng","Túi xách","Găng tay","Vòng cổ","Nhẫn","Dây chuyền","Vòng tay","Hoa tai dài","Mũ beret","Mũ bucket","Bịt mắt"]
+					},
+					{
+						id:"species",title:"Thiết lập",
+						options:["Người","Tinh linh","Ma cà rồng","Ác ma","Thiên sứ","Quái thú","Robot","Ngoài hành tinh","Zombie","Người sói","Người cá", "Người thú"]
+					},
+					{
+						id:"bodyType",title:"Độ tuổi",
+						options:["Trẻ con","Thiếu niên","Thành niên","Trung niên","Đại đại đi","Em bé","Chênh lệch tuổi"]
+					},
+					{
+						id:"hair",title:"Tóc",
+						options:["Ngắn","Vừa","Dài","Buộc đuôi ngựa","Thắt bím","Xoăn","Thẳng","Mái M","7:3","5:5","6:4"]
+					},
+					{
+						id:"expression",title:"Biểu cảm",
+						options:[
+							"Cười mỉm","Cười tươi","Cười nhếch mép","Cười gian","Cười ngốc",
+							"Chu môi","Mím môi","Nhăn mặt","Trợn mắt","Nhíu mày",
+							"Đỏ mặt","Thẹn thùng","Hoảng hốt","Ngại ngùng","Bối rối",
+							"Buồn bã","Khóc","Nước mắt lưng tròng","Tức giận","Giận dữ",
+							"Lạnh lùng","Không cảm xúc","Buồn ngủ","Ngáp dài",
+							"Hạnh phúc","Thỏa mãn","Tự tin","Kiêu ngạo","Khinh bỉ",
+							"Ngạc nhiên","Choáng váng","Hoảng sợ","Run rẩy","Gào thét",
+							"Nhăn nhở","Ngơ ngác","Mặt ngầu","Nghiêm túc","Mặt thánh thiện",
+							"Cười gượng","Cắn môi","Nhe răng","Liếc mắt","Chớp mắt","Nhắm mắt","Nhìn trái","Nhìn phải",
+							"Cười ranh mãnh","Mặt đơ","Xấu hổ che mặt","Đang suy tư","Đang yêu"
 						]
 					},
 					{
-						id: "species", title: "Chủng loại",
-						options: [
-						"Người", "Tinh linh", "Ma cà rồng", "Ác ma", "Thiên sứ", "Quái thú", "Robot",
-						"Ngoài hành tinh", "Zombie"
-						]
-					},
-					{ id: "bodyType", title: "Độ tuổi", options: ["Trẻ con", "Thiếu niên", "Thành niên", "Trung niên"]},
-					{ id: "hair", title: "Tóc",
-					options: ["Ngắn", "Vừa", "Dài", "Buộc đuôi ngựa", "Thắt bím", "Xoăn", "Thẳng", "Mohawk", "Undercut"] },
-					{ id: "expression", title: "Biểu cảm",
-						options: [
-							"Cười mỉm", "Cười tươi", "Cười nhếch mép", "Cười gian", "Cười ngốc",
-							"Chu môi", "Mím môi", "Nhăn mặt", "Trợn mắt", "Nhíu mày",
-							"Đỏ mặt", "Thẹn thùng", "Hoảng hốt", "Ngại ngùng", "Bối rối",
-							"Buồn bã", "Khóc", "Nước mắt lưng tròng", "Tức giận", "Giận dữ",
-							"Lạnh lùng", "Không cảm xúc", "Buồn ngủ", "Ngáp dài",
-							"Hạnh phúc", "Thỏa mãn", "Tự tin", "Kiêu ngạo", "Khinh bỉ",
-							"Ngạc nhiên", "Choáng váng", "Hoảng sợ", "Run rẩy", "Gào thét",
-							"Mặt troll", "Nhăn nhở", "Ngơ ngác", "Mặt ngầu", "Nghiêm túc", "Mặt thánh thiện",
-							"Cười gượng", "Cắn môi", "Nhe răng", "Liếc mắt", "Chớp mắt", "Nhắm mắt", "Nhìn sang chỗ khác",
-							"Cười ranh mãnh", "Mặt đơ", "Xấu hổ che mặt", "Đang suy tư", "Đang yêu"
-						]
-					},
-					{ id: "palette", title: "Bảng màu", options: [] }
-                ],
+						id:"palette",title:"Bảng màu",options:[]
+					}
+				],
 				peopleConfig:{
 					min:1,
 					max:5,
 					addQuestions:[
-						{when:">=2",insertAfter:"artType",question:{id:"relations",title:"Quan hệ giữa các nhân vật",options:["Bạn bè","Đồng đội","Anh em","Tình nhân","Đồng nghiệp","Đối thủ","Gia đình","Ban nhạc","Tổ đội mạo hiểm"]}},
-						{when:">=3",insertAfter:"relations",question:{id:"groupLayout",title:"Bố cục nhóm",options:["Trung tâm 1 người","Đối xứng trái-phải","Tầng trước-sau","Xếp chéo","Bao quanh nhân vật chính","Tạo hình logo/biểu tượng"]}}
+						{when:">=3",insertAfter:"relations",question:{id:"groupLayout",title:"Bố cục nhóm",options:["1 người trung tâm","Đối xứng trái-phải","Trước-sau","Xếp chéo","Tạo hình biểu tượng"]}}
 					],
 					optionRules:{
 						"pose":{
 							"=1":{exclude:["Tựa lưng nhau","Tựa vai nhau","Ôm","Cõng","Bế công chúa","Nắm tay","Đan tay","Kéo tay","Đối mặt nhau","Tựa đầu lên vai","Hôn"]},
-							">=3":{exclude:["Ôm","Bế công chúa","Cõng"],add:["Đội hình tam giác","Đội hình chữ V","Xếp lớp trước-sau","Đứng vòng tròn","Ảnh nhóm năng động"]}
+							">=3":{exclude:["Ôm","Bế công chúa","Cõng"],add:["Đứng vòng tròn","Đánh nhau", "Lái xe"]}
 						},
 						"hand post":{
-							"=1":{exclude:["Tựa tay lên vai bạn đồng hành","Nắm áo đối phương","Vuốt tóc đối phương","Đan tay","Đỡ mặt người khác"]},
+							"=1":{exclude:["Tựa tay lên vai","Nắm áo đối phương","Vuốt tóc đối phương","Đan tay","Đỡ mặt người khác"]},
 							">=3":{exclude:["Nắm áo đối phương"],add:["Đặt tay lên vai nhau","Đập tay ăn mừng","Chỉ trỏ nhiều hướng","Tạo ký hiệu nhóm"]}
+						}
+					},
+					charTemplates:{
+						pose:{templateId:"pose",titlePrefix:"Tư thế char ",idPrefix:"pose_char"},
+						hand:{templateId:"hand post",titlePrefix:"Động tác tay char ",idPrefix:"hand_char"},
+						accessories:{templateId:"accessories",titlePrefix:"Phụ kiện char ",idPrefix:"acc_char"},
+						species:{templateId:"species",titlePrefix:"Thiết lập char ",idPrefix:"species_char"},
+						hair:{templateId:"hair",titlePrefix:"Tóc char ",idPrefix:"hair_char"},
+						expression:{templateId:"expression",titlePrefix:"Biểu cảm char ",idPrefix:"exp_char"}
+					},
+					poseModes:{
+						normal:{exclude:["Tựa lưng nhau","Tựa vai nhau","Ôm","Cõng","Bế công chúa","Nắm tay","Đan tay","Kéo tay","Đối mặt nhau","Tựa đầu lên vai","Hôn"]},
+						cp:{keep:["Tựa lưng nhau","Tựa vai nhau","Ôm","Cõng","Bế công chúa","Nắm tay","Đan tay","Kéo tay","Đối mặt nhau","Tựa đầu lên vai","Hôn"]},
+						group:{exclude:["Ôm","Bế công chúa","Cõng"],add:["Đội hình tam giác","Đội hình chữ V","Xếp lớp trước-sau","Đứng vòng tròn","Ảnh nhóm năng động"]}
+					},
+					handModes:{
+						normal:{exclude:["Tựa tay lên vai","Nắm áo đối phương","Vuốt tóc đối phương","Đan tay","Đỡ mặt người khác"]},
+						cp:{
+							keep:["Nắm tay","Đan tay","Bắt tay","Tựa tay lên vai","Nắm áo đối phương","Vuốt tóc đối phương","Đỡ mặt người khác","Chạm má"],
+							add:["Sấy tóc"]
+						},
+						group:{exclude:["Nắm áo đối phương"],add:["Đặt tay lên vai nhau","Đập tay ăn mừng","Chỉ trỏ nhiều hướng","Tạo ký hiệu nhóm"]}
+					},
+					dependency:{
+						pose:{
+							"Cõng":["Ngồi trên vai","Bám lưng","Ôm cổ từ sau"],
+							"Bế công chúa":["Được bế","Ôm cổ người bế","Vòng tay qua cổ"],
+							"Ôm":["Ôm lại","Vòng tay qua lưng","Tựa đầu lên vai"],
+							"Nắm tay":["Nắm tay lại","Đan tay","Kéo tay nhẹ"],
+							"Đan tay":["Đan tay lại","Nắm tay","Tựa vai"],
+							"Hôn":["Hôn đáp lại","Nhắm mắt","Ôm cổ đối phương","Né","Đẩy ra"]
 						}
 					},
 					answerOverrides:{}
 				}
-            }
+			}
         };
 
         let currentSet = null;
@@ -733,23 +767,67 @@
 			const base=JSON.parse(JSON.stringify(src.questions))
 			let injected=[]
 			if(cfg&&cfg.addQuestions&&cfg.addQuestions.length){
-				injected=cfg.addQuestions.filter(r=>evalCond(r.when,n)).map(r=>r)
+				injected=cfg.addQuestions.filter(r=>{
+					if(cfg.relationsForAll&&r.question&&r.question.id==="relations")return true
+					return evalCond(r.when,n)
+				})
 			}
 			let out=[]
 			for(let i=0;i<base.length;i++){
 				const q=base[i]
+				if(n>=2&&(q.id==="pose"||q.id==="hand post")){continue}
 				out.push(q)
 				const hit=injected.find(x=>x.insertAfter===q.id)
 				if(hit) out.push(hit.question)
+				if(n>=2&&cfg&&cfg.charTemplates){
+					const ct=cfg.charTemplates
+					if(q.id===ct.pose.templateId){
+						for(let k=1;k<=n;k++){
+							const id=ct.pose.idPrefix+k
+							const title=ct.pose.titlePrefix+k
+							let opts=q.options.slice()
+							let mode="normal"
+							if(n>=3)mode="group";else if(n>=2)mode="cp"
+							const m=cfg.poseModes[mode]
+							if(m.keep) opts=opts.filter(v=>m.keep.includes(v))
+							if(m.exclude) opts=opts.filter(v=>!m.exclude.includes(v))
+							if(m.add) opts=[...opts,...m.add]
+							out.push({id,title,options:Array.from(new Set(opts))})
+						}
+					}
+					if(q.id===ct.hand.templateId){
+						for(let k=1;k<=n;k++){
+							const id=ct.hand.idPrefix+k
+							const title=ct.hand.titlePrefix+k
+							let opts=q.options.slice()
+							let mode="normal"
+							if(n>=3)mode="group";else if(n>=2)mode="cp"
+							const m=cfg.handModes[mode]
+							if(m.keep) opts=opts.filter(v=>m.keep.includes(v))
+							if(m.exclude) opts=opts.filter(v=>!m.exclude.includes(v))
+							if(m.add) opts=[...opts,...m.add]
+							out.push({id,title,options:Array.from(new Set(opts))})
+						}
+					}
+					if(q.id===ct.accessories.templateId||q.id===ct.species.templateId||q.id===ct.hair.templateId||q.id===ct.expression.templateId){
+						const t = q.id===ct.accessories.templateId?ct.accessories:q.id===ct.species.templateId?ct.species:q.id===ct.hair.templateId?ct.hair:ct.expression
+						for(let k=1;k<=n;k++){
+							out.push({id:t.idPrefix+k,title:t.titlePrefix+k,options:q.options.slice()})
+						}
+					}
+				}
 			}
-			if(cfg&&cfg.optionRules){
+			const optRules=cfg&&cfg.optionRules?cfg.optionRules:null
+			if(optRules){
 				for(let i=0;i<out.length;i++){
 					const q=out[i]
-					if(!q.id||!cfg.optionRules[q.id]) continue
-					const rules=cfg.optionRules[q.id]
-					let applied=null
-					for(const k in rules){if(evalCond(k,n)){applied=rules[k]}}
-					if(applied&&q.options) out[i].options=applyOptionRule(q.options,applied)
+					if(!q.id||!q.options) continue
+					if(optRules[q.id]){
+						const rules=optRules[q.id]
+						let applied=null
+						for(const k in rules){if(evalCond(k,n)){applied=rules[k]}}
+						if(applied) out[i].options=applyOptionRule(q.options,applied)
+					}
 				}
 			}
 			return {name:src.name,questions:out}
@@ -760,18 +838,44 @@
 			const slider=document.getElementById("peopleSlider")
 			const val=document.getElementById("peopleValue")
 			if(!ctrl||!slider||!val) return
-			val.textContent=String(slider.value)
+			const cfg=(questionSets.artist&&questionSets.artist.peopleConfig)||{min:1,max:5}
+			slider.min=String(cfg.min||1)
+			slider.max=String(cfg.max||5)
+			slider.step="1"
+			slider.value=String(personCount)
+			val.textContent=String(personCount)
 			slider.oninput=function(e){
 				personCount=parseInt(e.target.value,10)
 				val.textContent=String(personCount)
 				if(document.getElementById("questionSetTop").value!=="artist")return
 				const keep=resultsByQuestion
 				currentSet=buildArtistWithPeople(personCount)
-				currentQuestionIndex=0
+				if(currentQuestionIndex<0||currentQuestionIndex>=currentSet.questions.length) currentQuestionIndex=0
 				updateQuestionList()
 				updateCurrentQuestion()
 				resultsByQuestion=keep
 				renderPredefinedAnswers()
+			}
+		}
+		function applyCrossDependencies(){
+			if(document.getElementById("questionSetTop").value!=="artist")return
+			const cfg=(questionSets.artist&&questionSets.artist.peopleConfig)||{}
+			const dep=(cfg.dependency&&cfg.dependency.pose)||{}
+			const n=personCount
+			if(!dep||n<2||!currentSet) return
+			const qList=currentSet.questions
+			const getQ=id=>qList.find(x=>x.id===id)
+			const p1=getQ("pose_char1")
+			const p2=getQ("pose_char2")
+			if(!p1||!p2) return
+			const v1=resultsByQuestion["pose_char1"]
+			if(!v1) return
+			const map=dep[v1]
+			if(map&&Array.isArray(map)&&map.length){
+				p2.options=Array.from(new Set(map.slice()))
+				if(resultsByQuestion["pose_char2"]&&!p2.options.includes(resultsByQuestion["pose_char2"])){
+					delete resultsByQuestion["pose_char2"]
+				}
 			}
 		}
 		document.addEventListener("DOMContentLoaded",function(){wirePeopleSlider()})
@@ -1081,6 +1185,7 @@
 			}else if(q&&q.title){
 				resultsByQuestion[q.title]=lastWinner
 			}
+			applyCrossDependencies()
 			updateQuestionList()
 			showPalettePanel(false)
 			setTimeout(()=>{moveToNextQuestion();renderPredefinedAnswers()},300)
