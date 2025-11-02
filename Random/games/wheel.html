@@ -748,7 +748,6 @@
 
         function removeQuestion(index) {
             if (!currentSet) return;
-            if (!confirm("Bạn có chắc muốn xóa câu hỏi này?")) return;
             if (index < currentSet.questions.length) {
                 currentSet.questions.splice(index, 1);
             } else {
@@ -837,7 +836,7 @@
 
 					const mid = (el.startAngle + el.endAngle) / 2
 					const angleW = el.endAngle - el.startAngle
-					const r = el.innerRadius + (el.outerRadius - el.innerRadius) * 0.55
+					const r = el.innerRadius + (el.outerRadius - el.innerRadius) * 0.75
 
 					let fontPx = Math.max(9, Math.min(24, el.outerRadius * 0.09))
 					ctx.save()
