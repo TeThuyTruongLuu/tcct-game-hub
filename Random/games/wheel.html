@@ -822,33 +822,35 @@
 		const WheelLabelsPlugin = {
 			id: 'wheelLabels',
 			afterDatasetsDraw(chart) {
+				const ctx = chart.ctx
 				const meta = chart.getDatasetMeta(0)
-				const inset = Math.max(3, meta.data[0].outerRadius*0.5)
+				if (!meta || !meta.data.length) return
+
 				for (let i = 0; i < meta.data.length; i++) {
 					const el = meta.data[i]
 					const label = chart.data.labels[i] || ''
 					if (!el || !label) continue
+
 					const mid = (el.startAngle + el.endAngle) / 2
 					const angleW = el.endAngle - el.startAngle
-					const r = el.outerRadius - inset
-					let fontPx = Math.max(9, Math.min(26, el.outerRadius*0.10))
-					const ctx = chart.ctx
+					const r = el.innerRadius + (el.outerRadius - el.innerRadius) * 0.55
+
+					let fontPx = Math.max(9, Math.min(24, el.outerRadius * 0.09))
 					ctx.save()
 					ctx.translate(el.x, el.y)
 					ctx.rotate(mid)
-					if (window.labelMode === 'tangent') ctx.rotate(Math.PI/2)
-					if (window.labelMode === 'radial') ctx.rotate(Math.PI)
-					if (window.textDirection === 'inward') ctx.rotate(Math.PI)
-					ctx.translate(r, 0)
+					ctx.textAlign = 'center'
+					ctx.textBaseline = 'middle'
 					for (;;) {
-						ctx.font = `600 ${fontPx}px Quicksand, sans-serif`
+						ctx.font = `700 ${fontPx}px Quicksand, sans-serif`
 						const w = ctx.measureText(label).width
-						const maxW = r*angleW*0.9
+						const maxW = r * angleW * 0.85
 						if (w <= maxW || fontPx <= 9) break
 						fontPx -= 0.5
 					}
+
 					ctx.fillStyle = '#111'
-					ctx.fillText(label, 0, 0)
+					ctx.fillText(label, r, 0)
 					ctx.restore()
 				}
 			}
@@ -946,7 +948,7 @@
 				} else {
 					const meta = wheelChart.getDatasetMeta(0);
 					const rotRad = (rotation % 360) * Math.PI / 180;
-					const p = normalize(-rotRad + Math.PI/2);
+					const p = normalize(-rotRad);
 					let winningIndex = 0;
 					for (let i = 0; i < meta.data.length; i++) {
 						const el = meta.data[i];
