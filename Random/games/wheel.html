@@ -414,7 +414,7 @@
                             "Thư ký", "Phóng viên", "Sinh vật siêu nhiên", "Thiếu gia", "Thất nghiệp",
                             "Vận động viên", "Kiểm soát viên không lưu", "Phù thủy", "Biên dịch viên", "Vong",
 							"Chủ tiệm hoa", "Đầu bếp", "Du học sinh", "Công nhân", "Diễn viên lồng tiếng", "Nhạc sĩ",
-							"Người mẫu", "Nhân viên kiểm định thị trường", "Vũ công", "Pháp y", "Hòa thượng", "Streamer"
+							"Người mẫu", "Kiểm định thị trường", "Vũ công", "Pháp y", "Hòa thượng", "Streamer"
                         ]
                     },
                     {
@@ -429,7 +429,7 @@
                             "Thư ký", "Phóng viên", "Sinh vật siêu nhiên", "Thiếu gia", "Thất nghiệp",
                             "Vận động viên", "Kiểm soát viên không lưu", "Phù thủy", "Biên dịch viên", "Vong",
 							"Chủ tiệm hoa", "Đầu bếp", "Du học sinh", "Công nhân", "Diễn viên lồng tiếng", "Nhạc sĩ",
-							"Người mẫu", "Nhân viên kiểm định thị trường", "Vũ công", "Pháp y", "Hòa thượng", "Streamer"
+							"Người mẫu", "Kiểm định thị trường", "Vũ công", "Pháp y", "Hòa thượng", "Streamer"
                         ]
                     },
                     {
@@ -823,7 +823,7 @@
 			id: 'wheelLabels',
 			afterDatasetsDraw(chart) {
 				const meta = chart.getDatasetMeta(0)
-				const inset = Math.max(3, meta.data[0].outerRadius*0.2)
+				const inset = Math.max(3, meta.data[0].outerRadius*0.5)
 				for (let i = 0; i < meta.data.length; i++) {
 					const el = meta.data[i]
 					const label = chart.data.labels[i] || ''
@@ -840,8 +840,6 @@
 					if (window.labelMode === 'radial') ctx.rotate(Math.PI)
 					if (window.textDirection === 'inward') ctx.rotate(Math.PI)
 					ctx.translate(r, 0)
-					ctx.textAlign = 'center'
-					ctx.textBaseline = 'middle'
 					for (;;) {
 						ctx.font = `600 ${fontPx}px Quicksand, sans-serif`
 						const w = ctx.measureText(label).width
