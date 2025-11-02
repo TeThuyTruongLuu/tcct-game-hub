@@ -845,7 +845,7 @@
 						const w = ctx.measureText(label).width
 						const maxW = r*angleW*0.9
 						if (w <= maxW || fontPx <= 9) break
-						fontPx -= 1
+						fontPx -= 0.5
 					}
 					ctx.fillStyle = '#111'
 					ctx.fillText(label, 0, 0)
