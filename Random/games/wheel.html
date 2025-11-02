@@ -919,76 +919,87 @@
                     }
                     return 0;
                 }
+		function spinWheel() {
+			if (!wheelChart) return;
+			let rotations = Math.floor(Math.random() * 5 + 5) * 360;
+			let randomStopAngle = Math.random() * 360;
+			let totalRotation = rotations + randomStopAngle;
+			let duration = 5000;
+			let start = null;
 
-        function spinWheel() {
-            if (!wheelChart) return;
-            let rotations = Math.floor(Math.random() * 5 + 5) * 360;
-            let randomStopAngle = Math.random() * 360;
-            let totalRotation = rotations + randomStopAngle;
-            let duration = 5000;
-            let start = null;
+			function normalize(a) {
+				const TWO = Math.PI * 2;
+				let v = a % TWO;
+				if (v < 0) v += TWO;
+				return v;
+			}
 
-            function animateSpin(timestamp) {
-                if (!start) start = timestamp;
-                let progress = timestamp - start;
-                let easeOut = 1 - Math.pow(1 - progress / duration, 3);
-                rotation = easeOut * totalRotation;
-                wheelCanvas.style.transform = `rotate(${rotation}deg)`;
+			function animateSpin(timestamp) {
+				if (!start) start = timestamp;
+				let progress = timestamp - start;
+				let easeOut = 1 - Math.pow(1 - progress / duration, 3);
+				rotation = easeOut * totalRotation;
+				wheelCanvas.style.transform = `rotate(${rotation}deg)`;
 
-                if (progress < duration) {
-                    requestAnimationFrame(animateSpin);
-                } else {
-                    // compute winner using chart slice angles (robust)
-                    const winningIndex = determineWinnerFromRotation(rotation);
-                    lastWinner = names[winningIndex];
-                    lastWinnerIndex = winningIndex;
-                    let winnerColor = wheelChart.data.datasets[0].backgroundColor[winningIndex];
-                    document.getElementById("winnerHeader").style.backgroundColor = adjustColor(winnerColor, -30);
-                    document.getElementById("winnerText").innerText = lastWinner;
+				if (progress < duration) {
+					requestAnimationFrame(animateSpin);
+				} else {
+					const meta = wheelChart.getDatasetMeta(0);
+					const rotRad = (rotation % 360) * Math.PI / 180;
+					const p = normalize(-rotRad + Math.PI/2);
+					let winningIndex = 0;
+					for (let i = 0; i < meta.data.length; i++) {
+						const el = meta.data[i];
+						if (!el) continue;
+						let s = normalize(el.startAngle);
+						let e = normalize(el.endAngle);
+						if (s <= e ? (p >= s && p <= e) : (p >= s || p <= e)) { winningIndex = i; break; }
+					}
 
-                    // update modal buttons per currentSet state
-                    const btn1 = document.getElementById('winnerBtn1');
-                    const btn2 = document.getElementById('winnerBtn2');
-                    const btn3 = document.getElementById('winnerBtn3');
+					lastWinner = names[winningIndex];
+					lastWinnerIndex = winningIndex;
+					let winnerColor = wheelChart.data.datasets[0].backgroundColor[winningIndex];
+					document.getElementById("winnerHeader").style.backgroundColor = adjustColor(winnerColor, -30);
+					document.getElementById("winnerText").innerText = lastWinner;
 
-                    if (currentSet) {
-                        // set active: three buttons
-                        btn1.style.display = 'inline-block';
-                        btn1.textContent = 'Xóa kết quả vừa quay & Quay lại';
-                        btn1.className = 'modal-button close';
-                        btn1.onclick = function() { deleteWinner(); };
+					const btn1 = document.getElementById('winnerBtn1');
+					const btn2 = document.getElementById('winnerBtn2');
+					const btn3 = document.getElementById('winnerBtn3');
 
-                        btn2.style.display = 'inline-block';
-                        btn2.textContent = 'Quay lần nữa';
-                        btn2.className = 'modal-button neutral';
-                        btn2.onclick = rejectWinner;
+					if (currentSet) {
+						btn1.style.display = 'inline-block';
+						btn1.textContent = 'Xóa kết quả vừa quay & Quay lại';
+						btn1.className = 'modal-button close';
+						btn1.onclick = function() { deleteWinner(); };
 
-                        btn3.style.display = 'inline-block';
-                        btn3.textContent = 'Chốt';
-                        btn3.className = 'modal-button remove';
-                        btn3.onclick = confirmWinner;
-                    } else {
-                        // no set: only two buttons: Đóng and Xóa
-                        btn1.style.display = 'inline-block';
-                        btn1.textContent = 'Đóng';
-                        btn1.className = 'modal-button close';
-                        btn1.onclick = closeModal;
+						btn2.style.display = 'inline-block';
+						btn2.textContent = 'Quay lần nữa';
+						btn2.className = 'modal-button neutral';
+						btn2.onclick = rejectWinner;
 
-                        btn2.style.display = 'inline-block';
-                        btn2.textContent = 'Xóa kết quả vừa quay';
-                        btn2.className = 'modal-button close';
-                        btn2.onclick = deleteWinner;
+						btn3.style.display = 'inline-block';
+						btn3.textContent = 'Chốt';
+						btn3.className = 'modal-button remove';
+						btn3.onclick = confirmWinner;
+					} else {
+						btn1.style.display = 'inline-block';
+						btn1.textContent = 'Đóng';
+						btn1.className = 'modal-button close';
+						btn1.onclick = closeModal;
 
-                        btn3.style.display = 'none';
-                    }
+						btn2.style.display = 'inline-block';
+						btn2.textContent = 'Xóa kết quả vừa quay';
+						btn2.className = 'modal-button close';
+						btn2.onclick = deleteWinner;
 
-                    document.getElementById("winnerModal").style.display = "block";
-                }
-            }
-            requestAnimationFrame(animateSpin);
-        }
+						btn3.style.display = 'none';
+					}
 
-
+					document.getElementById("winnerModal").style.display = "block";
+				}
+			}
+			requestAnimationFrame(animateSpin);
+		}
 
 		function closeModal() {
         document.getElementById("winnerModal").style.display = "none";
