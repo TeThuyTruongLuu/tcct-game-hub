@@ -594,10 +594,6 @@
 						options:["Sketch","Line","Flat color","Inking","Color","Illustration","Character sheet","Emote pack","Gacha","GIF"]
 					},
 					{
-						id:"relations",title:"Quan hệ giữa các nhân vật",
-						options:["Độc lập","Bạn bè","Đồng đội","Anh chị em","Người yêu","Đồng nghiệp","Đối thủ","Gia đình","Ban nhạc","Tổ đội","Đại đại đi"]
-					},
-					{
 						id:"pose",title:"Tư thế",
 						options:[
 							"Đứng","Ngồi","Ngồi xổm","Nằm nghiêng","Nằm ngửa","Nằm sấp","Bắt chéo chân","Ngồi gác chân","Ngồi khép chân",
@@ -688,7 +684,7 @@
 					min:1,
 					max:5,
 					addQuestions:[
-						{when:">=3",insertAfter:"relations",question:{id:"groupLayout",title:"Bố cục nhóm",options:["1 người trung tâm","Đối xứng trái-phải","Trước-sau","Xếp chéo","Tạo hình biểu tượng"]}}
+						{when:">=3",insertAfter:"artType",question:{id:"groupLayout",title:"Bố cục",options:["Độc lập","1 người trung tâm","Đối xứng trái-phải","Trước-sau","Xếp chéo","Tạo hình biểu tượng"]}}
 					],
 					optionRules:{
 						"pose":{
