@@ -314,15 +314,35 @@
         }
     </style>
     <style>
+        /* Small-screen: keep three columns but shrink side panels and wheel so they don't overlap */
         @media (max-width: 600px) {
-            .left-panel, .right-panel {
-                display: none !important;
-            }
             .main-container {
-                grid-template-columns: 1fr !important;
+                grid-template-columns: 120px minmax(120px, 1fr) 120px !important;
+                gap: 8px;
+                padding: 8px;
+                max-width: 100%;
             }
+            .left-panel, .right-panel {
+                max-width: 120px;
+                padding: 8px;
+                box-sizing: border-box;
+            }
+            .center-panel {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+                padding: 4px;
+            }
+            /* shrink the wheel so it doesn't overlap side panels */
+            .wheel-container {
+                width: min(60vw, 220px) !important;
+                height: auto !important;
+                aspect-ratio: 1/1;
+            }
+            #wheelCanvas { width: 100% !important; height: 100% !important; }
             .name-input { width: 100%; }
-            .center-panel { padding: 8px; }
+            .question-list { max-height: 300px; overflow: auto; }
         }
     </style>
 </head>
@@ -704,9 +724,19 @@
 						removeQuestion(index);
 					}
 				};
-				item.appendChild(rem);
+                item.appendChild(rem);
 
-				questionList.appendChild(item);
+                // allow clicking a question to select it (can re-spin even if already chốt)
+                item.style.cursor = 'pointer';
+                item.onclick = () => {
+                    currentQuestionIndex = index;
+                    updateCurrentQuestion();
+                    // close any open modal when switching questions
+                    const modal = document.getElementById('winnerModal');
+                    if (modal) modal.style.display = 'none';
+                };
+
+                questionList.appendChild(item);
             });
         }
 
