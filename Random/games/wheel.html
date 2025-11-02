@@ -683,14 +683,18 @@
                 item.appendChild(drag);
                 item.appendChild(title);
                 item.appendChild(resultSpan);
-                if (question.isCustom) {
-                    const rem = document.createElement('button');
-                    rem.className = 'remove-btn';
-                    rem.textContent = '×';
-                    rem.onclick = () => removeQuestion(index);
-                    item.appendChild(rem);
-                }
-                questionList.appendChild(item);
+				const rem = document.createElement('button');
+				rem.className = 'remove-btn';
+				rem.textContent = '×';
+				rem.title = 'Xóa câu hỏi này';
+				rem.onclick = () => {
+					if (confirm(`Bạn có chắc muốn xóa câu hỏi "${question.title}"?`)) {
+						removeQuestion(index);
+					}
+				};
+				item.appendChild(rem);
+
+				questionList.appendChild(item);
             });
         }
 
