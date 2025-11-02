@@ -438,12 +438,28 @@
                     {
                         id: "gongPersonality",
                         title: "Tính cách công",
-                        options: ["Xảo quyệt", "Dịu dàng", "Lạnh lùng", "Trung khuyển", "Bá đạo", "Thâm tình", "Tra", "Ngạo kiều", "Xán lạn", "Ngoan ngoãn", "Quyến rũ", "Thẹn thùng", "Ngốc nghếch", "Mạnh mẽ", "Yếu đuối", "Nhược thân", "Si tình", "Cố chấp", "Lãnh đạm", "Mặt than", "Bệnh kiều", "Hoạt bát", "Trầm tĩnh", "Thông minh", "Bất cần", "Dị năng", "Dễ khóc", "Lười biếng", "Chính trực", "Cứng đầu", "Ngoài lạnh trong nóng", "Đáng yêu", "Cấm dục"]
+                        options: [
+							"Xảo quyệt", "Dịu dàng", "Lạnh lùng", "Trung khuyển", "Bá đạo",
+							"Thâm tình", "Tra", "Ngạo kiều", "Xán lạn", "Ngoan ngoãn", "Quyến rũ",
+							"Thẹn thùng", "Ngốc nghếch", "Mạnh mẽ", "Yếu đuối", "Nhược thân", "Si tình",
+							"Cố chấp", "Lãnh đạm", "Mặt than", "Bệnh kiều", "Hoạt bát", "Trầm tĩnh", "Thông minh",
+							"Bất cần", "Dễ khóc", "Lười biếng", "Chính trực", "Cứng đầu", "Ngoài lạnh trong nóng",
+							"Đáng yêu", "Cấm dục", "Gai góc", "Ngoài nóng trong lạnh", "Nhạy cảm", "Điềm tĩnh",
+							"Dễ nóng giận", "Thảo mai", "Nhỏ nhen", "U ám", "Tươi sáng", "Dễ giận dỗi", "Ngây thơ"
+						]
                     },
                     {
                         id: "shouPersonality",
                         title: "Tính cách thụ",
-                        options: ["Xảo quyệt", "Dịu dàng", "Lạnh lùng", "Trung khuyển", "Bá đạo", "Thâm tình", "Tra", "Ngạo kiều", "Xán lạn", "Ngoan ngoãn", "Quyến rũ", "Thẹn thùng", "Ngốc nghếch", "Mạnh mẽ", "Yếu đuối", "Nhược thân", "Si tình", "Cố chấp", "Lãnh đạm", "Mặt than", "Bệnh kiều", "Hoạt bát", "Trầm tĩnh", "Thông minh", "Bất cần", "Dị năng", "Dễ khóc", "Lười biếng", "Chính trực", "Cứng đầu", "Ngoài lạnh trong nóng", "Đáng yêu", "Cấm dục"]
+                        options: [
+							"Xảo quyệt", "Dịu dàng", "Lạnh lùng", "Trung khuyển", "Bá đạo",
+							"Thâm tình", "Tra", "Ngạo kiều", "Xán lạn", "Ngoan ngoãn", "Quyến rũ",
+							"Thẹn thùng", "Ngốc nghếch", "Mạnh mẽ", "Yếu đuối", "Nhược thân", "Si tình",
+							"Cố chấp", "Lãnh đạm", "Mặt than", "Bệnh kiều", "Hoạt bát", "Trầm tĩnh", "Thông minh",
+							"Bất cần", "Dễ khóc", "Lười biếng", "Chính trực", "Cứng đầu", "Ngoài lạnh trong nóng",
+							"Đáng yêu", "Cấm dục", "Gai góc", "Ngoài nóng trong lạnh", "Nhạy cảm", "Điềm tĩnh",
+							"Dễ nóng giận", "Thảo mai", "Nhỏ nhen", "U ám", "Tươi sáng", "Dễ giận dỗi", "Ngây thơ"
+						]
                     },
                     {
                         id: "setting",
@@ -457,11 +473,9 @@
                         id: "ending",
                         title: "Kết cục",
                         options: [
-                            "HE (Happy Ending)",
-                            "BE (Bad Ending)",
-                            "SE (Sweet Ending)",
-                            "GE (Good Ending)",
-                            "OE (Open Ending)"
+                            "HE (Happy Ending)", "BE (Bad Ending)", "SE (Sweet Ending)",
+                            "GE (Good Ending)", "BE (Bed Ending)",
+                            "OE (Open Ending)", "SE (Sad Ending)"
                         ]
                     }
                 ]
@@ -497,7 +511,6 @@
             const nameInput = document.getElementById('nameInput');
 
             if (selectedSet === "none") {
-                // reset to default names when no set selected
                 names = defaultNames.slice();
                 setQuestions.style.display = "none";
                 leftPanel.style.display = 'none';
@@ -731,7 +744,7 @@
 			id: 'wheelLabels',
 			afterDatasetsDraw(chart) {
 				const meta = chart.getDatasetMeta(0)
-				const inset = 50
+				const inset = 60
 				for (let i = 0; i < meta.data.length; i++) {
 					const el = meta.data[i]
 					const label = chart.data.labels[i] || ''
