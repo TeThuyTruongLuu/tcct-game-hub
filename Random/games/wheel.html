@@ -679,13 +679,102 @@
 						]
 					},
 					{ id: "palette", title: "Bảng màu", options: [] }
-                ]
+                ],
+				peopleConfig:{
+					min:1,
+					max:5,
+					addQuestions:[
+						{when:">=2",insertAfter:"artType",question:{id:"relations",title:"Quan hệ giữa các nhân vật",options:["Bạn bè","Đồng đội","Anh em","Tình nhân","Đồng nghiệp","Đối thủ","Gia đình","Ban nhạc","Tổ đội mạo hiểm"]}},
+						{when:">=3",insertAfter:"relations",question:{id:"groupLayout",title:"Bố cục nhóm",options:["Trung tâm 1 người","Đối xứng trái-phải","Tầng trước-sau","Xếp chéo","Bao quanh nhân vật chính","Tạo hình logo/biểu tượng"]}}
+					],
+					optionRules:{
+						"pose":{
+							"=1":{exclude:["Tựa lưng nhau","Tựa vai nhau","Ôm","Cõng","Bế công chúa","Nắm tay","Đan tay","Kéo tay","Đối mặt nhau","Tựa đầu lên vai","Hôn"]},
+							">=3":{exclude:["Ôm","Bế công chúa","Cõng"],add:["Đội hình tam giác","Đội hình chữ V","Xếp lớp trước-sau","Đứng vòng tròn","Ảnh nhóm năng động"]}
+						},
+						"hand post":{
+							"=1":{exclude:["Tựa tay lên vai bạn đồng hành","Nắm áo đối phương","Vuốt tóc đối phương","Đan tay","Đỡ mặt người khác"]},
+							">=3":{exclude:["Nắm áo đối phương"],add:["Đặt tay lên vai nhau","Đập tay ăn mừng","Chỉ trỏ nhiều hướng","Tạo ký hiệu nhóm"]}
+						}
+					},
+					answerOverrides:{}
+				}
             }
         };
 
         let currentSet = null;
         let currentQuestionIndex = -1;
         let customQuestions = [];
+
+		let personCount=1
+
+		function evalCond(cond,n){
+			if(cond.startsWith(">="))return n>=parseInt(cond.slice(2),10)
+			if(cond.startsWith("<="))return n<=parseInt(cond.slice(2),10)
+			if(cond.startsWith(">"))return n>parseInt(cond.slice(1),10)
+			if(cond.startsWith("<"))return n<parseInt(cond.slice(1),10)
+			if(cond.startsWith("="))return n===parseInt(cond.slice(1),10)
+			const m=cond.match(/^(\d+)-(\d+)$/)
+			if(m){const a=parseInt(m[1],10),b=parseInt(m[2],10);return n>=a&&n<=b}
+			return false
+		}
+
+		function applyOptionRule(baseOpts,rule){
+			let out=baseOpts.slice()
+			if(rule.replace&&rule.replace.length) out=rule.replace.slice()
+			if(rule.exclude&&rule.exclude.length) out=out.filter(v=>!rule.exclude.includes(v))
+			if(rule.add&&rule.add.length) out=[...out,...rule.add]
+			return Array.from(new Set(out))
+		}
+
+		function buildArtistWithPeople(n){
+			const src=questionSets.artist
+			const cfg=src.peopleConfig||null
+			const base=JSON.parse(JSON.stringify(src.questions))
+			let injected=[]
+			if(cfg&&cfg.addQuestions&&cfg.addQuestions.length){
+				injected=cfg.addQuestions.filter(r=>evalCond(r.when,n)).map(r=>r)
+			}
+			let out=[]
+			for(let i=0;i<base.length;i++){
+				const q=base[i]
+				out.push(q)
+				const hit=injected.find(x=>x.insertAfter===q.id)
+				if(hit) out.push(hit.question)
+			}
+			if(cfg&&cfg.optionRules){
+				for(let i=0;i<out.length;i++){
+					const q=out[i]
+					if(!q.id||!cfg.optionRules[q.id]) continue
+					const rules=cfg.optionRules[q.id]
+					let applied=null
+					for(const k in rules){if(evalCond(k,n)){applied=rules[k]}}
+					if(applied&&q.options) out[i].options=applyOptionRule(q.options,applied)
+				}
+			}
+			return {name:src.name,questions:out}
+		}
+
+		function wirePeopleSlider(){
+			const ctrl=document.getElementById("artistPeopleControl")
+			const slider=document.getElementById("peopleSlider")
+			const val=document.getElementById("peopleValue")
+			if(!ctrl||!slider||!val) return
+			val.textContent=String(slider.value)
+			slider.oninput=function(e){
+				personCount=parseInt(e.target.value,10)
+				val.textContent=String(personCount)
+				if(document.getElementById("questionSetTop").value!=="artist")return
+				const keep=resultsByQuestion
+				currentSet=buildArtistWithPeople(personCount)
+				currentQuestionIndex=0
+				updateQuestionList()
+				updateCurrentQuestion()
+				resultsByQuestion=keep
+				renderPredefinedAnswers()
+			}
+		}
+		document.addEventListener("DOMContentLoaded",function(){wirePeopleSlider()})
 
 		let paletteColors=[]
 		let lockedColors=[]
@@ -772,55 +861,63 @@
 			if(confirmBtn)confirmBtn.onclick=openWinnerModalForPalette
 		})()
 
-        function handleQuestionSetChange() {
-            const topSelect = document.getElementById("questionSetTop");
-            const selectedSet = topSelect ? topSelect.value : 'none';
-            const setQuestions = document.getElementById("setQuestions");
+		function handleQuestionSetChange(){
+			const topSelect=document.getElementById("questionSetTop")
+			const selectedSet=topSelect?topSelect.value:"none"
+			const setQuestions=document.getElementById("setQuestions")
+			const leftPanel=document.querySelector(".left-panel")
+			const rightPanel=document.querySelector(".right-panel")
+			const nameInput=document.getElementById("nameInput")
+			const peopleCtrl=document.getElementById("artistPeopleControl")
 
-            const leftPanel = document.querySelector('.left-panel');
-            const rightPanel = document.querySelector('.right-panel');
-            const nameInput = document.getElementById('nameInput');
-
-            if (selectedSet === "none") {
-                names = defaultNames.slice();
-                setQuestions.style.display = "none";
-                leftPanel.style.display = 'none';
-                rightPanel.style.display = 'none';
-
-                const main = document.querySelector('.main-container');
-                if (main) {
-                    main.style.gridTemplateColumns = '1fr';
-                    main.classList.add('single-column');
-                }
-
-                nameInput.style.display = 'block';
-                nameInput.value = names.join('\n');
-                if (typeof drawWheel === 'function') drawWheel();
-                currentSet = null;
-                currentQuestionIndex = -1;
-                updateCurrentQuestion();
-                renderPredefinedAnswers();
-            } else {
-                
-                setQuestions.style.display = "block";
-                leftPanel.style.display = 'block';
-                rightPanel.style.display = 'block';
-                nameInput.style.display = 'none';
-
-                const main = document.querySelector('.main-container');
-                if (main) {
-                    main.style.gridTemplateColumns = 'minmax(250px, 1fr) minmax(300px, 2fr) minmax(250px, 1fr)';
-                    main.classList.remove('single-column');
-                }
-
-                currentSet = JSON.parse(JSON.stringify(questionSets[selectedSet]));
-                currentQuestionIndex = 0;
-                customQuestions = [];
-                updateQuestionList();
-                updateCurrentQuestion();
-                renderPredefinedAnswers();
-            }
-        }
+			if(selectedSet==="none"){
+				names=defaultNames.slice()
+				setQuestions.style.display="none"
+				leftPanel.style.display="none"
+				rightPanel.style.display="none"
+				const main=document.querySelector(".main-container")
+				if(main){
+					main.style.gridTemplateColumns="1fr"
+					main.classList.add("single-column")
+				}
+				if(peopleCtrl) peopleCtrl.style.display="none"
+				nameInput.style.display="block"
+				nameInput.value=names.join("\n")
+				showPalettePanel(false)
+				paletteColors=[]
+				lockedColors=[]
+				document.getElementById("winnerModal").style.display="none"
+				if(typeof drawWheel==="function") drawWheel()
+				currentSet=null
+				currentQuestionIndex=-1
+				updateCurrentQuestion()
+				renderPredefinedAnswers()
+			}else{
+				setQuestions.style.display="block"
+				leftPanel.style.display="block"
+				rightPanel.style.display="block"
+				nameInput.style.display="none"
+				const main=document.querySelector(".main-container")
+				if(main){
+					main.style.gridTemplateColumns="minmax(250px, 1fr) minmax(300px, 2fr) minmax(250px, 1fr)"
+					main.classList.remove("single-column")
+				}
+				showPalettePanel(false)
+				if(selectedSet==="artist"){
+					if(peopleCtrl) peopleCtrl.style.display="block"
+					wirePeopleSlider()
+					currentSet=buildArtistWithPeople(personCount)
+				}else{
+					if(peopleCtrl) peopleCtrl.style.display="none"
+					currentSet=JSON.parse(JSON.stringify(questionSets[selectedSet]))
+				}
+				currentQuestionIndex=0
+				customQuestions=[]
+				updateQuestionList()
+				updateCurrentQuestion()
+				renderPredefinedAnswers()
+			}
+		}
 
         function updateQuestionList() {
             const questionList = document.getElementById("questionList");
