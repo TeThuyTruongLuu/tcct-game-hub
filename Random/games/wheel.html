@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,347 +8,420 @@
 	<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-    <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            background-color: #ffebef;
-            font-family: 'Quicksand', sans-serif;
-        }
-        .main-container {
-            display: grid;
-            grid-template-columns: minmax(250px, 1fr) minmax(300px, 2fr) minmax(250px, 1fr);
-            gap: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .main-container.single-column .control-panel {
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        @media (max-width: 1024px) {
-            .main-container {
-                grid-template-columns: 1fr;
-            }
-        }
-        .control-panel {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .control-panel h3 {
-            color: #ff4081;
-            margin-top: 0;
-            text-align: center;
-        }
-        .page-title {
-            text-align: center;
-            margin-bottom: 12px;
-        }
-        .wheel-container {
-            width: 460px;
-            height: 460px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-			margin-top: 6px; margin-bottom: 6px;
-        }
-        #wheelCanvas {
-            width: 420px !important;
-            height: 420px !important;
-            max-width: 100%;
-            max-height: 100%;
-            transform-origin: 50% 50%;
-            transition: transform 0.1s linear;
-        }
-        .spin-button {
-            margin-top: 0px;
-            padding: 12px 26px;
-            background-color: #ff4081;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: 700;
-            transition: all 0.15s ease-in-out;
-            font-family: 'Quicksand', sans-serif;
-            box-shadow: 0 8px 18px rgba(255,64,129,0.18);
-        }
-        .spin-button:hover {
-            background-color: #e0356f;
-        }
-        .input-container {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        textarea {
-            width: 220px;
-            height: 100px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 8px;
-            text-align: left;
-            white-space: pre-line;
-            font-size: 14px;
-            outline: none;
-        }
-        .question-container {
-            margin: 20px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-        .question-container select, 
-        .question-container input {
-            width: 220px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-family: 'Quicksand', sans-serif;
-            font-size: 14px;
-            outline: none;
-        }
-        .question-container input {
-            box-sizing: border-box;
-        }
-        .set-selection select,
-        #questionSetTop {
-            width: 100%;
-            max-width: 320px;
-            padding: 10px 12px;
-            border: 2px solid rgba(255,64,129,0.15);
-            border-radius: 12px;
-            font-family: 'Quicksand', sans-serif;
-            font-size: 15px;
-            margin-bottom: 5px;
-            background-color: white;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(255,64,129,0.06);
-            color: #333;
-        }
-        .set-selection select:focus, #questionSetTop:focus {
-            outline: none;
-            border-color: #ff8aa0;
-            box-shadow: 0 6px 18px rgba(255,64,129,0.12);
-        }
-        .question-list {
-            margin: 15px 0;
-        }
-        .question-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 12px;
-            background: #fff;
-            border: 1px solid rgba(255,64,129,0.18);
-            border-radius: 10px;
-            margin-bottom: 10px;
-            cursor: grab;
-            gap: 10px;
-        }
-        .question-item .drag-handle {
-            cursor: grab;
-            padding: 6px 8px;
-            color: #ff4081;
-            border-radius: 6px;
-            background: rgba(255,64,129,0.06);
-            font-weight: 700;
-        }
-        .question-item .remove-btn {
-            margin-left: auto;
-            color: #ff4081;
-            cursor: pointer;
-            background: none;
-            border: none;
-            font-size: 18px;
-        }
-        .action-button {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Quicksand', sans-serif;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .action-button.add {
-            background-color: #ff4081;
-            color: white;
-        }
-        .action-button.add:hover {
-            background-color: #e0356f;
-        }
-        .current-question {
-            text-align: center;
-            margin: 10px 0;
-            font-size: 18px;
-            font-weight: bold;
-            color: #ff4081;
-        }
-        .predefined-answers {
-            max-height: 400px;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-        .center-panel {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+	<style>
+		body {
+			margin: 0;
+			padding: 20px;
+			min-height: 100vh;
+			background-color: #ffebef;
+			font-family: 'Quicksand', sans-serif;
+		}
+
+		#summaryModal {
+			padding: 0;
+		}
+		#summaryModal .modal-header {
+			background: #ff6f98;
+			color: #fff;
+			padding: 12px 16px;
+			border-top-left-radius: 12px;
+			border-top-right-radius: 12px;
+		}
+		#summaryModal .modal-header h2 {
+			margin: 0;
+			font-size: 18px;
+			font-weight: 700;
+		}
+		#summaryModal .modal-body {
+			padding: 12px 16px;
+		}
+		#summaryModal table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+		#summaryModal th,
+		#summaryModal td {
+			padding: 8px 6px;
+			border-bottom: 1px solid rgba(0, 0, 0, .06);
+		}
+		#summaryModal th {
+			text-align: left;
+			font-weight: 700;
+			color: #333;
+		}
+		#summaryModal td {
+			color: #222;
+			vertical-align: middle;
+		}
+		#summaryModal .result-chip {
+			display: inline-block;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: linear-gradient(180deg, #fff0f6, #ffe6ee);
+			color: #c2185b;
+			font-weight: 700;
+			box-shadow: 0 1px 0 rgba(0, 0, 0, .03);
+		}
+
+		.page-title {
+			text-align: center;
+			margin-bottom: 12px;
+		}
+
+		.main-container {
+			display: grid;
+			grid-template-columns: minmax(250px, 1fr) minmax(300px, 2fr) minmax(250px, 1fr);
+			gap: 20px;
+			max-width: 1400px;
+			margin: 0 auto;
+		}
+
+		.main-container.single-column .control-panel {
+			max-width: 600px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		.control-panel {
+			background: #fff;
+			border-radius: 15px;
+			padding: 20px;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+		}
+		.control-panel h3 {
+			color: #ff4081;
+			margin-top: 0;
+			text-align: center;
+		}
+
+		.center-panel {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
 			gap: 6px;
-        }
-        
-        .name-input {
-            width: 360px;
-            max-width: calc(100% - 40px);
-            height: 120px;
-            border-radius: 10px;
-            border: 1px solid #f0c0d0;
-            padding: 12px;
-            resize: vertical;
-            font-family: 'Quicksand', sans-serif;
-            margin-top: 18px;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            min-width: 300px;
-        }
-        .modal-header {
-            color: white;
-            padding: 15px;
-            font-size: 18px;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-        }
-        .modal-footer {
-            margin-top: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-        .close-button {
-            float: right;
-            cursor: pointer;
-            font-size: 20px;
-            font-weight: bold;
-            font-family: 'Quicksand', sans-serif;
-        }
-        .modal-button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-        }
-        .modal-button.close {
-            background-color: #ccc;
-        }
-        .modal-button.close:hover {
-            background-color: #b3b3b3;
-        }
-        .modal-button.remove {
-            background-color: #ff4081;
-            color: white;
-            font-family: 'Quicksand', sans-serif;
-        }
-        .modal-button.remove:hover {
-            background-color: #e0356f;
-        }
-        .modal-button.secondary {
-            background-color: #ff4081;
-            color: white;
-        }
-        .modal-button.neutral {
-            background-color: #ccc;
-            color: #222;
-        }
-        .arrow {
-            position: absolute;
-            top: 50%;
-            left: 100%;
-            transform: translate(-50%, -50%) rotate(90deg);
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 25px solid red;
-            z-index: 10;
-        }
+		}
+
+		.wheel-container {
+			width: 460px;
+			height: 460px;
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-top: 6px;
+			margin-bottom: 6px;
+		}
+		#wheelCanvas {
+			width: 420px !important;
+			height: 420px !important;
+			max-width: 100%;
+			max-height: 100%;
+			transform-origin: 50% 50%;
+			transition: transform .1s linear;
+		}
+		.arrow {
+			position: absolute;
+			top: 50%;
+			left: 100%;
+			transform: translate(-50%, -50%) rotate(90deg);
+			width: 0;
+			height: 0;
+			border-left: 15px solid transparent;
+			border-right: 15px solid transparent;
+			border-top: 25px solid red;
+			z-index: 10;
+		}
+
+		.spin-button {
+			margin-top: 0;
+			padding: 12px 26px;
+			background-color: #ff4081;
+			color: #fff;
+			border: none;
+			border-radius: 12px;
+			cursor: pointer;
+			font-size: 18px;
+			font-weight: 700;
+			transition: all .15s ease-in-out;
+			font-family: 'Quicksand', sans-serif;
+			box-shadow: 0 8px 18px rgba(255, 64, 129, .18);
+		}
+		.spin-button:hover {
+			background-color: #e0356f;
+		}
+
+		.input-container {
+			margin-top: 20px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+		textarea {
+			width: 220px;
+			height: 100px;
+			border: 1px solid #ccc;
+			border-radius: 8px;
+			padding: 8px;
+			text-align: left;
+			white-space: pre-line;
+			font-size: 14px;
+			outline: none;
+		}
+
+		.question-container {
+			margin: 20px 0;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 10px;
+		}
+		.question-container select,
+		.question-container input {
+			width: 220px;
+			padding: 8px;
+			border: 1px solid #ccc;
+			border-radius: 8px;
+			font-family: 'Quicksand', sans-serif;
+			font-size: 14px;
+			outline: none;
+		}
+		.question-container input {
+			box-sizing: border-box;
+		}
+
+		.set-selection select,
+		#questionSetTop {
+			width: 100%;
+			max-width: 320px;
+			padding: 10px 12px;
+			border: 2px solid rgba(255, 64, 129, .15);
+			border-radius: 12px;
+			font-family: 'Quicksand', sans-serif;
+			font-size: 15px;
+			margin-bottom: 5px;
+			background-color: #fff;
+			cursor: pointer;
+			box-shadow: 0 4px 14px rgba(255, 64, 129, .06);
+			color: #333;
+		}
+		.set-selection select:focus,
+		#questionSetTop:focus {
+			outline: none;
+			border-color: #ff8aa0;
+			box-shadow: 0 6px 18px rgba(255, 64, 129, .12);
+		}
+
+		.question-list {
+			margin: 15px 0;
+		}
+		.question-item {
+			display: flex;
+			align-items: center;
+			padding: 10px 12px;
+			background: #fff;
+			border: 1px solid rgba(255, 64, 129, .18);
+			border-radius: 10px;
+			margin-bottom: 10px;
+			cursor: grab;
+			gap: 10px;
+		}
+		.question-item .drag-handle {
+			cursor: grab;
+			padding: 6px 8px;
+			color: #ff4081;
+			border-radius: 6px;
+			background: rgba(255, 64, 129, .06);
+			font-weight: 700;
+		}
+		.question-item .remove-btn {
+			margin-left: auto;
+			color: #ff4081;
+			cursor: pointer;
+			background: none;
+			border: none;
+			font-size: 18px;
+		}
+
+		.action-button {
+			width: 100%;
+			padding: 10px;
+			border: none;
+			border-radius: 8px;
+			font-family: 'Quicksand', sans-serif;
+			font-size: 14px;
+			cursor: pointer;
+			transition: all .2s;
+		}
+		.action-button.add {
+			background-color: #ff4081;
+			color: #fff;
+		}
+		.action-button.add:hover {
+			background-color: #e0356f;
+		}
+
+		.current-question {
+			text-align: center;
+			margin: 10px 0;
+			font-size: 18px;
+			font-weight: bold;
+			color: #ff4081;
+		}
+		.predefined-answers {
+			max-height: 400px;
+			overflow-y: auto;
+			padding-right: 10px;
+		}
+
+		.name-input {
+			width: 360px;
+			max-width: calc(100% - 40px);
+			height: 120px;
+			border-radius: 10px;
+			border: 1px solid #f0c0d0;
+			padding: 12px;
+			resize: vertical;
+			font-family: 'Quicksand', sans-serif;
+			margin-top: 18px;
+		}
+
+		.modal {
+			display: none;
+			position: fixed;
+			z-index: 1000;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			background: #fff;
+			padding: 20px;
+			border-radius: 15px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
+			text-align: center;
+			min-width: 300px;
+		}
+		.modal-header {
+			color: #fff;
+			padding: 15px;
+			font-size: 18px;
+			border-top-left-radius: 15px;
+			border-top-right-radius: 15px;
+		}
+		.modal-footer {
+			margin-top: 15px;
+			display: flex;
+			justify-content: center;
+			gap: 10px;
+		}
+		.close-button {
+			float: right;
+			cursor: pointer;
+			font-size: 20px;
+			font-weight: bold;
+			font-family: 'Quicksand', sans-serif;
+		}
+		.modal-button {
+			padding: 10px 15px;
+			border: none;
+			border-radius: 8px;
+			font-size: 14px;
+			cursor: pointer;
+			transition: all .2s ease-in-out;
+		}
+		.modal-button.close {
+			background-color: #ccc;
+		}
+		.modal-button.close:hover {
+			background-color: #b3b3b3;
+		}
+		.modal-button.remove {
+			background-color: #ff4081;
+			color: #fff;
+			font-family: 'Quicksand', sans-serif;
+		}
+		.modal-button.remove:hover {
+			background-color: #e0356f;
+		}
+		.modal-button.secondary {
+			background-color: #ff4081;
+			color: #fff;
+		}
+		.modal-button.neutral {
+			background-color: #ccc;
+			color: #222;
+		}
+
 		.palette-column {
-			display:flex;
-			flex-direction:column;
-			width:100%;
-			max-width:340px;
-			margin:0 auto;
-			border-radius:5px;
-			overflow:hidden;
-			box-shadow:0 2px 8px rgba(0,0,0,.08);
-			background:#fff;
+			display: flex;
+			flex-direction: column;
+			width: 100%;
+			max-width: 340px;
+			margin: 0 auto;
+			border-radius: 5px;
+			overflow: hidden;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+			background: #fff;
 		}
-
 		.palette-block {
-			height:90px;
-			display:flex;
-			align-items:center;
-			justify-content:center;
-			font-weight:700;
-			font-size:14px;
-			color:#fff;
-			position:relative;
-			cursor:pointer;
-			user-select:none;
-			transition:filter .15s ease;
+			height: 90px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 700;
+			font-size: 14px;
+			color: #fff;
+			position: relative;
+			cursor: pointer;
+			user-select: none;
+			transition: filter .15s ease;
 		}
-
 		.palette-block.locked::after {
-			content:"🔒";
-			position:absolute;
-			right:10px;
-			top:50%;
-			transform:translateY(-50%);
-			font-size:14px;
-		}
-		@media (max-width:700px) {
-			.palette-column {max-width:300px;}
-			.palette-block {height:64px;font-size:13px;}
+			content: "🔒";
+			position: absolute;
+			right: 10px;
+			top: 50%;
+			transform: translateY(-50%);
+			font-size: 14px;
 		}
 
-		@media (max-width:480px) {
-			.palette-column {max-width:240px;}
-			.palette-block {height:58px;font-size:12px;}
+		@media (max-width: 1024px) {
+			.main-container {
+				grid-template-columns: 1fr;
+			}
 		}
-    </style>
-    <style>
+
+		@media (max-width: 700px) {
+			.palette-column {
+				max-width: 300px;
+			}
+			.palette-block {
+				height: 64px;
+				font-size: 13px;
+			}
+		}
+
+		@media (max-width: 480px) {
+			.palette-column {
+				max-width: 240px;
+			}
+			.palette-block {
+				height: 58px;
+				font-size: 12px;
+			}
+		}
+
 		@media (max-width: 600px) {
 			.main-container {
 				grid-template-columns:
-				  clamp(84px, 24vw, 118px)
-				  minmax(clamp(180px, 52vw, 1fr), 1fr)
-				  clamp(84px, 24vw, 118px) !important;
+					clamp(84px, 24vw, 118px)
+					minmax(clamp(180px, 52vw, 1fr), 1fr)
+					clamp(84px, 24vw, 118px) !important;
 				gap: 8px;
 				padding: 8px;
 				max-width: 100%;
 				align-items: start;
 			}
-			.left-panel, .right-panel {
+			.left-panel,
+			.right-panel {
 				padding: 8px;
 				box-sizing: border-box;
 				max-width: unset;
@@ -365,9 +439,14 @@
 				aspect-ratio: 1 / 1;
 				margin: 8px auto;
 			}
-			#wheelCanvas { width: 100% !important; height: auto !important; 
-			max-width: 100%; display: block; transform-origin: 50% 50%;
-			transition: transform 0.1s linear; }
+			#wheelCanvas {
+				width: 100% !important;
+				height: auto !important;
+				max-width: 100%;
+				display: block;
+				transform-origin: 50% 50%;
+				transition: transform .1s linear;
+			}
 			.arrow {
 				left: calc(100% - 6px);
 				border-left: 10px solid transparent;
@@ -380,7 +459,7 @@
 				font-size: 16px;
 				padding: 12px 18px;
 				touch-action: manipulation;
-			}	
+			}
 			.name-input {
 				width: 95%;
 				height: 84px;
@@ -397,7 +476,18 @@
 				word-wrap: break-word;
 			}
 		}
-    </style>
+
+		@media (max-width: 600px) {
+			#summaryModal {
+				left: 6%;
+				width: 88%;
+				min-width: auto;
+			}
+			#summaryModal .modal-body {max-height: 55vh;}
+			#summaryModal th,
+			#summaryModal td {padding: 10px 8px; font-size: 14px;}
+		}
+	</style>
 </head>
 <body>
     <div class="page-title">
@@ -406,10 +496,22 @@
             <select id="questionSetTop" onchange="handleQuestionSetChange();" class="set-selection">
                 <option value="none">Không sử dụng bộ câu hỏi</option>
                 <option value="author">Bộ câu hỏi cho tác giả</option>
-                <option value="artist">Bộ câu hỏi cho đặt cồm</option>
+                <option value="artist">Bộ câu hỏi cho đặt comm</option>
             </select>
         </div>
     </div>
+		<div id="summaryModal" class="modal" aria-hidden="true">
+			<div class="modal-header" id="summaryHeader">
+				<span class="close-button" id="summaryClose">&times;</span>
+				<h2>Tổng kết</h2>
+			</div>
+			<div class="modal-body" id="summaryBody" style="max-height:60vh; overflow:auto; text-align:left;">
+				<div id="summaryContent"></div>
+			</div>
+			<div class="modal-footer" style="justify-content:flex-end;gap:10px;padding:12px 16px;">
+				<button id="summaryOk" class="modal-button remove">Đóng</button>
+			</div>
+		</div>
     <div class="main-container">
         <div class="control-panel left-panel">
             <h3>Danh sách câu hỏi<br>theo thứ tự</h3>
@@ -435,8 +537,8 @@
             </div>
         </div>
 
-        <div class="center-panel">
-            <div class="wheel-container">
+		<div class="center-panel">
+			<div class="wheel-container">
                 <div class="arrow" id="arrow"></div>
                 <canvas id="wheelCanvas"></canvas>
             </div>
@@ -658,10 +760,6 @@
 						options:["Trẻ con","Thiếu niên","Thành niên","Trung niên","Đại đại đi","Em bé"]
 					},
 					{
-						id:"hair",title:"Tóc",
-						options:["Ngắn","Vừa","Dài","Buộc đuôi ngựa","Thắt bím","Xoăn","Thẳng","Mái M","7:3","5:5","6:4"]
-					},
-					{
 						id:"expression",title:"Biểu cảm",
 						options:[
 							"Cười mỉm","Cười tươi","Cười nhếch mép","Cười gian","Cười ngốc",
@@ -701,7 +799,6 @@
 						hand:{templateId:"hand post",titlePrefix:"Động tác tay char ",idPrefix:"hand_char"},
 						accessories:{templateId:"accessories",titlePrefix:"Phụ kiện char ",idPrefix:"acc_char"},
 						species:{templateId:"species",titlePrefix:"Thiết lập char ",idPrefix:"species_char"},
-						hair:{templateId:"hair",titlePrefix:"Tóc char ",idPrefix:"hair_char"},
 						expression:{templateId:"expression",titlePrefix:"Biểu cảm char ",idPrefix:"exp_char"}
 					},
 					poseModes:{
@@ -926,7 +1023,6 @@
 			panel.style.display=show?'block':'none'
 			wheel.style.display=show?'none':'flex'
 			spin.style.display=show?'none':'inline-block'
-			if(rightPanel)rightPanel.style.display=show?'none':'block'
 		}
 
 		function paletteSpin(){
@@ -975,6 +1071,8 @@
 				setQuestions.style.display="none"
 				leftPanel.style.display="none"
 				rightPanel.style.display="none"
+				document.getElementById('predefinedAnswers').style.display = 'none';
+				document.querySelector('.right-panel h3').style.display = 'none';
 				const main=document.querySelector(".main-container")
 				if(main){
 					main.style.gridTemplateColumns="1fr"
@@ -996,6 +1094,8 @@
 				setQuestions.style.display="block"
 				leftPanel.style.display="block"
 				rightPanel.style.display="block"
+				document.getElementById('predefinedAnswers').style.display = 'block';
+				document.querySelector('.right-panel h3').style.display = 'block';
 				nameInput.style.display="none"
 				const main=document.querySelector(".main-container")
 				if(main){
@@ -1170,22 +1270,59 @@
         
 		function confirmWinner(){
 			document.getElementById('winnerModal').style.display='none'
-			if(!currentSet||currentQuestionIndex===-1)return
+			if(!currentSet||currentQuestionIndex===-1) return
 			const questions=[...currentSet.questions,...customQuestions]
 			const q=questions[currentQuestionIndex]
-			if(q&&q.id){
-				resultsByQuestion[q.id]=lastWinner
-				if(q.id==='palette'){
-					lockedColors=[...paletteColors]
-				}
-			}else if(q&&q.title){
-				resultsByQuestion[q.title]=lastWinner
+			const key = q && q.id ? q.id : (q && q.title ? q.title : null)
+			if(key){
+				resultsByQuestion[key]=lastWinner
+				if(q && q.id === 'palette') lockedColors=[...paletteColors]
 			}
 			applyCrossDependencies()
 			updateQuestionList()
 			showPalettePanel(false)
-			setTimeout(()=>{moveToNextQuestion();renderPredefinedAnswers()},300)
+
+			const allQuestions = [...currentSet.questions, ...customQuestions]
+			const unanswered = allQuestions.filter(qq => {
+				const k = qq && qq.id ? qq.id : (qq && qq.title ? qq.title : null)
+				return !k || !(k in resultsByQuestion)
+			})
+
+			if(allQuestions.length > 0 && unanswered.length === 0){
+				showSummary()
+			} else {
+				setTimeout(()=>{moveToNextQuestion();renderPredefinedAnswers()},300)
+			}
 		}
+
+		function buildSummaryHTML(){
+			if(!currentSet) return '<div>Không có dữ liệu</div>'
+			const questions = [...currentSet.questions, ...customQuestions]
+			if(!questions.length) return '<div>Không có câu hỏi trong bộ</div>'
+			let rows = ''
+			for(const q of questions){
+				const k = q && q.id ? q.id : (q && q.title ? q.title : null)
+				const answer = k && (k in resultsByQuestion) ? resultsByQuestion[k] : ''
+				const safeTitle = (q && q.title) ? q.title : k
+				const displayAnswer = answer ? `<span class="result-chip">${answer}</span>` : ''
+				rows += `<tr><td style="width:65%">${safeTitle}</td><td style="width:35%">${displayAnswer}</td></tr>`
+			}
+			return `<div style="padding-bottom:8px;color:#666;font-size:14px;margin-bottom:6px">Kết quả của bộ: <strong style="color:#ff4081">${currentSet.name||''}</strong></div>`+
+				`<table><thead><tr><th>Câu hỏi</th><th>Kết quả</th></tr></thead><tbody>${rows}</tbody></table>`
+		}
+
+		function showSummary(){
+			const modal = document.getElementById('summaryModal')
+			const content = document.getElementById('summaryContent')
+			if(!modal||!content) return
+			content.innerHTML = buildSummaryHTML()
+			modal.style.display = 'block'
+			const btnOk = document.getElementById('summaryOk')
+			const btnClose = document.getElementById('summaryClose')
+			if(btnOk) btnOk.onclick = () => { modal.style.display='none' }
+			if(btnClose) btnClose.onclick = () => { modal.style.display='none' }
+		}
+        
 
         function rejectWinner() {
             document.getElementById('winnerModal').style.display = 'none';
