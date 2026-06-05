@@ -497,6 +497,7 @@
                 <option value="none">Không sử dụng bộ câu hỏi</option>
                 <option value="author">Bộ câu hỏi cho tác giả</option>
                 <option value="artist">Bộ câu hỏi cho đặt comm</option>
+				<option value="food">Bộ câu hỏi cho gợi ý món ăn</option>
             </select>
         </div>
     </div>
@@ -826,6 +827,60 @@
 					},
 					answerOverrides:{}
 				}
+			},
+			food: {
+				name: "Bộ câu hỏi cho người không biết ăn gì",
+				questions: [
+					{
+						id: "starchType",
+						title: "Ăn cơm hay ăn gì?",
+						options: ["Cơm", "Phở", "Bún", "Mì", "Nui", "Miến/Hủ tiếu", "Thức ăn nhanh", "Món Âu", "Bánh", "Khác"]
+					},
+					{
+						id: "mainIngredient",
+						title: "Nguyên liệu",
+						options: ["Heo", "Gà", "Bò", "Cá", "Tôm", "Mực", "Vịt", "Trứng", "Hải sản", "Chay"]
+					},
+					{
+						id: "detailIngredient",
+						title: "Chi tiết",
+						options: ["Ba rọi", "Nạc vai", "Nạc thăn", "Sườn non", "Thịt băm", "Nạc dăm", "Cốt lết", "Chân giò", "Cánh gà", "Đùi gà", "Ức gà", "Gà xé", "Thăn nội", "Thăn ngoại", "Thăn lưng", "Bắp bò", "Cá hồi", "Cá thu", "Cá ngừ", "Cá lóc", "Cá điêu hồng", "Tôm sú", "Tôm thẻ", "Tôm khô", "Mực ống", "Mực lá", "Mực trứng", "Ức vịt", "Đùi vịt", "Trứng gà", "Trứng vịt", "Trứng cút", "Cua", "Ốc", "Nghêu", "Đậu hũ trắng", "Đậu hũ chiên", "Nấm rơm"]
+					},
+					{
+						id: "cookingMethod",
+						title: "Cách chế biến",
+						options: ["Chiên", "Rán", "Hấp", "Luộc", "Rim", "Xào", "Nướng"]
+					}
+				],
+				foodConfig: {
+					starchBranches: {
+						"Cơm": ["Heo", "Gà", "Bò", "Cá", "Tôm", "Mực", "Vịt", "Trứng", "Hải sản", "Chay"],
+						"Phở": ["Bò", "Gà", "Xào", "Trộn", "Khô", "Gia Lai"],
+						"Bún": ["Bún chả cá", "Bún mọc", "Bún bò Huế", "Bún riêu cua", "Bún chả Hà Nội", "Bún mắm", "Bún đậu mắm tôm", "Bún thịt nướng", "Bún thang", "Bún ốc", "Bún ngan", "Bún cá", "Bún măng vịt"],
+						"Mì": ["Mì sủi cảo", "Mì xào bò", "Mì udon", "Mì hoành thánh", "Mì vịt tiềm", "Mì Quảng", "Mì Ramen", "Pad Thái", "Mì tương đen", "Mì xào giòn", "Mì bò hầm", "Mì cay", "Mì hải sản", "Mì xào thập cẩm", "Mì thịt gà", "Mì trộn"],
+						"Nui": ["Nui xào bò", "Nui nấu súp sườn non", "Nui xào trứng", "Nui súp gà nấm", "Nui đút lò phô mai", "Nui thịt bằm", "Nui giò heo"],
+						"Miến/Hủ tiếu": ["Miến gà", "Hủ tiếu Nam Vang", "Miến mọc", "Hủ tiếu khô", "Miến xào hải sản", "Hủ tiếu mực", "Miến trộn", "Hủ tiếu Sa Đéc", "Miến vịt", "Hủ tiếu gõ", "Miến lươn", "Hủ tiếu cá", "Miến tôm", "Hủ tiếu bò kho", "Miến xào cua", "Hủ tiếu sườn"],
+						"Thức ăn nhanh": ["Gà rán", "Hamburger", "Kimbab", "Khoai tây chiên", "Mì gói", "Sandwich", "Cơm nắm"],
+						"Món Âu": ["Pizza", "Mì Ý", "Risotto", "Bò bít tết"],
+						"Bánh": ["Bánh xèo", "Bánh bột lọc", "Bánh khọt", "Bánh nậm", "Bánh đúc", "Bánh giò", "Bánh ít", "Bánh cuốn", "Bánh ướt", "Bánh hỏi", "Bánh chưng", "Bánh tét"],
+						"Khác": ["Sushi", "Bò né", "Lẩu", "Đồ nướng", "Gỏi cuốn tôm thịt", "Cháo sườn sụn", "Há cảo hấp", "Súp cua", "Xíu mại", "Bánh bao xá xíu", "Bánh mì chảo", "Cháo gà xé phay"]
+					},
+					detailBranches: {
+						"Heo": ["Ba rọi", "Nạc vai", "Nạc thăn", "Sườn non", "Thịt băm", "Nạc dăm", "Cốt lết", "Chân giò"],
+						"Gà": ["Cánh gà", "Đùi gà", "Ức gà", "Gà xé", "Nguyên con"],
+						"Bò": ["Thăn nội", "Thăn ngoại", "Thăn lưng", "Bắp bò", "Nạc vai", "Dẻ sườn", "Nạm bò", "Gầu bò", "Ba chỉ", "Diềm thăn"],
+						"Cá": ["Cá hồi", "Cá thu", "Cá ngừ", "Cá hộp", "Cá nục", "Cá lóc", "Cá diêu hồng", "Cá basa", "Cá chép", "Cá cơm", "Cá chim", "Cá trứng"],
+						"Tôm": ["Tôm sú", "Tôm thẻ", "Tôm khô", "Tôm đất", "Tôm hùm", "Tôm càng", "Tôm tít"],
+						"Mực": ["Mực ống", "Mực lá", "Mực trứng", "Mực nang", "Mực sữa"],
+						"Vịt": ["Ức vịt", "Đùi vịt", "Cánh vịt", "Cổ vịt", "Lưỡi vịt"],
+						"Trứng": ["Trứng gà", "Trứng vịt", "Trứng cút"],
+						"Hải sản": ["Cua", "Ốc", "Nghêu", "Hàu", "Hến", "Chả cá", "Bạch tuộc"],
+						"Chay": ["Đậu hũ trắng", "Đậu hũ chiên", "Nấm rơm", "Nấm đùi gà"]
+					},
+					methods: ["Chiên", "Rán", "Hấp", "Luộc", "Rim", "Xào", "Nướng"],
+					defaultMains: ["Heo", "Gà", "Bò", "Cá", "Tôm", "Mực", "Vịt", "Trứng", "Hải sản", "Chay"],
+					defaultDetails: ["Ba rọi", "Nạc vai", "Nạc thăn", "Sườn non", "Thịt băm", "Nạc dăm", "Cốt lết", "Chân giò", "Cánh gà", "Đùi gà", "Ức gà", "Gà xé", "Thăn nội", "Thăn ngoại", "Thăn lưng", "Bắp bò", "Cá hồi", "Cá thu", "Cá ngừ", "Cá lóc", "Cá diêu hồng", "Tôm sú", "Tôm thẻ", "Tôm khô", "Mực ống", "Mực lá", "Mực trứng", "Ức vịt", "Đùi vịt", "Trứng gà", "Trứng vịt", "Trứng cút", "Cua", "Ốc", "Nghêu", "Đậu hũ trắng", "Đậu hũ chiên", "Nấm rơm"]
+				}
 			}
         };
 
@@ -951,7 +1006,59 @@
 			}
 		}
 		function applyCrossDependencies(){
-			if(document.getElementById("questionSetTop").value!=="artist")return
+			const topVal = document.getElementById("questionSetTop").value;
+			if(topVal !== "food" && topVal !== "artist") return;
+
+			if(topVal === "food" && currentSet) {
+				const starch = resultsByQuestion["starchType"];
+				const main = resultsByQuestion["mainIngredient"];
+				const cfg = currentSet.foodConfig;
+				const q2 = currentSet.questions.find(x => x.id === "mainIngredient");
+				const q3 = currentSet.questions.find(x => x.id === "detailIngredient");
+				const q4 = currentSet.questions.find(x => x.id === "cookingMethod");
+
+				if(q2) {
+					if(starch) {
+						q2.options = (cfg.starchBranches[starch] || []).slice();
+					} else {
+						q2.options = cfg.defaultMains.slice();
+					}
+					if(resultsByQuestion["mainIngredient"] && !q2.options.includes(resultsByQuestion["mainIngredient"])){
+						delete resultsByQuestion["mainIngredient"];
+					}
+				}
+
+				if(starch === "Cơm" || !starch) {
+					if(q3) {
+						q3.title = "Chi tiết";
+						if(main) {
+							q3.options = (cfg.detailBranches[main] || []).slice();
+						} else {
+							q3.options = cfg.defaultDetails.slice();
+						}
+						if(resultsByQuestion["detailIngredient"] && !q3.options.includes(resultsByQuestion["detailIngredient"])){
+							delete resultsByQuestion["detailIngredient"];
+						}
+					}
+					if(q4) {
+						q4.title = "Cách chế biến";
+						q4.options = (cfg.methods || []).slice();
+					}
+				} else {
+					if(q3) {
+						q3.title = "Chi tiết";
+						q3.options = ["N/A"];
+						resultsByQuestion["detailIngredient"] = "N/A";
+					}
+					if(q4) {
+						q4.title = "Cách chế biến";
+						q4.options = ["N/A"];
+						resultsByQuestion["cookingMethod"] = "N/A";
+					}
+				}
+				return;
+			}
+
 			const cfg=(questionSets.artist&&questionSets.artist.peopleConfig)||{}
 			const dep=(cfg.dependency&&cfg.dependency.pose)||{}
 			const n=personCount
@@ -1208,6 +1315,7 @@
         }
 
 		function updateCurrentQuestion(){
+			if(document.getElementById("questionSetTop").value === "food") { applyCrossDependencies(); }
 			const currentQuestionDiv=document.getElementById("currentQuestion")
 			const predefinedAnswers=document.getElementById("predefinedAnswers")
 			if(!currentSet||currentQuestionIndex===-1){
