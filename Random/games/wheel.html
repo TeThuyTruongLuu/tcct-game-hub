@@ -1226,7 +1226,7 @@
 			}
 		}
 
-        function updateQuestionList() {
+		function updateQuestionList() {
             const questionList = document.getElementById("questionList");
             questionList.innerHTML = "";
             
@@ -1235,21 +1235,68 @@
             questions.forEach((question, index) => {
                 const item = document.createElement("div");
                 item.className = "question-item";
+                item.style.display = "flex";
+                item.style.alignItems = "center";
+                item.style.gap = "12px";
+                item.style.padding = "10px 14px";
                 item.setAttribute('draggable', 'true');
 
                 const drag = document.createElement('span');
                 drag.className = 'drag-handle';
                 drag.textContent = '⋮';
+                drag.style.flexShrink = "0";
+
+				const textContainer = document.createElement('div');
+                textContainer.style.display = "flex";
+                textContainer.style.flexDirection = "column";
+                textContainer.style.flexGrow = "1";
+                textContainer.style.minWidth = "0";
+                textContainer.style.gap = "4px";
 
                 const title = document.createElement('span');
                 title.textContent = question.title;
+                title.style.fontWeight = "700";
+                title.style.color = "#333";
+                title.style.fontSize = "15px";
 
                 const resultSpan = document.createElement('span');
-                resultSpan.style.marginLeft = '10px';
-                resultSpan.style.color = '#777';
+                resultSpan.style.color = "#ff4081";
+                resultSpan.style.fontWeight = "500";
+                resultSpan.style.fontSize = "13px";
+                
                 if (question.id && resultsByQuestion[question.id]) {
-                    resultSpan.textContent = ` — ${resultsByQuestion[question.id]}`;
+                    const ans = resultsByQuestion[question.id];
+                    resultSpan.textContent = ans === "Đã chọn món nước" || ans === "Hoàn tất" ? "" : ans;
                 }
+
+                textContainer.appendChild(title);
+                textContainer.appendChild(resultSpan);
+
+                const rem = document.createElement('button');
+                rem.className = 'remove-btn';
+                rem.textContent = '×';
+                rem.title = 'Xóa câu hỏi này';
+                rem.style.flexShrink = "0";
+                rem.style.marginLeft = "4px";
+                rem.onclick = (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Bạn có chắc muốn xóa câu hỏi "${question.title}"?`)) {
+                        removeQuestion(index);
+                    }
+                };
+
+                item.appendChild(drag);
+                item.appendChild(textContainer);
+                item.appendChild(rem);
+                item.style.cursor = 'pointer';
+                
+                item.onclick = () => {
+                    currentQuestionIndex = index;
+                    updateCurrentQuestion();
+                    const modal = document.getElementById('winnerModal');
+                    if (modal) modal.style.display = 'none';
+                };
+
                 item.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', index.toString());
                     e.currentTarget.style.opacity = '0.4';
@@ -1275,31 +1322,10 @@
                     updateCurrentQuestion();
                 });
 
-                item.appendChild(drag);
-                item.appendChild(title);
-                item.appendChild(resultSpan);
-				const rem = document.createElement('button');
-				rem.className = 'remove-btn';
-				rem.textContent = '×';
-				rem.title = 'Xóa câu hỏi này';
-				rem.onclick = () => {
-					if (confirm(`Bạn có chắc muốn xóa câu hỏi "${question.title}"?`)) {
-						removeQuestion(index);
-					}
-				};
-                item.appendChild(rem);
-                item.style.cursor = 'pointer';
-                item.onclick = () => {
-                    currentQuestionIndex = index;
-                    updateCurrentQuestion();
-                    const modal = document.getElementById('winnerModal');
-                    if (modal) modal.style.display = 'none';
-                };
-
                 questionList.appendChild(item);
             });
         }
-
+		
         function moveQuestion(index, dir) {
             const questions = [...currentSet.questions, ...customQuestions];
             const newIndex = index + dir;
