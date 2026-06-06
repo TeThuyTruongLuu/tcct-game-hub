@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -535,6 +534,7 @@
                     <div id="questionList" class="question-list"></div>
                 </div>
                 <button class="action-button add" onclick="addCustomQuestion()">+ Thêm câu hỏi tùy chỉnh</button>
+                <button class="action-button add" onclick="resetAllResults()" style="background-color: #6c757d; margin-top: 10px;">🔄 Xóa hết kết quả (Reset)</button>
             </div>
         </div>
 
@@ -1369,6 +1369,17 @@
 			renderPredefinedAnswers()
 		}
 
+		function resetAllResults() {
+            if (confirm("Bạn có chắc muốn xóa hết toàn bộ kết quả đã quay không?")) {
+                resultsByQuestion = {};
+                lockedColors = [];
+                applyCrossDependencies();
+                updateQuestionList();
+                updateCurrentQuestion();
+                renderPredefinedAnswers();
+            }
+        }
+
         function addCustomQuestion() {
             const title = prompt("Nhập câu hỏi mới:");
             if (title) {
@@ -1729,47 +1740,243 @@
             return out;
         }
 
-    function renderPredefinedAnswers() {
+let isFoodEditMode = false;
+
+		function renderPredefinedAnswers() {
 			const container = document.getElementById('predefinedAnswers');
-            container.innerHTML = '';
-            if (!currentSet) {
-                return;
-            }
-            const questions = [...currentSet.questions, ...customQuestions];
-            if (questions.length === 0) return;
-            const q = questions[currentQuestionIndex];
-            if (!q) return;
+			container.innerHTML = '';
+			if (!currentSet) {
+				return;
+			}
+			const questions = [...currentSet.questions, ...customQuestions];
+			if (questions.length === 0) return;
+			const q = questions[currentQuestionIndex];
+			if (!q) return;
 			if (q.id === 'palette') { container.innerHTML = ''; return; }
 
-            const heading = document.createElement('div');
-            heading.style.marginBottom = '8px';
-            heading.textContent = q.title;
-            container.appendChild(heading);
+			const headingWrapper = document.createElement('div');
+			headingWrapper.style.display = 'flex';
+			headingWrapper.style.justifyContent = 'space-between';
+			headingWrapper.style.alignItems = 'center';
+			headingWrapper.style.marginBottom = '12px';
 
-            const ta = document.createElement('textarea');
-            ta.style.width = '100%';
-            ta.style.minHeight = '220px';
-            ta.style.boxSizing = 'border-box';
-            ta.style.padding = '10px';
-            ta.style.borderRadius = '8px';
-            ta.style.border = '1px solid #f0c0d0';
-            ta.value = (q.options || []).join('\n');
-            ta.oninput = () => {
-                const lines = ta.value.split(/\r?\n/).map(s => s.trim());
-                q.options = lines.filter(l => l.length > 0);
-                names = q.options.slice();
-                drawWheel();
-            };
+			const heading = document.createElement('div');
+			heading.style.fontWeight = '700';
+			heading.style.color = '#ff4081';
+			heading.style.fontSize = '16px';
+			heading.textContent = q.title;
+			headingWrapper.appendChild(heading);
 
-            const hint = document.createElement('div');
-            hint.style.fontSize = '12px';
-            hint.style.color = '#666';
-            hint.style.marginTop = '6px';
-            hint.textContent = 'Nhập mỗi lựa chọn trên một dòng. Kéo câu hỏi bên trái để thay đổi thứ tự.';
+			const editToggleBtn = document.createElement('button');
+			editToggleBtn.textContent = isFoodEditMode ? '⚙️ Xong' : '⚙️ Chỉnh sửa';
+			editToggleBtn.style.padding = '4px 10px';
+			editToggleBtn.style.fontSize = '12px';
+			editToggleBtn.style.backgroundColor = isFoodEditMode ? '#ff4081' : '#fff';
+			editToggleBtn.style.color = isFoodEditMode ? '#fff' : '#ff4081';
+			editToggleBtn.style.border = '1px solid #ff4081';
+			editToggleBtn.style.borderRadius = '6px';
+			editToggleBtn.style.cursor = 'pointer';
+			editToggleBtn.style.fontWeight = '700';
+			editToggleBtn.style.fontFamily = "'Quicksand', sans-serif";
+			
+			editToggleBtn.onclick = () => {
+				isFoodEditMode = !isFoodEditMode;
+				renderPredefinedAnswers();
+			};
+			headingWrapper.appendChild(editToggleBtn);
+			container.appendChild(headingWrapper);
 
-            container.appendChild(ta);
-            container.appendChild(hint);
-        }
+			const hint = document.createElement('div');
+			hint.style.fontSize = '12px';
+			hint.style.color = '#777';
+			hint.style.marginBottom = '12px';
+			hint.style.lineHeight = '1.4';
+			hint.innerHTML = isFoodEditMode 
+				? '🛠️ <b>Chế độ sửa:</b> Nhấn vào chữ hoặc ✏️ để sửa, nhấn × để xóa lựa chọn.' 
+				: '💡 <b>Chế độ chọn:</b> Chạm 1 lần vào ô để CHỌN THẲNG câu trả lời nhanh.';
+			container.appendChild(hint);
+
+			const tagsWrapper = document.createElement('div');
+			tagsWrapper.style.display = 'flex';
+			tagsWrapper.style.flexWrap = 'wrap';
+			tagsWrapper.style.gap = '8px';
+			tagsWrapper.style.maxHeight = 'calc(100vh - 280px)';
+			tagsWrapper.style.overflowY = 'auto';
+			tagsWrapper.style.padding = '4px';
+
+			const optionsList = q.options || [];
+
+			optionsList.forEach((opt, idx) => {
+				const tag = document.createElement('div');
+				tag.style.padding = '6px 14px';
+				tag.style.backgroundColor = '#fff';
+				tag.style.border = '1px solid #f0c0d0';
+				tag.style.borderRadius = '20px';
+				tag.style.fontSize = '13px';
+				tag.style.userSelect = 'none';
+				tag.style.transition = 'all 0.15s ease';
+				tag.style.display = 'inline-flex';
+				tag.style.alignItems = 'center';
+				tag.style.gap = '6px';
+
+				if (resultsByQuestion[q.id] === opt && !isFoodEditMode) {
+					tag.style.backgroundColor = '#ff4081';
+					tag.style.color = '#fff';
+					tag.style.borderColor = '#ff4081';
+				}
+
+				const textSpan = document.createElement('span');
+				textSpan.textContent = opt;
+				textSpan.style.outline = 'none';
+				textSpan.style.cursor = 'pointer';
+				
+				textSpan.onclick = (e) => {
+					e.stopPropagation();
+					if (textSpan.getAttribute('contenteditable') === 'true') return;
+					
+					if (isFoodEditMode) {
+						enableEditing();
+					} else {
+						lastWinner = textSpan.textContent.trim();
+						lastWinnerIndex = idx;
+						confirmWinner();
+					}
+				};
+				tag.appendChild(textSpan);
+
+				const enableEditing = () => {
+					textSpan.setAttribute('contenteditable', 'true');
+					textSpan.style.cursor = 'text';
+					textSpan.focus();
+					
+					const range = document.createRange();
+					const sel = window.getSelection();
+					range.selectNodeContents(textSpan);
+					range.collapse(false);
+					sel.removeAllRanges();
+					sel.addRange(range);
+				};
+
+				if (isFoodEditMode) {
+					const editBtn = document.createElement('span');
+					editBtn.textContent = '✏️';
+					editBtn.style.cursor = 'pointer';
+					editBtn.style.fontSize = '11px';
+					editBtn.style.opacity = '0.6';
+					editBtn.style.padding = '0 2px';
+					editBtn.onclick = (e) => {
+						e.stopPropagation();
+						enableEditing();
+					};
+					tag.appendChild(editBtn);
+
+					const deleteBtn = document.createElement('span');
+					deleteBtn.textContent = '×';
+					deleteBtn.style.fontWeight = '700';
+					deleteBtn.style.cursor = 'pointer';
+					deleteBtn.style.fontSize = '14px';
+					deleteBtn.style.color = '#ff4081';
+					deleteBtn.style.paddingLeft = '2px';
+					
+					deleteBtn.onclick = (e) => {
+						e.stopPropagation();
+						optionsList.splice(idx, 1);
+						q.options = optionsList;
+						names = q.options.slice();
+						drawWheel();
+						renderPredefinedAnswers();
+					};
+					tag.appendChild(deleteBtn);
+				}
+
+				const saveChange = () => {
+					textSpan.removeAttribute('contenteditable');
+					textSpan.style.cursor = 'pointer';
+					const trimmed = textSpan.textContent.trim();
+					if (trimmed === '') {
+						optionsList.splice(idx, 1);
+					} else {
+						optionsList[idx] = trimmed;
+					}
+					q.options = optionsList;
+					names = q.options.slice();
+					drawWheel();
+					renderPredefinedAnswers();
+				};
+
+				textSpan.onblur = saveChange;
+				textSpan.onkeydown = (e) => {
+					if (e.key === 'Enter') {
+						e.preventDefault();
+						textSpan.blur();
+					}
+				};
+
+				tagsWrapper.appendChild(tag);
+			});
+
+			if (isFoodEditMode) {
+				const addBtn = document.createElement('div');
+				addBtn.style.padding = '6px 14px';
+				addBtn.style.backgroundColor = '#fff0f3';
+				addBtn.style.border = '1px dashed #ff4081';
+				addBtn.style.borderRadius = '20px';
+				addBtn.style.cursor = 'pointer';
+				addBtn.style.fontSize = '13px';
+				addBtn.style.color = '#ff4081';
+				addBtn.style.fontWeight = '700';
+				addBtn.style.userSelect = 'none';
+				addBtn.style.display = 'inline-flex';
+				addBtn.style.alignItems = 'center';
+
+				const addSpan = document.createElement('span');
+				addSpan.textContent = '+ Thêm mới';
+				addSpan.style.outline = 'none';
+				addBtn.appendChild(addSpan);
+
+				addBtn.onclick = (e) => {
+					if (addSpan.getAttribute('contenteditable') === 'true') return;
+					addSpan.setAttribute('contenteditable', 'true');
+					addSpan.textContent = '';
+					addBtn.style.backgroundColor = '#fff';
+					addBtn.style.borderStyle = 'solid';
+					addSpan.style.cursor = 'text';
+					addBtn.style.cursor = 'text';
+					addSpan.focus();
+				};
+
+				const saveNewItem = () => {
+					const val = addSpan.textContent.trim();
+					addSpan.removeAttribute('contenteditable');
+					addSpan.textContent = '+ Thêm mới';
+					addBtn.style.backgroundColor = '#fff0f3';
+					addBtn.style.borderStyle = 'dashed';
+					addSpan.style.cursor = 'pointer';
+					addBtn.style.cursor = 'pointer';
+
+					if (val !== '') {
+						optionsList.push(val);
+						q.options = optionsList;
+						names = q.options.slice();
+						drawWheel();
+						renderPredefinedAnswers();
+					}
+				};
+
+				addSpan.onblur = saveNewItem;
+				addSpan.onkeydown = (e) => {
+					if (e.key === 'Enter') {
+						e.preventDefault();
+						addSpan.blur();
+					}
+				};
+
+				tagsWrapper.appendChild(addBtn);
+			}
+
+			container.appendChild(tagsWrapper);
+		}
+
     </script>
 </body>
 </html>
