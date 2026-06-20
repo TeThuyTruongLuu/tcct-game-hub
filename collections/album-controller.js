@@ -47,10 +47,58 @@ function setupSearchEventListener() {
   const searchInput = document.getElementById("search-input");
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
-      searchQuery = e.target.value.trim().toLowerCase();
+      searchQuery = e.target.value.trim();
       renderAlbumView();
     });
   }
+}
+
+function parseAdvancedSearch(queryStr) {
+  if (!queryStr) return [];
+  
+  let orClauses = queryStr.split("/").map(c => c.trim()).filter(c => c);
+  
+  return orClauses.map(clause => {
+    let andTokens = [];
+    let regex = /\[([^\]]+)\]|"(html_safe_exact|[^"]+)"|(\S+)/g;
+    let match;
+    
+    while ((match = regex.exec(clause)) !== null) {
+      if (match[1]) {
+        andTokens.push({ type: "folder", value: match[1].trim().toLowerCase() });
+      } else if (match[2]) {
+        andTokens.push({ type: "exact", value: match[2].trim().toLowerCase() });
+      } else if (match[3] && match[3] !== "&") {
+        andTokens.push({ type: "partial", value: match[3].trim().toLowerCase() });
+      }
+    }
+    return andTokens;
+  });
+}
+
+function matchCardWithAdvancedSearch(card, orClauses) {
+  if (orClauses.length === 0) return true;
+  
+  let cardName = card.card_name.toLowerCase();
+  let cardFolder = (card.collection_name || "").toLowerCase();
+  let cardNote = (card.user_note || "").toLowerCase();
+  
+  return orClauses.some(andTokens => {
+    if (andTokens.length === 0) return false;
+    
+    return andTokens.every(token => {
+      if (token.type === "folder") {
+        return cardFolder.includes(token.value);
+      }
+      if (token.type === "exact") {
+        return cardName === token.value || cardNote === token.value;
+      }
+      if (token.type === "partial") {
+        return cardName.includes(token.value) || cardFolder.includes(token.value) || cardNote.includes(token.value);
+      }
+      return false;
+    });
+  });
 }
 
 function renderBreadcrumbs() {
@@ -73,7 +121,7 @@ function renderBreadcrumbs() {
   currentPathArray.forEach((folder, index) => {
     const separator = document.createElement("span");
     separator.className = "breadcrumb-separator";
-    separator.textContent = "❯";
+    separator.textContent = " > ";
     breadcrumbsContainer.appendChild(separator);
 
     const item = document.createElement("span");
@@ -100,10 +148,10 @@ function renderAlbumView() {
   container.innerHTML = "";
 
   if (searchQuery !== "") {
+    let orClauses = parseAdvancedSearch(searchQuery);
     const matchedCards = allCardsData.filter(card => 
       !card.is_hidden && !card.is_collection_hidden &&
-      (card.card_name.toLowerCase().includes(searchQuery) || 
-      (card.collection_name && card.collection_name.toLowerCase().includes(searchQuery)))
+      matchCardWithAdvancedSearch(card, orClauses)
     );
 
     if (matchedCards.length === 0) {
@@ -121,7 +169,7 @@ function renderAlbumView() {
   const filteredCards = allCardsData.filter(card => {
     if (card.is_collection_hidden) return false;
     if (!card.collection_name) return currentPathArray.length === 0;
-    const cardParts = card.collection_name.split(" ❯ ").map(p => p.trim());
+    const cardParts = card.collection_name.split(" > ").map(p => p.trim());
     
     for (let i = 0; i < currentPathArray.length; i++) {
       if (cardParts[i] !== currentPathArray[i]) return false;
@@ -133,7 +181,7 @@ function renderAlbumView() {
   const directCardsInThisLevel = [];
 
   filteredCards.forEach(card => {
-    const cardParts = card.collection_name ? card.collection_name.split(" ❯ ").map(p => p.trim()) : [];
+    const cardParts = card.collection_name ? card.collection_name.split(" > ").map(p => p.trim()) : [];
     if (cardParts.length > currentPathArray.length) {
       const nextFolderName = cardParts[currentPathArray.length];
       subFolderMap.set(nextFolderName, (subFolderMap.get(nextFolderName) || 0) + 1);
@@ -180,17 +228,17 @@ function renderAlbumView() {
 
   const currentLevelGroups = allCardsData.filter(card => {
     if (!card.collection_name) return false;
-    const cardParts = card.collection_name.split(" ❯ ").map(p => p.trim());
+    const cardParts = card.collection_name.split(" > ").map(p => p.trim());
     for (let i = 0; i < currentPathArray.length; i++) {
       if (cardParts[i] !== currentPathArray[i]) return false;
     }
     return cardParts.length === currentPathArray.length + 1;
   });
 
-  const uniqueGroups = [...new Set(currentLevelGroups.map(c => c.collection_name.split(" ❯ ").pop().trim()))];
+  const uniqueGroups = [...new Set(currentLevelGroups.map(c => c.collection_name.split(" > ").pop().trim()))];
   
   uniqueGroups.forEach(gName => {
-    const fullGroupName = currentPathArray.length > 0 ? `${currentPathArray.join(" ❯ ")} ❯ ${gName}` : gName;
+    const fullGroupName = currentPathArray.length > 0 ? `${currentPathArray.join(" > ")} > ${gName}` : gName;
     const groupCards = allCardsData.filter(c => c.collection_name === fullGroupName);
     const isGroupHidden = groupCards.every(c => c.is_collection_hidden);
     
@@ -343,7 +391,7 @@ function setupModalEventListeners() {
     });
   }
   
-  const currentGroup = currentPathArray.join(" ❯ ");
+  const currentGroup = currentPathArray.join(" > ");
   if (currentGroup) {
     const ownedZone = document.getElementById("modal-owned-zone");
     if (ownedZone && !document.getElementById("btn-hide-this-collection")) {
@@ -388,7 +436,7 @@ function setupAddCardEventListeners() {
   document.getElementById("btn-open-add-modal").addEventListener("click", () => {
     capturedAddCardPhotoUri = null;
     document.getElementById("add-card-name").value = "";
-    document.getElementById("add-collection-name").value = currentPathArray.join(" ❯ ");
+    document.getElementById("add-collection-name").value = currentPathArray.join(" > ");
     document.getElementById("add-note").value = "";
     addModal.classList.remove("hidden");
   });
@@ -417,7 +465,7 @@ function setupAddCardEventListeners() {
     
     if (!name || !collectionNameInput) return;
     
-    const formattedCollectionName = collectionNameInput.split("❯").map(p => p.trim()).join(" ❯ ");
+    const formattedCollectionName = collectionNameInput.split(">").map(p => p.trim()).join(" > ");
     const cardId = "custom_" + Date.now();
     
     await initializeCard(cardId, name, formattedCollectionName, "Normal", "");

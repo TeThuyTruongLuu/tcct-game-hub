@@ -1,7 +1,6 @@
 import { 
   doc, 
   setDoc, 
-  updateDoc, 
   collection, 
   onSnapshot,
   getDocs
@@ -35,9 +34,12 @@ function subscribeToCards(onUpdate) {
 
     const finalCards = globalCards.map(globalCard => {
       const userData = userCardsMap[globalCard.card_id] || {};
+      let originalCollection = globalCard.collection_name || "Khác";
+      let normalizedCollection = originalCollection.replace(/ ❯ /g, " > ");
       
       return {
         ...globalCard,
+        collection_name: normalizedCollection,
         is_owned: userData.is_owned ?? false,
         obtained_method: userData.obtained_method ?? null,
         user_note: userData.user_note ?? "",
@@ -46,7 +48,7 @@ function subscribeToCards(onUpdate) {
         need_sync_photo: userData.need_sync_photo ?? false,
         updated_at: userData.updated_at ?? null,
         is_hidden: userData.is_hidden ?? false,
-        is_collection_hidden: hiddenCollections.includes(globalCard.collection_name)
+        is_collection_hidden: hiddenCollections.includes(normalizedCollection)
       };
     });
 
@@ -170,7 +172,7 @@ async function initializeCard(cardId, cardName, collectionName, rarity, referenc
   const cardData = {
     card_id: cardId,
     card_name: cardName,
-    collection_name: collectionName,
+    collection_name: collectionName.replace(/ ❯ /g, " > "),
     rarity: rarity,
     reference_image_url: referenceImageUrl
   };
