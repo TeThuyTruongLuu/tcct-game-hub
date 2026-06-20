@@ -7,22 +7,30 @@
     <link rel="stylesheet" href="album.css">
 </head>
 <body>
-    <div class="album-container">
+
+	<div class="album-container">
         <div class="album-header">
             <h2>Album Sưu Tầm Goods</h2>
             <div class="progress-container">
                 <div id="progress-bar" class="progress-bar"></div>
             </div>
-            <div id="progress-text" class="progress-text">0/0 Thẻ</div>
+            <div class="progress-text" id="progress-text">0/0 Thẻ</div>
+            <button id="btn-open-add-modal" class="fab-add">+</button>
         </div>
 
-        <div id="album-grid" class="album-grid"></div>
+        <div class="search-container">
+            <input type="text" id="search-input" class="search-input" placeholder="Tìm tên thẻ hoặc thư mục...">
+        </div>
+
+        <div id="breadcrumbs-container" class="breadcrumbs"></div>
+
+        <div id="album-grid-container"></div>
 
         <div id="card-modal" class="modal hidden">
             <div class="modal-content">
                 <span id="close-modal" class="close-button">&times;</span>
                 <h3 id="modal-card-name"></h3>
-                <p id="modal-collection-name"></p>
+                <p id="modal-collection-name" style="font-size: 12px; color: var(--text-muted); margin: -8px 0 12px 0;"></p>
                 
                 <div class="modal-image-container">
                     <img id="modal-card-image" src="" alt="Card Image">
@@ -34,13 +42,39 @@
                 </div>
 
                 <div id="modal-owned-zone" class="hidden">
-                    <div class="note-section">
-                        <label for="modal-note-input">Ghi chú của bạn:</label>
-                        <textarea id="modal-note-input" rows="3"></textarea>
+                    <div class="input-group">
+                        <label for="modal-note-input">Ghi chú của bạn</label>
+                        <textarea id="modal-note-input" rows="2"></textarea>
                     </div>
                     <button id="btn-take-photo" class="btn btn-success">Chụp ảnh thực tế</button>
                     <button id="btn-save-details" class="btn btn-primary">Lưu thay đổi</button>
                 </div>
+            </div>
+        </div>
+
+        <div id="add-card-modal" class="modal hidden">
+            <div class="modal-content">
+                <span id="close-add-modal" class="close-button">&times;</span>
+                <h3>Thêm Thẻ Goods Mới</h3>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: -8px;">Dùng dấu " ❯ " để tạo sâu nhiều tầng thư mục tùy ý</p>
+                
+                <div class="input-group" style="margin-top: 14px;">
+                    <label for="add-card-name">Tên thẻ</label>
+                    <input type="text" id="add-card-name" placeholder="Ví dụ: Diệp Tu">
+                </div>
+                
+                <div class="input-group">
+                    <label for="add-collection-name">Đường dẫn thư mục</label>
+                    <input type="text" id="add-collection-name" placeholder="Ví dụ: Official ❯ Yuewen ❯ Hitcard 3.0">
+                </div>
+
+                <div class="input-group">
+                    <label for="add-note">Ghi chú ban đầu</label>
+                    <textarea id="add-note" rows="2" placeholder="Nhập ghi chú nếu có..."></textarea>
+                </div>
+
+                <button id="btn-add-take-photo" class="btn btn-success">Chụp ảnh thẻ lưu Cloud</button>
+                <button id="btn-submit-add-card" class="btn btn-primary">Lưu Thẻ Lên Hệ Thống</button>
             </div>
         </div>
     </div>
@@ -53,5 +87,6 @@
         }
     </script>
     <script type="module" src="index.js"></script>
+
 </body>
 </html>

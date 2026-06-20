@@ -31,16 +31,21 @@ def scan_and_seed_database():
             relative_path = os.path.relpath(full_path, IMAGE_ROOT_DIR)
             
             path_parts = relative_path.split(os.sep)
-            collection_name = path_parts[0].replace("_", " ")
-            card_name = os.path.splitext(file)[0].replace("_", " ")
+            
+            folder_parts = path_parts[:-1]
+            if folder_parts:
+                collection_name = " ❯ ".join([part.replace("_", " ").title() for part in folder_parts])
+            else:
+                collection_name = "Khác"
 
+            card_name = os.path.splitext(file)[0].replace("_", " ")
             card_id = generate_card_id(relative_path)
             app_assets_path = "collections/Goods/" + relative_path.replace(os.sep, "/")
 
             card_data = {
                 "card_id": card_id,
                 "card_name": card_name.title(),
-                "collection_name": collection_name.title(),
+                "collection_name": collection_name,
                 "rarity": "Normal",
                 "reference_image_url": app_assets_path,
                 "is_owned": False,
