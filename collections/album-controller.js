@@ -2,7 +2,9 @@ import {
   subscribeToCards, 
   updateCardOwnership, 
   updateCardDetails,
-  initializeCard
+  removeCardOwnership,
+  setCardVisibility,
+  setCollectionVisibility
 } from "./card-service.js";
 
 let allCardsData = [];
@@ -24,34 +26,39 @@ function initializeAlbum() {
 }
 
 function renderProgress(cards) {
-  const total = cards.length;
-  const ownedCount = cards.filter(card => card.is_owned).length;
+  const visibleCards = cards.filter(card => !card.is_hidden && !card.is_collection_hidden);
+  const total = visibleCards.length;
+  const ownedCount = visibleCards.filter(card => card.is_owned).length;
   
   const progressBar = document.getElementById("progress-bar");
   const progressText = document.getElementById("progress-text");
   
-  if (total > 0) {
-    progressBar.style.width = `${(ownedCount / total) * 100}%`;
-  } else {
-    progressBar.style.width = "0%";
+  if (progressBar && progressText) {
+    if (total > 0) {
+      progressBar.style.width = `${(ownedCount / total) * 100}%`;
+    } else {
+      progressBar.style.width = "0%";
+    }
+    progressText.textContent = `${ownedCount}/${total} Thẻ`;
   }
-  
-  progressText.textContent = `${ownedCount}/${total} Thẻ`;
 }
 
 function setupSearchEventListener() {
   const searchInput = document.getElementById("search-input");
-  searchInput.addEventListener("input", (e) => {
-    searchQuery = e.target.value.trim().toLowerCase();
-    renderAlbumView();
-  });
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      searchQuery = e.target.value.trim().toLowerCase();
+      renderAlbumView();
+    });
+  }
 }
 
 function renderBreadcrumbs() {
   const breadcrumbsContainer = document.getElementById("breadcrumbs-container");
+  if (!breadcrumbsContainer) return;
+  
   breadcrumbsContainer.innerHTML = "";
 
-  // Nút Gốc ban đầu
   const rootItem = document.createElement("span");
   rootItem.className = `breadcrumb-item ${currentPathArray.length === 0 ? "active" : ""}`;
   rootItem.textContent = "Gốc";
@@ -63,7 +70,6 @@ function renderBreadcrumbs() {
   }
   breadcrumbsContainer.appendChild(rootItem);
 
-  // Tạo các nút nhảy cóc cho từng cấp thư mục cha
   currentPathArray.forEach((folder, index) => {
     const separator = document.createElement("span");
     separator.className = "breadcrumb-separator";
@@ -89,13 +95,15 @@ function renderAlbumView() {
   renderBreadcrumbs();
   
   const container = document.getElementById("album-grid-container");
+  if (!container) return;
+  
   container.innerHTML = "";
 
-  // TRƯỜNG HỢP 1: Người dùng đang TÌM KIẾM toàn cục (Bỏ qua cấu trúc cây folder để hiện kết quả phẳng)
   if (searchQuery !== "") {
     const matchedCards = allCardsData.filter(card => 
-      card.card_name.toLowerCase().includes(searchQuery) || 
-      (card.collection_name && card.collection_name.toLowerCase().includes(searchQuery))
+      !card.is_hidden && !card.is_collection_hidden &&
+      (card.card_name.toLowerCase().includes(searchQuery) || 
+      (card.collection_name && card.collection_name.toLowerCase().includes(searchQuery)))
     );
 
     if (matchedCards.length === 0) {
@@ -110,8 +118,8 @@ function renderAlbumView() {
     return;
   }
 
-  // TRƯỜNG HỢP 2: Duyệt cây thư mục lồng nhau bình thường
   const filteredCards = allCardsData.filter(card => {
+    if (card.is_collection_hidden) return false;
     if (!card.collection_name) return currentPathArray.length === 0;
     const cardParts = card.collection_name.split(" ❯ ").map(p => p.trim());
     
@@ -121,7 +129,7 @@ function renderAlbumView() {
     return true;
   });
 
-  const subFolderMap = new Map(); // folder_name -> count_total_cards_inside
+  const subFolderMap = new Map();
   const directCardsInThisLevel = [];
 
   filteredCards.forEach(card => {
@@ -130,11 +138,12 @@ function renderAlbumView() {
       const nextFolderName = cardParts[currentPathArray.length];
       subFolderMap.set(nextFolderName, (subFolderMap.get(nextFolderName) || 0) + 1);
     } else {
-      directCardsInThisLevel.push(card);
+      if (!card.is_hidden) {
+        directCardsInThisLevel.push(card);
+      }
     }
   });
 
-  // Vẽ danh sách Thư mục con (nếu có) kèm bộ đếm số lượng goods bên trong cực clean
   if (subFolderMap.size > 0) {
     const listContainer = document.createElement("div");
     listContainer.className = "list-container";
@@ -158,7 +167,6 @@ function renderAlbumView() {
     container.appendChild(listContainer);
   }
 
-  // Vẽ lưới các thẻ Card nằm trực tiếp tại cấp thư mục này
   if (directCardsInThisLevel.length > 0) {
     const gridElement = document.createElement("div");
     gridElement.className = "album-grid";
@@ -170,7 +178,49 @@ function renderAlbumView() {
     container.appendChild(gridElement);
   }
 
-  if (subFolderMap.size === 0 && directCardsInThisLevel.length === 0) {
+  const currentLevelGroups = allCardsData.filter(card => {
+    if (!card.collection_name) return false;
+    const cardParts = card.collection_name.split(" ❯ ").map(p => p.trim());
+    for (let i = 0; i < currentPathArray.length; i++) {
+      if (cardParts[i] !== currentPathArray[i]) return false;
+    }
+    return cardParts.length === currentPathArray.length + 1;
+  });
+
+  const uniqueGroups = [...new Set(currentLevelGroups.map(c => c.collection_name.split(" ❯ ").pop().trim()))];
+  
+  uniqueGroups.forEach(gName => {
+    const fullGroupName = currentPathArray.length > 0 ? `${currentPathArray.join(" ❯ ")} ❯ ${gName}` : gName;
+    const groupCards = allCardsData.filter(c => c.collection_name === fullGroupName);
+    const isGroupHidden = groupCards.every(c => c.is_collection_hidden);
+    
+    if (isGroupHidden) {
+      const folderElement = document.createElement("div");
+      folderElement.className = "folder-item";
+      folderElement.style.opacity = "0.5";
+      folderElement.innerHTML = `
+        <div class="folder-info">
+          <span class="folder-icon">📁</span>
+          <span class="folder-name" style="text-decoration: line-through;">${gName} (Đang ẩn)</span>
+        </div>
+        <span class="folder-count">Hiện lại</span>
+      `;
+      folderElement.querySelector(".folder-count").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await setCollectionVisibility(fullGroupName, false);
+      });
+      if (container.firstChild && container.firstChild.className === "list-container") {
+        container.firstChild.appendChild(folderElement);
+      } else {
+        const listContainer = document.createElement("div");
+        listContainer.className = "list-container";
+        listContainer.appendChild(folderElement);
+        container.insertBefore(listContainer, container.firstChild);
+      }
+    }
+  });
+
+  if (subFolderMap.size === 0 && directCardsInThisLevel.length === 0 && uniqueGroups.length === 0) {
     container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">Thư mục trống</div>`;
   }
 }
@@ -189,7 +239,9 @@ function createCardDOM(card) {
   }
   
   cardElement.innerHTML = `
-    <img src="${imageUrl}" alt="${card.card_name}">
+    <div class="card-image-box">
+      <img src="${imageUrl}" alt="${card.card_name}">
+    </div>
     <div class="card-item-name">${card.card_name}</div>
   `;
   cardElement.addEventListener("click", () => openCardModal(card));
@@ -213,7 +265,12 @@ function openCardModal(card) {
   const actionZone = document.getElementById("modal-action-zone");
   const ownedZone = document.getElementById("modal-owned-zone");
   const noteInput = document.getElementById("modal-note-input");
+  const toggleVisibilityBtn = document.getElementById("btn-toggle-visibility");
   
+  if (toggleVisibilityBtn) {
+    toggleVisibilityBtn.textContent = card.is_hidden ? "Hiện thẻ này" : "Ẩn khỏi album";
+  }
+
   if (card.is_owned) {
     actionZone.classList.add("hidden");
     ownedZone.classList.remove("hidden");
@@ -262,6 +319,49 @@ function setupModalEventListeners() {
       closeCardModal();
     }
   });
+
+  const removeBtn = document.getElementById("btn-remove-ownership");
+  if (removeBtn) {
+    removeBtn.addEventListener("click", async () => {
+      if (currentSelectedCardId) {
+        await removeCardOwnership(currentSelectedCardId);
+        closeCardModal();
+      }
+    });
+  }
+
+  const toggleVisibilityBtn = document.getElementById("btn-toggle-visibility");
+  if (toggleVisibilityBtn) {
+    toggleVisibilityBtn.addEventListener("click", async () => {
+      if (currentSelectedCardId) {
+        const targetCard = allCardsData.find(c => c.card_id === currentSelectedCardId);
+        if (targetCard) {
+          await setCardVisibility(currentSelectedCardId, !targetCard.is_hidden);
+          closeCardModal();
+        }
+      }
+    });
+  }
+  
+  const currentGroup = currentPathArray.join(" ❯ ");
+  if (currentGroup) {
+    const ownedZone = document.getElementById("modal-owned-zone");
+    if (ownedZone && !document.getElementById("btn-hide-this-collection")) {
+      const hideCollBtn = document.createElement("button");
+      hideCollBtn.id = "btn-hide-this-collection";
+      hideCollBtn.className = "btn btn-secondary";
+      hideCollBtn.style.marginTop = "8px";
+      hideCollBtn.textContent = "Ẩn toàn bộ thư mục này";
+      hideCollBtn.addEventListener("click", async () => {
+        if (currentPathArray.length > 0) {
+          await setCollectionVisibility(currentGroup, true);
+          currentPathArray.pop();
+          closeCardModal();
+        }
+      });
+      ownedZone.appendChild(hideCollBtn);
+    }
+  }
 }
 
 function captureRealPhoto(cardId) {
@@ -283,11 +383,11 @@ function captureRealPhoto(cardId) {
 
 function setupAddCardEventListeners() {
   const addModal = document.getElementById("add-card-modal");
+  if (!addModal) return;
   
   document.getElementById("btn-open-add-modal").addEventListener("click", () => {
     capturedAddCardPhotoUri = null;
     document.getElementById("add-card-name").value = "";
-    // Tự động điền phân cấp thư mục hiện tại bồ đang đứng làm gợi ý mẫu
     document.getElementById("add-collection-name").value = currentPathArray.join(" ❯ ");
     document.getElementById("add-note").value = "";
     addModal.classList.remove("hidden");
@@ -317,7 +417,6 @@ function setupAddCardEventListeners() {
     
     if (!name || !collectionNameInput) return;
     
-    // Chuẩn hóa chuỗi nhập vào để tránh lỗi khoảng cách dư thừa giữa các kí tự phân tách ❯
     const formattedCollectionName = collectionNameInput.split("❯").map(p => p.trim()).join(" ❯ ");
     const cardId = "custom_" + Date.now();
     
