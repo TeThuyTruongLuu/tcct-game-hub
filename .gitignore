@@ -40,3 +40,5 @@ functions/
 .DS_Store
 *.log
 *.env
+
+www/collections/serviceAccountKey.json
