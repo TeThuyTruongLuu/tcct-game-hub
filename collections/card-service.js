@@ -37,9 +37,15 @@ function subscribeToCards(onUpdate) {
       let normalizedCollection = originalCollection.replace(/ ❯ /g, " > ");
       const isCollectionHidden = hiddenCollections.includes(normalizedCollection);
 
+      let cleanImgUrl = globalCard.reference_image_url || "";
+      if (cleanImgUrl.startsWith("collections/")) {
+        cleanImgUrl = cleanImgUrl.replace("collections/", "");
+      }
+
       return {
         ...globalCard,
         collection_name: normalizedCollection,
+        reference_image_url: cleanImgUrl,
         is_owned: userData.is_owned || false,
         is_wishlist: userData.is_wishlist || false,
         is_favorite: userData.is_favorite || false,
