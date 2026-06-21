@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
     <title>Album sưu tầm goods</title>
-    <link rel="stylesheet" href="album.css">
+    <link rel="stylesheet" href=\"album.css\">
 </head>
 <body>
     <div class="album-container">
@@ -29,24 +29,22 @@
             <div class="modal-content">
                 <span id="close-modal" class="close-button">&times;</span>
                 <h3 id="modal-card-name"></h3>
-                <p id="modal-collection-name" style="font-size: 12px; color: var(--text-muted); margin: -8px 0 16px 0;"></p>
+                <p id="modal-collection-name" style="font-size: 12px; color: var(--text-muted); margin-top: -4px; margin-bottom: 12px;"></p>
                 
                 <div class="modal-image-container">
-                    <img id="modal-card-image" src="" alt="Card Image">
+                    <img id="modal-card-image" src="" alt="Card image">
                 </div>
-
-                <div id="modal-action-zone">
-                    <button id="btn-manual-own" class="btn btn-primary">Xác nhận tay</button>
-                    <button id="btn-camera-scan" class="btn btn-secondary">Quét camera</button>
+                
+                <div class="input-group">
+                    <label for="modal-note-input">Ghi chú cá nhân</label>
+                    <textarea id="modal-note-input" rows="2"></textarea>
                 </div>
-
-                <div id="modal-owned-zone" class="hidden">
-                    <div class="input-group">
-                        <label for="modal-note-input">Ghi chú của bạn</label>
-                        <textarea id="modal-note-input" rows="2"></textarea>
-                    </div>
-                    <button id="btn-take-photo" class="btn btn-success">Chụp ảnh thực tế</button>
-                    <button id="btn-save-details" class="btn btn-primary">Lưu thay đổi</button>
+                
+                <div class="modal-options-grid">
+                    <button id="btn-toggle-owned" class="btn"></button>
+                    <button id="btn-toggle-favorite" class="btn"></button>
+                    <button id="btn-toggle-wishlist" class="btn"></button>
+                    <button id="btn-save-details" class="btn btn-primary">Lưu lại</button>
                 </div>
             </div>
         </div>
@@ -54,7 +52,7 @@
         <div id="add-card-modal" class="modal hidden">
             <div class="modal-content">
                 <span id="close-add-modal" class="close-button">&times;</span>
-                <h3>Thêm thẻ goods mới</h3>
+                <h3>Thêm thẻ mới</h3>
                 <p style="font-size: 12px; color: var(--text-muted); margin-top: -8px;">Dùng dấu " ❯ " để tạo sâu nhiều tầng thư mục tùy ý</p>
                 
                 <div class="input-group" style="margin-top: 14px;">
@@ -82,7 +80,7 @@
         if (window.location.protocol === "file:") {
             const cordovaScript = document.createElement("script");
             cordovaScript.src = "cordova.js";
-            document.body.appendChild(cordovaScript);
+            document.head.appendChild(cordovaScript);
         }
     </script>
     <script type="module" src="index.js"></script>

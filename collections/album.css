@@ -81,14 +81,6 @@ body {
     transition: background 0.2s;
 }
 
-.card-wishlist-heart {
-    transition: transform 0.15s ease-in-out;
-}
-
-.card-wishlist-heart:hover {
-    transform: scale(1.25);
-}
-
 .fab-add:hover {
     background: var(--accent);
 }
@@ -219,6 +211,7 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .card-item:hover {
@@ -235,6 +228,7 @@ body {
     background: #f8fafc;
     border-radius: 6px;
     overflow: hidden;
+    position: relative;
 }
 
 .card-item img {
@@ -260,6 +254,47 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.card-badges-overlay {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 2;
+}
+
+.card-badge-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.badge-favorite {
+    background-color: #f59e0b;
+}
+
+.badge-wishlist {
+    background-color: #ef4444;
+}
+
+.card-item:hover .card-badges-overlay {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .card-badges-overlay {
+        opacity: 0.95;
+    }
 }
 
 .modal {
@@ -360,6 +395,17 @@ body {
     background: #ffffff;
 }
 
+.modal-options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.modal-options-grid .btn {
+    margin-top: 0;
+}
+
 .btn {
     width: 100%;
     padding: 11px;
@@ -367,7 +413,6 @@ body {
     border-radius: 8px;
     font-size: 13.5px;
     font-weight: 600;
-    margin-top: 8px;
     cursor: pointer;
     transition: background 0.15s;
 }

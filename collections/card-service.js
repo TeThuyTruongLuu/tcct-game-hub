@@ -3,7 +3,8 @@ import {
   setDoc, 
   collection, 
   onSnapshot,
-  getDocs
+  getDocs,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { db } from "./app-firebase.js";
 
@@ -19,8 +20,7 @@ function subscribeToCards(onUpdate) {
   const username = getCurrentUsername();
   
   const globalCollectionRef = collection(db, GLOBAL_CARDS_COLLECTION);
-  const userCardsCollectionRef = collection(db, USER_COLLECTIONS, username, "cards");
-  const userDocRef = doc(db, USER_COLLECTIONS, username);
+  const userCardsCollectionRef = collection(db, USER_COLLECTIONS, username, \"cards\");
 
   let globalCards = [];
   let userCardsMap = {};
@@ -36,45 +36,42 @@ function subscribeToCards(onUpdate) {
       const userData = userCardsMap[globalCard.card_id] || {};
       let originalCollection = globalCard.collection_name || "Khác";
       let normalizedCollection = originalCollection.replace(/ ❯ /g, " > ");
-      
+
+      const isCollectionHidden = hiddenCollections.includes(normalizedCollection);
+
       return {
         ...globalCard,
         collection_name: normalizedCollection,
-        is_owned: userData.is_owned ?? false,
-        obtained_method: userData.obtained_method ?? null,
-        user_note: userData.user_note ?? "",
-        real_photo_url: userData.real_photo_url ?? "",
-        local_photo_uri: userData.local_photo_uri ?? "",
-        need_sync_photo: userData.need_sync_photo ?? false,
-        updated_at: userData.updated_at ?? null,
-        is_hidden: userData.is_hidden ?? false,
-        is_wishlist: userData.is_wishlist ?? false,
-        is_collection_hidden: hiddenCollections.includes(normalizedCollection)
+        is_owned: userData.is_owned || false,
+        is_wishlist: userData.is_wishlist || false,
+        is_favorite: userData.is_favorite || false,
+        user_note: userData.user_note || "",
+        real_photo_url: userData.real_photo_url || "",
+        local_photo_uri: userData.local_photo_uri || "",
+        is_hidden: userData.is_hidden || false,
+        is_collection_hidden: isCollectionHidden
       };
     });
 
     onUpdate(finalCards);
   };
 
-  const unsubscribeGlobal = onSnapshot(globalCollectionRef, (snapshot) => {
-    globalCards = [];
-    snapshot.forEach((doc) => {
-      globalCards.push(doc.data());
-    });
+  const unsubGlobal = onSnapshot(globalCollectionRef, (snapshot) => {
+    globalCards = snapshot.docs.map(doc => doc.data());
     combineAndEmit();
   });
 
-  const unsubscribeUserCards = onSnapshot(userCardsCollectionRef, (snapshot) => {
+  const unsubUserCards = onSnapshot(userCardsCollectionRef, (snapshot) => {
     userCardsMap = {};
-    snapshot.forEach((doc) => {
+    snapshot.docs.forEach(doc => {
       userCardsMap[doc.id] = doc.data();
     });
     combineAndEmit();
   });
-  
-  const unsubscribeUserDoc = onSnapshot(userDocRef, (docSnap) => {
-    if (docSnap.exists() && docSnap.data().hidden_collections) {
-      hiddenCollections = docSnap.data().hidden_collections;
+
+  const unsubUserDoc = onSnapshot(doc(db, USER_COLLECTIONS, username), (snapshot) => {
+    if (snapshot.exists() && snapshot.data().hidden_collections) {
+      hiddenCollections = snapshot.data().hidden_collections;
     } else {
       hiddenCollections = [];
     }
@@ -82,70 +79,87 @@ function subscribeToCards(onUpdate) {
   });
 
   return () => {
-    unsubscribeGlobal();
-    unsubscribeUserCards();
-    unsubscribeUserDoc();
+    unsubGlobal();
+    unsubUserCards();
+    unsubUserDoc();
   };
 }
 
-async function updateCardOwnership(cardId, method) {
+async function updateCardOwnership(cardId, localPhotoUri = "") {
   const username = getCurrentUsername();
-  const userCardRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
-  
-  await setDoc(userCardRef, {
+  const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
+
+  await setDoc(cardDocRef, {
     is_owned: true,
-    obtained_method: method,
+    local_photo_uri: localPhotoUri,
+    need_sync_photo: localPhotoUri !== "",
     updated_at: new Date().toISOString()
   }, { merge: true });
-}
-
-async function updateCardDetails(cardId, note, localPhotoUri) {
-  const username = getCurrentUsername();
-  const userCardRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
-  
-  const updateData = {
-    user_note: note,
-    updated_at: new Date().toISOString()
-  };
-  
-  if (localPhotoUri) {
-    updateData.local_photo_uri = localPhotoUri;
-    updateData.need_sync_photo = true;
-  }
-  
-  await setDoc(userCardRef, updateData, { merge: true });
 }
 
 async function removeCardOwnership(cardId) {
   const username = getCurrentUsername();
-  const userCardRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
-  
-  await setDoc(userCardRef, {
+  const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
+
+  await setDoc(cardDocRef, {
     is_owned: false,
-    obtained_method: null,
-    user_note: "",
-    real_photo_url: "",
-    local_photo_uri: "",
-    need_sync_photo: false,
     updated_at: new Date().toISOString()
   }, { merge: true });
 }
 
-async function toggleWishlistStatus(cardId, currentStatus) {
+async function toggleWishlistStatus(cardId) {
   const username = getCurrentUsername();
-  const userCardRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
+  const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
+
+  const snapshot = await getDocs(collection(db, USER_COLLECTIONS, username, "cards"));
+  let currentWishlist = false;
   
-  await setDoc(userCardRef, {
-    is_wishlist: !currentStatus,
+  snapshot.docs.forEach(d => {
+    if (d.id === cardId && d.data().is_wishlist) {
+      currentWishlist = d.data().is_wishlist;
+    }
+  });
+
+  await setDoc(cardDocRef, {
+    is_wishlist: !currentWishlist,
+    updated_at: new Date().toISOString()
+  }, { merge: true });
+}
+
+async function toggleFavoriteStatus(cardId) {
+  const username = getCurrentUsername();
+  const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
+
+  const snapshot = await getDocs(collection(db, USER_COLLECTIONS, username, "cards"));
+  let currentFavorite = false;
+  
+  snapshot.docs.forEach(d => {
+    if (d.id === cardId && d.data().is_favorite) {
+      currentFavorite = d.data().is_favorite;
+    }
+  });
+
+  await setDoc(cardDocRef, {
+    is_favorite: !currentFavorite,
+    updated_at: new Date().toISOString()
+  }, { merge: true });
+}
+
+async function updateCardDetails(cardId, userNote) {
+  const username = getCurrentUsername();
+  const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
+
+  await setDoc(cardDocRef, {
+    user_note: userNote,
     updated_at: new Date().toISOString()
   }, { merge: true });
 }
 
 async function setCardVisibility(cardId, isHidden) {
   const username = getCurrentUsername();
-  const userCardRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
-  
-  await setDoc(userCardRef, {
+  const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
+
+  await setDoc(cardDocRef, {
     is_hidden: isHidden,
     updated_at: new Date().toISOString()
   }, { merge: true });
@@ -185,18 +199,20 @@ async function initializeCard(cardId, cardName, collectionName, rarity, referenc
     card_name: cardName,
     collection_name: collectionName.replace(/ ❯ /g, " > "),
     rarity: rarity,
-    reference_image_url: referenceImageUrl
+    reference_image_url: referenceImageUrl,
+    updated_at: new Date().toISOString()
   };
   await setDoc(cardRef, cardData, { merge: true });
 }
 
-export { 
-  initializeCard, 
-  subscribeToCards, 
-  updateCardOwnership, 
-  updateCardDetails,
+export {
+  subscribeToCards,
+  updateCardOwnership,
   removeCardOwnership,
   toggleWishlistStatus,
+  toggleFavoriteStatus,
+  updateCardDetails,
   setCardVisibility,
-  setCollectionVisibility
+  setCollectionVisibility,
+  initializeCard
 };
