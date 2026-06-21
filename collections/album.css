@@ -382,3 +382,12 @@ body {
 .hidden {
     display: none !important;
 }
+
+#filter-buttons-wrapper button {
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+#filter-buttons-wrapper button:active {
+    transform: scale(0.98);
+}
