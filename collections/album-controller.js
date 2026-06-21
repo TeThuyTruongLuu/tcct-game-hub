@@ -72,7 +72,7 @@ function setupWishlistToggleHeader() {
     wishlistBtn.style.background = "var(--card-bg)";
     wishlistBtn.style.color = "var(--text-main)";
     wishlistBtn.style.boxShadow = "var(--shadow-sm)";
-    wishlistBtn.textContent = "❤️ Xem danh sách ước (Wishlist)";
+    wishlistBtn.textContent = "❤️ Wishlist";
     
     wishlistBtn.addEventListener("click", () => {
       filterWishlistOnly = !filterWishlistOnly;
@@ -80,12 +80,12 @@ function setupWishlistToggleHeader() {
         wishlistBtn.style.background = "#fee2e2";
         wishlistBtn.style.color = "#dc2626";
         wishlistBtn.style.borderColor = "#fca5a5";
-        wishlistBtn.textContent = "❤️ Đang hiện Wishlist (Bấm để hủy)";
+        wishlistBtn.textContent = "❤️ Đóng wishlist";
       } else {
         wishlistBtn.style.background = "var(--card-bg)";
         wishlistBtn.style.color = "var(--text-main)";
         wishlistBtn.style.borderColor = "var(--border-color)";
-        wishlistBtn.textContent = "❤️ Xem danh sách ước (Wishlist)";
+        wishlistBtn.textContent = "❤️ Wishlist";
       }
       renderAlbumView();
     });
