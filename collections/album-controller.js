@@ -157,10 +157,58 @@ function setupSearchEventListener() {
   const searchInput = document.getElementById("search-input");
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
-      searchQuery = e.target.value.trim().toLowerCase();
+      searchQuery = e.target.value.trim();
       renderAlbumView();
     });
   }
+}
+
+function parseAdvancedSearch(queryStr) {
+  if (!queryStr) return [];
+  
+  let orClauses = queryStr.split("/").map(c => c.trim()).filter(c => c);
+  
+  return orClauses.map(clause => {
+    let andTokens = [];
+    let regex = /\[([^\]]+)\]|"(html_safe_exact|[^"]+)"|(\S+)/g;
+    let match;
+    
+    while ((match = regex.exec(clause)) !== null) {
+      if (match[1]) {
+        andTokens.push({ type: "folder", value: match[1].trim().toLowerCase() });
+      } else if (match[2]) {
+        andTokens.push({ type: "exact", value: match[2].trim().toLowerCase() });
+      } else if (match[3] && match[3] !== "&") {
+        andTokens.push({ type: "partial", value: match[3].trim().toLowerCase() });
+      }
+    }
+    return andTokens;
+  });
+}
+
+function matchCardWithAdvancedSearch(card, orClauses) {
+  if (orClauses.length === 0) return true;
+  
+  let cardName = (card.card_name || "").toLowerCase();
+  let cardFolder = (card.collection_name || "").toLowerCase();
+  let cardNote = (card.user_note || "").toLowerCase();
+  
+  return orClauses.some(andTokens => {
+    if (andTokens.length === 0) return false;
+    
+    return andTokens.every(token => {
+      if (token.type === "folder") {
+        return cardFolder.includes(token.value);
+      }
+      if (token.type === "exact") {
+        return cardName === token.value || cardNote === token.value;
+      }
+      if (token.type === "partial") {
+        return cardName.includes(token.value) || cardFolder.includes(token.value) || cardNote.includes(token.value);
+      }
+      return false;
+    });
+  });
 }
 
 function getFilteredCards() {
@@ -175,11 +223,8 @@ function getFilteredCards() {
   }
 
   if (searchQuery) {
-    cards = cards.filter(card => {
-      const nameMatch = card.card_name && card.card_name.toLowerCase().includes(searchQuery);
-      const collectionMatch = card.collection_name && card.collection_name.toLowerCase().includes(searchQuery);
-      return nameMatch || collectionMatch;
-    });
+    let orClauses = parseAdvancedSearch(searchQuery);
+    cards = cards.filter(card => matchCardWithAdvancedSearch(card, orClauses));
   }
 
   return cards;
