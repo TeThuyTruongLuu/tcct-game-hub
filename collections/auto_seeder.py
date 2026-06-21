@@ -34,7 +34,7 @@ def scan_and_seed_database():
             
             folder_parts = path_parts[:-1]
             if folder_parts:
-                collection_name = " > ".join([part.replace("_", " ").title() for part in folder_parts])
+                collection_name = " > ".join([part.replace("_", " ") for part in folder_parts])
             else:
                 collection_name = "Khác"
 
@@ -44,7 +44,7 @@ def scan_and_seed_database():
 
             card_data = {
                 "card_id": card_id,
-                "card_name": card_name.title(),
+                "card_name": card_name,
                 "collection_name": collection_name,
                 "rarity": "Normal",
                 "reference_image_url": app_assets_path,
