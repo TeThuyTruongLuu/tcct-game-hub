@@ -3,6 +3,7 @@ import {
   updateCardOwnership, 
   updateCardDetails,
   removeCardOwnership,
+  toggleWishlistStatus,
   setCardVisibility,
   setCollectionVisibility
 } from "./card-service.js";
@@ -12,6 +13,7 @@ let currentPathArray = [];
 let searchQuery = "";
 let currentSelectedCardId = null;
 let capturedAddCardPhotoUri = null;
+let filterWishlistOnly = false;
 
 function initializeAlbum() {
   subscribeToCards((cards) => {
@@ -23,6 +25,7 @@ function initializeAlbum() {
   setupSearchEventListener();
   setupModalEventListeners();
   setupAddCardEventListeners();
+  setupWishlistToggleHeader();
 }
 
 function renderProgress(cards) {
@@ -50,6 +53,43 @@ function setupSearchEventListener() {
       searchQuery = e.target.value.trim();
       renderAlbumView();
     });
+  }
+}
+
+function setupWishlistToggleHeader() {
+  const searchContainer = document.querySelector(".search-container");
+  if (searchContainer && !document.getElementById("btn-filter-wishlist")) {
+    const wishlistBtn = document.createElement("button");
+    wishlistBtn.id = "btn-filter-wishlist";
+    wishlistBtn.style.width = "100%";
+    wishlistBtn.style.padding = "10px";
+    wishlistBtn.style.marginTop = "8px";
+    wishlistBtn.style.border = "1px solid var(--border-color)";
+    wishlistBtn.style.borderRadius = "10px";
+    wishlistBtn.style.fontSize = "13px";
+    wishlistBtn.style.fontWeight = "600";
+    wishlistBtn.style.cursor = "pointer";
+    wishlistBtn.style.background = "var(--card-bg)";
+    wishlistBtn.style.color = "var(--text-main)";
+    wishlistBtn.style.boxShadow = "var(--shadow-sm)";
+    wishlistBtn.textContent = "❤️ Xem danh sách ước (Wishlist)";
+    
+    wishlistBtn.addEventListener("click", () => {
+      filterWishlistOnly = !filterWishlistOnly;
+      if (filterWishlistOnly) {
+        wishlistBtn.style.background = "#fee2e2";
+        wishlistBtn.style.color = "#dc2626";
+        wishlistBtn.style.borderColor = "#fca5a5";
+        wishlistBtn.textContent = "❤️ Đang hiện Wishlist (Bấm để hủy)";
+      } else {
+        wishlistBtn.style.background = "var(--card-bg)";
+        wishlistBtn.style.color = "var(--text-main)";
+        wishlistBtn.style.borderColor = "var(--border-color)";
+        wishlistBtn.textContent = "❤️ Xem danh sách ước (Wishlist)";
+      }
+      renderAlbumView();
+    });
+    searchContainer.appendChild(wishlistBtn);
   }
 }
 
@@ -88,6 +128,7 @@ function matchCardWithAdvancedSearch(card, orClauses) {
     
     return andTokens.every(token => {
       if (token.type === "folder") {
+        if (token.value === "wishlist") return card.is_wishlist === true;
         return cardFolder.includes(token.value);
       }
       if (token.type === "exact") {
@@ -147,12 +188,13 @@ function renderAlbumView() {
   
   container.innerHTML = "";
 
-  if (searchQuery !== "") {
+  if (searchQuery !== "" || filterWishlistOnly) {
     let orClauses = parseAdvancedSearch(searchQuery);
-    const matchedCards = allCardsData.filter(card => 
-      !card.is_hidden && !card.is_collection_hidden &&
-      matchCardWithAdvancedSearch(card, orClauses)
-    );
+    const matchedCards = allCardsData.filter(card => {
+      if (card.is_hidden || card.is_collection_hidden) return false;
+      if (filterWishlistOnly && !card.is_wishlist) return false;
+      return matchCardWithAdvancedSearch(card, orClauses);
+    });
 
     if (matchedCards.length === 0) {
       container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">Không tìm thấy kết quả phù hợp</div>`;
@@ -287,11 +329,20 @@ function createCardDOM(card) {
   }
   
   cardElement.innerHTML = `
-    <div class="card-image-box">
+    <div class="card-image-box" style="position: relative;">
       <img src="${imageUrl}" alt="${card.card_name}">
+      <span class="card-wishlist-heart" style="position: absolute; top: 4px; right: 4px; font-size: 14px; cursor: pointer; user-select: none; z-index: 10;">
+        ${card.is_wishlist ? "❤️" : "🤍"}
+      </span>
     </div>
     <div class="card-item-name">${card.card_name}</div>
   `;
+  
+  cardElement.querySelector(".card-wishlist-heart").addEventListener("click", async (e) => {
+    e.stopPropagation();
+    await toggleWishlistStatus(card.card_id, card.is_wishlist);
+  });
+
   cardElement.addEventListener("click", () => openCardModal(card));
   return cardElement;
 }
@@ -368,14 +419,22 @@ function setupModalEventListeners() {
     }
   });
 
-  const removeBtn = document.getElementById("btn-remove-ownership");
-  if (removeBtn) {
+  const ownedZone = document.getElementById("modal-owned-zone");
+  if (ownedZone && !document.getElementById("btn-remove-ownership")) {
+    const removeBtn = document.createElement("button");
+    removeBtn.id = "btn-remove-ownership";
+    removeBtn.className = "btn";
+    removeBtn.style.background = "#ef4444";
+    removeBtn.style.color = "white";
+    removeBtn.style.marginTop = "8px";
+    removeBtn.textContent = "Bỏ khỏi bộ sưu tập";
     removeBtn.addEventListener("click", async () => {
       if (currentSelectedCardId) {
         await removeCardOwnership(currentSelectedCardId);
         closeCardModal();
       }
     });
+    ownedZone.appendChild(removeBtn);
   }
 
   const toggleVisibilityBtn = document.getElementById("btn-toggle-visibility");
@@ -389,6 +448,27 @@ function setupModalEventListeners() {
         }
       }
     });
+  } else {
+    const modalContent = document.querySelector(".modal-content");
+    if (modalContent && !document.getElementById("btn-toggle-visibility")) {
+      const visibilityBtn = document.createElement("button");
+      visibilityBtn.id = "btn-toggle-visibility";
+      visibilityBtn.className = "btn";
+      visibilityBtn.style.background = "#64748b";
+      visibilityBtn.style.color = "white";
+      visibilityBtn.style.marginTop = "8px";
+      visibilityBtn.textContent = "Ẩn khỏi album";
+      visibilityBtn.addEventListener("click", async () => {
+        if (currentSelectedCardId) {
+          const targetCard = allCardsData.find(c => c.card_id === currentSelectedCardId);
+          if (targetCard) {
+            await setCardVisibility(currentSelectedCardId, !targetCard.is_hidden);
+            closeCardModal();
+          }
+        }
+      });
+      modalContent.appendChild(visibilityBtn);
+    }
   }
   
   const currentGroup = currentPathArray.join(" > ");
@@ -423,8 +503,8 @@ function captureRealPhoto(cardId) {
     () => {},
     {
       quality: 60,
-      destinationType: Camera.DestinationType.FILE_URI,
-      sourceType: Camera.PictureSourceType.CAMERA
+      destinationType: navigator.camera.DestinationType.FILE_URI,
+      sourceType: navigator.camera.PictureSourceType.CAMERA
     }
   );
 }
@@ -452,8 +532,8 @@ function setupAddCardEventListeners() {
       () => {},
       {
         quality: 60,
-        destinationType: Camera.DestinationType.FILE_URI,
-        sourceType: Camera.PictureSourceType.CAMERA
+        destinationType: navigator.camera.DestinationType.FILE_URI,
+        sourceType: navigator.camera.PictureSourceType.CAMERA
       }
     );
   });

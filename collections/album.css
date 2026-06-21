@@ -64,21 +64,29 @@ body {
 
 .fab-add {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 30px;
-    height: 30px;
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
     background: var(--text-main);
     color: #ffffff;
     border: none;
     border-radius: 8px;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.2s;
+}
+
+.card-wishlist-heart {
+    transition: transform 0.15s ease-in-out;
+}
+
+.card-wishlist-heart:hover {
+    transform: scale(1.25);
 }
 
 .fab-add:hover {

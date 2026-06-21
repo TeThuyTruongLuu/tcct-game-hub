@@ -48,6 +48,7 @@ function subscribeToCards(onUpdate) {
         need_sync_photo: userData.need_sync_photo ?? false,
         updated_at: userData.updated_at ?? null,
         is_hidden: userData.is_hidden ?? false,
+        is_wishlist: userData.is_wishlist ?? false,
         is_collection_hidden: hiddenCollections.includes(normalizedCollection)
       };
     });
@@ -130,6 +131,16 @@ async function removeCardOwnership(cardId) {
   }, { merge: true });
 }
 
+async function toggleWishlistStatus(cardId, currentStatus) {
+  const username = getCurrentUsername();
+  const userCardRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
+  
+  await setDoc(userCardRef, {
+    is_wishlist: !currentStatus,
+    updated_at: new Date().toISOString()
+  }, { merge: true });
+}
+
 async function setCardVisibility(cardId, isHidden) {
   const username = getCurrentUsername();
   const userCardRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
@@ -185,6 +196,7 @@ export {
   updateCardOwnership, 
   updateCardDetails,
   removeCardOwnership,
+  toggleWishlistStatus,
   setCardVisibility,
   setCollectionVisibility
 };
