@@ -189,7 +189,10 @@ function renderAlbumView() {
     renderFolderDepthView(filteredCards, container);
   } else {
     document.getElementById("breadcrumbs-container").innerHTML = "";
-    renderCardsGrid(filteredCards, container);
+    const gridContainer = document.createElement("div");
+    gridContainer.className = "album-grid";
+    renderCardsGrid(filteredCards, gridContainer);
+    container.appendChild(gridContainer);
   }
 }
 
@@ -253,6 +256,10 @@ function renderFolderDepthView(cards, container) {
 
   if (cardsInThisFolder.length > 0) {
     const gridContainer = document.createElement("div");
+    gridContainer.className = "album-grid";
+    if (listContainer.children.length > 0) {
+      gridContainer.style.marginTop = "16px";
+    }
     renderCardsGrid(cardsInThisFolder, gridContainer);
     container.appendChild(gridContainer);
   }
@@ -296,8 +303,6 @@ function renderBreadcrumbs() {
 }
 
 function renderCardsGrid(cards, container) {
-  container.className = "album-grid";
-
   if (cards.length === 0) {
     const noData = document.createElement("div");
     noData.style.gridColumn = "1 / -1";
@@ -317,7 +322,6 @@ function renderCardsGrid(cards, container) {
 
     const imageBox = document.createElement("div");
     imageBox.className = "card-image-box";
-    imageBox.style.position = "relative";
 
     const img = document.createElement("img");
     img.src = card.real_photo_url || card.reference_image_url || "assets/default-card.png";

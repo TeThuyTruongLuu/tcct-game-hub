@@ -142,7 +142,7 @@ body {
 .breadcrumb-separator {
     color: #cbd5e1;
     user-select: none;
-    margin: 0 2px;
+    margin: 0 4px;
 }
 
 .list-container {
@@ -200,6 +200,7 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
     gap: 12px;
+    width: 100%;
 }
 
 .card-item {
@@ -213,6 +214,7 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
+    box-sizing: border-box;
 }
 
 .card-item:hover {
