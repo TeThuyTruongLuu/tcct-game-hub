@@ -142,6 +142,7 @@ body {
 .breadcrumb-separator {
     color: #cbd5e1;
     user-select: none;
+    margin: 0 2px;
 }
 
 .list-container {
@@ -312,7 +313,7 @@ body {
 }
 
 .modal.hidden {
-    display: none;
+    display: none !important;
 }
 
 .modal-content {

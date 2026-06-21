@@ -18,9 +18,8 @@ function getCurrentUsername() {
 
 function subscribeToCards(onUpdate) {
   const username = getCurrentUsername();
-  
   const globalCollectionRef = collection(db, GLOBAL_CARDS_COLLECTION);
-  const userCardsCollectionRef = collection(db, USER_COLLECTIONS, username, \"cards\");
+  const userCardsCollectionRef = collection(db, USER_COLLECTIONS, username, "cards");
 
   let globalCards = [];
   let userCardsMap = {};
@@ -36,7 +35,6 @@ function subscribeToCards(onUpdate) {
       const userData = userCardsMap[globalCard.card_id] || {};
       let originalCollection = globalCard.collection_name || "Khác";
       let normalizedCollection = originalCollection.replace(/ ❯ /g, " > ");
-
       const isCollectionHidden = hiddenCollections.includes(normalizedCollection);
 
       return {
@@ -88,7 +86,6 @@ function subscribeToCards(onUpdate) {
 async function updateCardOwnership(cardId, localPhotoUri = "") {
   const username = getCurrentUsername();
   const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
-
   await setDoc(cardDocRef, {
     is_owned: true,
     local_photo_uri: localPhotoUri,
@@ -100,7 +97,6 @@ async function updateCardOwnership(cardId, localPhotoUri = "") {
 async function removeCardOwnership(cardId) {
   const username = getCurrentUsername();
   const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
-
   await setDoc(cardDocRef, {
     is_owned: false,
     updated_at: new Date().toISOString()
@@ -110,7 +106,6 @@ async function removeCardOwnership(cardId) {
 async function toggleWishlistStatus(cardId) {
   const username = getCurrentUsername();
   const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
-
   const snapshot = await getDocs(collection(db, USER_COLLECTIONS, username, "cards"));
   let currentWishlist = false;
   
@@ -129,7 +124,6 @@ async function toggleWishlistStatus(cardId) {
 async function toggleFavoriteStatus(cardId) {
   const username = getCurrentUsername();
   const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
-
   const snapshot = await getDocs(collection(db, USER_COLLECTIONS, username, "cards"));
   let currentFavorite = false;
   
@@ -148,7 +142,6 @@ async function toggleFavoriteStatus(cardId) {
 async function updateCardDetails(cardId, userNote) {
   const username = getCurrentUsername();
   const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
-
   await setDoc(cardDocRef, {
     user_note: userNote,
     updated_at: new Date().toISOString()
@@ -158,7 +151,6 @@ async function updateCardDetails(cardId, userNote) {
 async function setCardVisibility(cardId, isHidden) {
   const username = getCurrentUsername();
   const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
-
   await setDoc(cardDocRef, {
     is_hidden: isHidden,
     updated_at: new Date().toISOString()
@@ -168,7 +160,6 @@ async function setCardVisibility(cardId, isHidden) {
 async function setCollectionVisibility(collectionName, isHidden) {
   const username = getCurrentUsername();
   const userDocRef = doc(db, USER_COLLECTIONS, username);
-
   const userSnap = await getDocs(collection(db, USER_COLLECTIONS));
   let currentHidden = [];
   

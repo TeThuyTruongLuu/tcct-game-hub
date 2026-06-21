@@ -12,10 +12,9 @@ import {
 
 let allCardsData = [];
 let currentPathArray = [];
-let searchQuery = \"\";
+let searchQuery = "";
 let currentSelectedCardId = null;
 let capturedAddCardPhotoUri = null;
-
 let filterStatus = "all"; 
 let groupFoldersInOwned = true;
 
@@ -25,7 +24,6 @@ function initializeAlbum() {
     renderProgress(cards);
     renderAlbumView();
   });
-  
   setupSearchEventListener();
   setupModalEventListeners();
   setupAddCardEventListeners();
@@ -36,7 +34,6 @@ function renderProgress(cards) {
   const visibleCards = cards.filter(card => !card.is_hidden && !card.is_collection_hidden);
   const total = visibleCards.length;
   const ownedCount = visibleCards.filter(card => card.is_owned).length;
-  
   const progressBar = document.getElementById("progress-bar");
   const progressText = document.getElementById("progress-text");
   
@@ -198,7 +195,6 @@ function renderAlbumView() {
 
 function renderFolderDepthView(cards, container) {
   const currentDepth = currentPathArray.length;
-  
   renderBreadcrumbs();
 
   const subFoldersMap = {};
@@ -206,7 +202,6 @@ function renderFolderDepthView(cards, container) {
 
   cards.forEach(card => {
     const parts = card.collection_name.split(">").map(p => p.trim());
-    
     let match = true;
     for (let i = 0; i < currentDepth; i++) {
       if (parts[i] !== currentPathArray[i]) {
@@ -238,7 +233,6 @@ function renderFolderDepthView(cards, container) {
     const stats = subFoldersMap[folderName];
     const folderItem = document.createElement("div");
     folderItem.className = "folder-item";
-    
     folderItem.innerHTML = `
       <div class="folder-info">
         <span class="folder-icon">📁</span>
@@ -246,12 +240,10 @@ function renderFolderDepthView(cards, container) {
       </div>
       <span class="folder-count">${stats.owned}/${stats.total}</span>
     `;
-
     folderItem.addEventListener("click", () => {
       currentPathArray.push(folderName);
       renderAlbumView();
     });
-
     listContainer.appendChild(folderItem);
   });
 
@@ -371,7 +363,6 @@ function openCardModal(cardId) {
   if (!card) return;
 
   currentSelectedCardId = cardId;
-
   document.getElementById("modal-card-name").textContent = card.card_name;
   document.getElementById("modal-collection-name").textContent = card.collection_name;
   
@@ -382,7 +373,6 @@ function openCardModal(cardId) {
   noteInput.value = card.user_note || "";
 
   updateModalActionButtons(card);
-
   document.getElementById("card-modal").classList.remove("hidden");
 }
 
@@ -484,19 +474,6 @@ function setupAddCardEventListeners() {
     });
   }
 
-  document.getElementById("btn-add-take-photo").addEventListener("click", () => {
-    if (typeof navigator.camera === "undefined") return;
-    navigator.camera.getPicture(
-      (imageURI) => { capturedAddCardPhotoUri = imageURI; },
-      () => {},
-      {
-        quality: 60,
-        destinationType: navigator.camera.DestinationType.FILE_URI,
-        sourceType: navigator.camera.PictureSourceType.CAMERA
-      }
-    );
-  });
-
   document.getElementById("btn-submit-add-card").addEventListener("click", async () => {
     const name = document.getElementById("add-card-name").value.trim();
     const collectionNameInput = document.getElementById("add-collection-name").value.trim();
@@ -512,7 +489,6 @@ function setupAddCardEventListeners() {
     if (note) {
       await updateCardDetails(cardId, note);
     }
-
     addModal.classList.add("hidden");
   });
 }
