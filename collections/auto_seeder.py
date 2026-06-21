@@ -34,7 +34,7 @@ def scan_and_seed_database():
             
             folder_parts = path_parts[:-1]
             if folder_parts:
-                collection_name = " ❯ ".join([part.replace("_", " ").title() for part in folder_parts])
+                collection_name = " > ".join([part.replace("_", " ").title() for part in folder_parts])
             else:
                 collection_name = "Khác"
 
