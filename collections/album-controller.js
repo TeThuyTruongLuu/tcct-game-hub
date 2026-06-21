@@ -23,6 +23,14 @@ function initializeAlbum() {
     allCardsData = cards;
     renderProgress(cards);
     renderAlbumView();
+    if (currentSelectedCardId) {
+      const updatedCard = cards.find(c => c.card_id === currentSelectedCardId);
+      if (updatedCard) {
+        updateModalActionButtons(updatedCard);
+      } else {
+        closeCardModal();
+      }
+    }
   });
   setupSearchEventListener();
   setupModalEventListeners();
@@ -194,6 +202,8 @@ function renderAlbumView() {
     renderCardsGrid(filteredCards, gridContainer);
     container.appendChild(gridContainer);
   }
+
+  renderHiddenFoldersBlock(container);
 }
 
 function renderFolderDepthView(cards, container) {
@@ -265,6 +275,66 @@ function renderFolderDepthView(cards, container) {
   }
 }
 
+function renderHiddenFoldersBlock(container) {
+  if (searchQuery || filterStatus !== "all") return;
+  
+  const currentPrefix = currentPathArray.join(" > ");
+  const hiddenGroups = [];
+
+  allCardsData.forEach(card => {
+    if (card.is_collection_hidden && card.collection_name) {
+      const parts = card.collection_name.split(" > ").map(p => p.trim());
+      if (currentPathArray.length === 0) {
+        if (parts.length > 0 && !hiddenGroups.includes(parts[0])) {
+          hiddenGroups.push(parts[0]);
+        }
+      } else {
+        let match = true;
+        for (let i = 0; i < currentPathArray.length; i++) {
+          if (parts[i] !== currentPathArray[i]) {
+            match = false;
+            break;
+          }
+        }
+        if (match && parts.length > currentPathArray.length) {
+          const nextFolder = parts[currentPathArray.length];
+          if (!hiddenGroups.includes(nextFolder)) {
+            hiddenGroups.push(nextFolder);
+          }
+        }
+      }
+    }
+  });
+
+  if (hiddenGroups.length > 0) {
+    let listContainer = container.querySelector(".list-container");
+    if (!listContainer) {
+      listContainer = document.createElement("div");
+      listContainer.className = "list-container";
+      container.insertBefore(listContainer, container.firstChild);
+    }
+
+    hiddenGroups.sort().forEach(gName => {
+      const fullGroupName = currentPathArray.length > 0 ? `${currentPrefix} > ${gName}` : gName;
+      const folderElement = document.createElement("div");
+      folderElement.className = "folder-item";
+      folderElement.style.opacity = "0.5";
+      folderElement.innerHTML = `
+        <div class="folder-info">
+          <span class="folder-icon">📁</span>
+          <span class="folder-name" style="text-decoration: line-through;">${gName} (Đang ẩn)</span>
+        </div>
+        <span class="folder-count" style="background: var(--accent); color: white; cursor: pointer;">Hiện lại</span>
+      `;
+      folderElement.querySelector(".folder-count").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await setCollectionVisibility(fullGroupName, false);
+      });
+      listContainer.appendChild(folderElement);
+    });
+  }
+}
+
 function renderBreadcrumbs() {
   const container = document.getElementById("breadcrumbs-container");
   if (!container) return;
@@ -328,24 +398,25 @@ function renderCardsGrid(cards, container) {
     img.alt = card.card_name;
     imageBox.appendChild(img);
 
-    const badgesContainer = document.createElement("div");
-    badgesContainer.className = "card-badges-overlay";
-
-    if (card.is_favorite) {
-      const favBadge = document.createElement("span");
-      favBadge.className = "card-badge-icon badge-favorite";
-      favBadge.innerHTML = "★";
-      badgesContainer.appendChild(favBadge);
+    const heartOverlay = document.createElement("span");
+    heartOverlay.className = "card-wishlist-heart";
+    
+    if (card.is_owned) {
+      heartOverlay.textContent = card.is_favorite ? "❤️" : "🤍";
+    } else {
+      heartOverlay.textContent = card.is_wishlist ? "❤️" : "🤍";
     }
 
-    if (card.is_wishlist) {
-      const wishBadge = document.createElement("span");
-      wishBadge.className = "card-badge-icon badge-wishlist";
-      wishBadge.innerHTML = "❤";
-      badgesContainer.appendChild(wishBadge);
-    }
+    heartOverlay.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (card.is_owned) {
+        await toggleFavoriteStatus(card.card_id);
+      } else {
+        await toggleWishlistStatus(card.card_id);
+      }
+    });
 
-    imageBox.appendChild(badgesContainer);
+    imageBox.appendChild(heartOverlay);
 
     const nameEl = document.createElement("div");
     nameEl.className = "card-item-name";
@@ -381,81 +452,101 @@ function openCardModal(cardId) {
 }
 
 function updateModalActionButtons(card) {
-  const btnOwned = document.getElementById("btn-toggle-owned");
-  const btnFavorite = document.getElementById("btn-toggle-favorite");
-  const btnWishlist = document.getElementById("btn-toggle-wishlist");
+  const grid = document.querySelector(".modal-options-grid");
+  if (!grid) return;
 
+  grid.innerHTML = "";
+
+  const btnOwned = document.createElement("button");
   if (card.is_owned) {
     btnOwned.textContent = "Bỏ sở hữu";
-    btnOwned.className = "btn btn-secondary";
+    btnOwned.className = "btn btn-activated-owned";
   } else {
     btnOwned.textContent = "Đã sở hữu";
     btnOwned.className = "btn btn-success";
   }
+  btnOwned.addEventListener("click", async () => {
+    if (card.is_owned) {
+      await removeCardOwnership(card.card_id);
+    } else {
+      await updateCardOwnership(card.card_id);
+    }
+  });
 
-  if (card.is_favorite) {
-    btnFavorite.textContent = "Bỏ yêu thích";
-    btnFavorite.className = "btn btn-secondary";
+  const btnHeart = document.createElement("button");
+  if (card.is_owned) {
+    btnHeart.className = card.is_favorite ? "btn btn-activated-fav" : "btn btn-deactivated";
+    btnHeart.textContent = card.is_favorite ? "Bỏ yêu thích" : "Yêu thích";
+    btnHeart.addEventListener("click", () => toggleFavoriteStatus(card.card_id));
   } else {
-    btnFavorite.textContent = "Yêu thích";
-    btnFavorite.className = "btn btn-success";
+    btnHeart.className = card.is_wishlist ? "btn btn-activated-wish" : "btn btn-deactivated-wish";
+    btnHeart.textContent = card.is_wishlist ? "Bỏ Wishlist" : "Thêm Wishlist";
+    btnHeart.addEventListener("click", () => toggleWishlistStatus(card.card_id));
   }
 
-  if (card.is_wishlist) {
-    btnWishlist.textContent = "Bỏ Wishlist";
-    btnWishlist.className = "btn btn-secondary";
+  const btnVisibility = document.createElement("button");
+  btnVisibility.className = "btn btn-secondary";
+  btnVisibility.textContent = card.is_hidden ? "Hiện thẻ" : "Ẩn thẻ";
+  btnVisibility.addEventListener("click", () => setCardVisibility(card.card_id, !card.is_hidden));
+
+  grid.appendChild(btnOwned);
+  grid.appendChild(btnHeart);
+
+  if (card.is_owned) {
+    const btnPhoto = document.createElement("button");
+    btnPhoto.id = "btn-take-photo";
+    btnPhoto.className = "btn btn-success";
+    btnPhoto.textContent = "Chụp ảnh thực tế";
+    btnPhoto.addEventListener("click", () => captureRealPhoto(card.card_id));
+    
+    grid.appendChild(btnPhoto);
+    grid.appendChild(btnVisibility);
   } else {
-    btnWishlist.textContent = "Thêm Wishlist";
-    btnWishlist.className = "btn btn-success";
+    btnVisibility.classList.add("span-two-columns");
+    grid.appendChild(btnVisibility);
   }
+
+  const btnSave = document.createElement("button");
+  btnSave.className = "btn btn-primary span-two-columns";
+  btnSave.textContent = card.is_owned ? "Lưu thay đổi" : "Lưu lại";
+  btnSave.addEventListener("click", () => saveCardDetails());
+  grid.appendChild(btnSave);
+}
+
+async function saveCardDetails() {
+  if (!currentSelectedCardId) return;
+  const note = document.getElementById("modal-note-input").value.trim();
+  await updateCardDetails(currentSelectedCardId, note);
+  closeCardModal();
+}
+
+function closeCardModal() {
+  document.getElementById("card-modal").classList.add("hidden");
+  currentSelectedCardId = null;
+}
+
+function captureRealPhoto(cardId) {
+  if (typeof navigator.camera === "undefined") return;
+  navigator.camera.getPicture(
+    async (imageURI) => {
+      const noteValue = document.getElementById("modal-note-input").value.trim();
+      await updateCardDetails(cardId, noteValue);
+      await updateCardOwnership(cardId, imageURI);
+    },
+    () => {},
+    {
+      quality: 60,
+      destinationType: navigator.camera.DestinationType.FILE_URI,
+      sourceType: navigator.camera.PictureSourceType.CAMERA
+    }
+  );
 }
 
 function setupModalEventListeners() {
-  const cardModal = document.getElementById("card-modal");
   const closeModal = document.getElementById("close-modal");
-
   if (closeModal) {
-    closeModal.addEventListener("click", () => {
-      cardModal.classList.add("hidden");
-      currentSelectedCardId = null;
-    });
+    closeModal.addEventListener("click", closeCardModal);
   }
-
-  document.getElementById("btn-toggle-owned").addEventListener("click", async () => {
-    if (!currentSelectedCardId) return;
-    const card = allCardsData.find(c => c.card_id === currentSelectedCardId);
-    if (!card) return;
-
-    if (card.is_owned) {
-      await removeCardOwnership(currentSelectedCardId);
-    } else {
-      await updateCardOwnership(currentSelectedCardId);
-    }
-    const updatedCard = allCardsData.find(c => c.card_id === currentSelectedCardId);
-    if (updatedCard) updateModalActionButtons(updatedCard);
-  });
-
-  document.getElementById("btn-toggle-favorite").addEventListener("click", async () => {
-    if (!currentSelectedCardId) return;
-    await toggleFavoriteStatus(currentSelectedCardId);
-    const updatedCard = allCardsData.find(c => c.card_id === currentSelectedCardId);
-    if (updatedCard) updateModalActionButtons(updatedCard);
-  });
-
-  document.getElementById("btn-toggle-wishlist").addEventListener("click", async () => {
-    if (!currentSelectedCardId) return;
-    await toggleWishlistStatus(currentSelectedCardId);
-    const updatedCard = allCardsData.find(c => c.card_id === currentSelectedCardId);
-    if (updatedCard) updateModalActionButtons(updatedCard);
-  });
-
-  document.getElementById("btn-save-details").addEventListener("click", async () => {
-    if (!currentSelectedCardId) return;
-    const note = document.getElementById("modal-note-input").value.trim();
-    await updateCardDetails(currentSelectedCardId, note);
-    cardModal.classList.add("hidden");
-    currentSelectedCardId = null;
-  });
 }
 
 function setupAddCardEventListeners() {

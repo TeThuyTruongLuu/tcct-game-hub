@@ -92,12 +92,28 @@ function subscribeToCards(onUpdate) {
 async function updateCardOwnership(cardId, localPhotoUri = "") {
   const username = getCurrentUsername();
   const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
-  await setDoc(cardDocRef, {
+  
+  const snap = await getDocs(collection(db, USER_COLLECTIONS, username, "cards"));
+  let wasInWishlist = false;
+  snap.docs.forEach(d => {
+    if (d.id === cardId && d.data().is_wishlist) {
+      wasInWishlist = true;
+    }
+  });
+
+  let updates = {
     is_owned: true,
     local_photo_uri: localPhotoUri,
     need_sync_photo: localPhotoUri !== "",
     updated_at: new Date().toISOString()
-  }, { merge: true });
+  };
+
+  if (wasInWishlist) {
+    updates.is_wishlist = false;
+    updates.is_favorite = true;
+  }
+
+  await setDoc(cardDocRef, updates, { merge: true });
 }
 
 async function removeCardOwnership(cardId) {
@@ -105,6 +121,7 @@ async function removeCardOwnership(cardId) {
   const cardDocRef = doc(db, USER_COLLECTIONS, username, "cards", cardId);
   await setDoc(cardDocRef, {
     is_owned: false,
+    is_favorite: false,
     updated_at: new Date().toISOString()
   }, { merge: true });
 }
