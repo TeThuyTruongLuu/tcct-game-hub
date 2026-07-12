@@ -259,7 +259,7 @@ function renderFolderDepthView(cards, container) {
   const cardsInThisFolder = [];
 
   cards.forEach(card => {
-    const parts = card.collection_name.split(">").map(p => p.trim());
+    const parts = card.collection_name.split(" > ").map(p => p.trim());
     let match = true;
     for (let i = 0; i < currentDepth; i++) {
       if (parts[i] !== currentPathArray[i]) {
